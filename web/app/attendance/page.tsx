@@ -18,7 +18,7 @@ export default function AttendancePage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAttendance = () => {
-    fetch('/api/attendance')
+    fetch('/api/attendance', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);
@@ -28,13 +28,22 @@ export default function AttendancePage() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (d.authenticated) setCurrentUser(d.user);
       });
 
     fetchAttendance();
+    const interval = setInterval(fetchAttendance, 4000);
+    const handleFocus = () => fetchAttendance();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   const handleManualCheck = async (e: React.FormEvent) => {

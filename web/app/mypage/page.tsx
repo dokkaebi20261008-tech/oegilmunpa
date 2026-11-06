@@ -11,8 +11,8 @@ export default function MyPage() {
   const [guildSummary, setGuildSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch('/api/auth/me')
+  const loadMyData = () => {
+    fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (!d.authenticated) {
@@ -25,9 +25,22 @@ export default function MyPage() {
       })
       .catch(() => setLoading(false));
 
-    fetch('/api/attendance')
+    fetch('/api/attendance', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => setGuildSummary(d));
+  };
+
+  useEffect(() => {
+    loadMyData();
+    const interval = setInterval(loadMyData, 4000);
+    const handleFocus = () => loadMyData();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   if (loading) {

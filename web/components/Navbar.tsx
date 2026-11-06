@@ -11,14 +11,14 @@ export default function Navbar() {
   const [pendingCount, setPendingCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/auth/me')
+  const syncData = () => {
+    fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
           setCurrentUser(data.user);
           if (data.user.role === 'ADMIN') {
-            fetch('/api/admin/users')
+            fetch('/api/admin/users', { cache: 'no-store' })
               .then(r => r.json())
               .then(ud => setPendingCount(ud.pendingCount || 0))
               .catch(() => {});
@@ -28,6 +28,19 @@ export default function Navbar() {
         }
       })
       .catch(() => setCurrentUser(null));
+  };
+
+  useEffect(() => {
+    syncData();
+    const interval = setInterval(syncData, 5000);
+    const handleFocus = () => syncData();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, [pathname]);
 
   const handleLogout = async () => {
@@ -61,10 +74,14 @@ export default function Navbar() {
               <Shield className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent">
-                외길 문파
+              <div className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent flex items-center gap-2">
+                <span>외길 문파</span>
+                <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold tracking-normal">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  실시간 연동
+                </span>
               </div>
-              <div className="text-[10px] text-slate-400 -mt-1 tracking-wider uppercase font-semibold">
+              <div className="text-[10px] text-slate-400 -mt-0.5 tracking-wider uppercase font-semibold">
                 Dokkaebi Guild System
               </div>
             </div>

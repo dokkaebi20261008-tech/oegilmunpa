@@ -16,8 +16,8 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'PERFECT'>('ALL');
 
-  useEffect(() => {
-    fetch('/api/attendance')
+  const loadDashboardData = () => {
+    fetch('/api/attendance', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         setData(d);
@@ -27,6 +27,19 @@ export default function HomePage() {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+    const interval = setInterval(loadDashboardData, 4000);
+    const handleFocus = () => loadDashboardData();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   const attendanceList = data?.attendance || [];

@@ -29,7 +29,7 @@ export default function AuctionPage() {
   const [simDistribution, setSimDistribution] = useState<AuctionDistribution | null>(null);
 
   const fetchAuctions = () => {
-    fetch('/api/auction')
+    fetch('/api/auction', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         setAuctions(data.auctions || []);
@@ -39,18 +39,27 @@ export default function AuctionPage() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (d.authenticated) setCurrentUser(d.user);
       });
 
     fetchAuctions();
+    const interval = setInterval(fetchAuctions, 3000);
+    const handleFocus = () => fetchAuctions();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   // 모의 계산 실행
   useEffect(() => {
-    fetch('/api/attendance')
+    fetch('/api/attendance', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (!d.attendance) return;

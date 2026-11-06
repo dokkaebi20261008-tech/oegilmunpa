@@ -20,7 +20,7 @@ export default function ShopPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const fetchItems = () => {
-    fetch('/api/shop')
+    fetch('/api/shop', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         setItems(d.items || []);
@@ -30,12 +30,21 @@ export default function ShopPage() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (d.authenticated) setCurrentUser(d.user);
       });
     fetchItems();
+    const interval = setInterval(fetchItems, 4000);
+    const handleFocus = () => fetchItems();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   const handleAddItem = async (e: React.FormEvent) => {

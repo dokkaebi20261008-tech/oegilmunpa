@@ -20,7 +20,7 @@ export default function AdminMembersPage() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const fetchUsers = () => {
-    fetch('/api/admin/users')
+    fetch('/api/admin/users', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (d.success) {
@@ -34,7 +34,7 @@ export default function AdminMembersPage() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (!d.authenticated || d.user.role !== 'ADMIN') {
@@ -45,6 +45,16 @@ export default function AdminMembersPage() {
         setCurrentUser(d.user);
         fetchUsers();
       });
+
+    const interval = setInterval(fetchUsers, 4000);
+    const handleFocus = () => fetchUsers();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, []);
 
   const handleAction = async (action: 'APPROVE' | 'REJECT' | 'DELETE', userId: string, nickname: string) => {
