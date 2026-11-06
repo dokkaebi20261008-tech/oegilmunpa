@@ -727,23 +727,25 @@ async def cmd_reset_error(ctx, error):
     if isinstance(error, commands.CheckFailure):
         await ctx.send("⛔ **권한 부족**: 이 명령어는 **문파장, 부문주, 또는 지정된 간부**만 사용할 수 있습니다.")
 
-@bot.command(name="사이트", aliases=["웹사이트", "홈페이지", "경매장", "상점", "포털"])
+@bot.command(name="사이트", aliases=["웹사이트", "홈페이지", "경매장", "상점", "포털", "분배"])
 async def cmd_website(ctx):
-    """외길 문파 공식 웹사이트 링크와 실시간 출석/경매 현황 안내"""
+    """외길 문파 공식 웹사이트 링크와 원스톱 시스템(참여율, 상점, 경매, 분배) 안내"""
     embed = discord.Embed(
-        title="🌐 외길 문파 공식 웹사이트 & 경매 분배 포털",
-        description="출석 체크, 실시간 참여 포인트, 경매 입찰 및 금전 분배를 웹사이트에서 바로 확인하세요!",
+        title="🌐 외길 문파 공식 통합 포털",
+        description="문파 컨텐츠 참여율 확인부터 문파 상점 아이템 구매, 최소 입찰가를 직접 설정한 경매 진행 및 참여도 비례 금전 분배까지 원스톱으로 제공합니다!",
         color=discord.Color.gold(),
         url=config.WEB_SITE_URL
     )
-    embed.add_field(name="🔗 포털 바로가기", value=f"[👉 외길 문파 웹사이트 열기]({config.WEB_SITE_URL})", inline=False)
+    embed.add_field(name="🔗 공식 포털 바로가기", value=f"[👉 외길 문파 웹사이트 열기]({config.WEB_SITE_URL})", inline=False)
     embed.add_field(
-        name="✨ 주요 기능 안내",
-        value="• **출석 & 포인트**: 수동 1.0P / 분신 0.25P 자동 집계\n"
-              "• **문파 경매장**: 실시간 입찰 및 낙찰 금전(예: 3만 금전) 포인트 비례 자동 분배\n"
-              "• **문파 상점**: 문파 재화 및 금전으로 유용한 아이템 구매",
+        name="✨ 4대 원스톱 시스템 흐름",
+        value="1️⃣ **컨텐츠 참여율**: 수동(1.0P) / 분신(0.25P) 실시간 자동 집계\n"
+              "2️⃣ **문파 상점**: 문파 재화 및 금전으로 상점 아이템 구매\n"
+              "3️⃣ **최소 입찰가 경매**: 최소 시작가 & 호가 단위를 직접 설정하여 실시간 입찰\n"
+              "4️⃣ **공정 금전 분배**: 최종 낙찰금(예: 3만 금전)을 참여 포인트 비율대로 100% 자동 분배",
         inline=False
     )
+    embed.set_footer(text="※ 보안을 위해 회원가입 후 문파장 승인을 받은 정회원만 로그인하여 열람할 수 있습니다.")
     await ctx.send(embed=embed)
 
 @bot.command(name="도움말", aliases=["명령어"])

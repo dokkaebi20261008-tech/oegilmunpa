@@ -143,9 +143,9 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-              외길 문파 주간 컨텐츠 &<br />
+              외길 문파 통합 포털<br />
               <span className="bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 bg-clip-text text-transparent">
-                공정 금전 분배 시스템
+                참여율 · 상점 · 경매 · 분배 시스템
               </span>
             </h1>
 
@@ -155,11 +155,10 @@ export default function HomePage() {
                 <span>문파원 회원가입 및 로그인 안내</span>
               </div>
               <p className="text-xs sm:text-sm text-slate-300">
-                본 시스템의 <strong>주간 4대 컨텐츠 출석부, 참여율, 포인트 통계, 문파 경매장 및 금전 배분 현황</strong>은 
-                외부 비인가자 유출 방지를 위해 <span className="text-amber-400 font-bold">회원가입 후 문파장의 승인을 받은 정회원만 열람</span>하실 수 있습니다.
+                본 사이트는 <strong>문파 컨텐츠 참여율 확인, 문파 상점 아이템 구매, 최소 입찰가를 직접 설정한 경매 진행, 그리고 최종 낙찰금의 공정한 분배</strong>까지 모든 과정을 원스톱으로 관리하는 문파원 전용 포털입니다.
               </p>
               <p className="text-xs text-slate-400">
-                아직 계정이 없으신 문파원님께서는 게임 내 캐릭터 닉네임으로 <strong>[회원가입 요청]</strong>을 진행해 주세요.
+                보안 및 비인가자 유출 차단을 위해 <span className="text-amber-400 font-bold">회원가입 후 문파장의 승인을 받은 정회원만 로그인하여 열람</span>하실 수 있습니다.
               </p>
             </div>
 
@@ -180,6 +179,59 @@ export default function HomePage() {
                 <UserPlus className="w-4 h-4 text-amber-400" />
                 <span>회원가입 요청</span>
               </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* 4-Step Core Flow Guide */}
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
+          <div className="text-center space-y-1">
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Core Guild Lifecycle</span>
+            <h2 className="text-xl sm:text-2xl font-black text-white">외길 문파 원스톱 시스템 흐름</h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              컨텐츠 참여부터 상점 구매, 최소 입찰가 경매 및 투명한 분배까지 유기적으로 연결됩니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-black">
+                1
+              </div>
+              <h3 className="font-extrabold text-white text-sm">컨텐츠 참여율 집계</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                디스코드 인증을 통해 수동 참가(1.0P)와 분신 등록(0.25P)이 출석부에 실시간 자동 누적됩니다.
+              </p>
+            </div>
+
+            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center font-black">
+                2
+              </div>
+              <h3 className="font-extrabold text-white text-sm">문파 상점 아이템 구매</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                컨텐츠 종료 후 획득한 문파 재화나 금전으로 상점에서 귀중한 비약과 전리품 아이템을 구매합니다.
+              </p>
+            </div>
+
+            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black">
+                3
+              </div>
+              <h3 className="font-extrabold text-white text-sm">최소 입찰가 경매 진행</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                상품의 최소 시작가와 최소 호가 단위를 직접 설정하고 전 문파원이 실시간으로 입찰에 참여합니다.
+              </p>
+            </div>
+
+            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black">
+                4
+              </div>
+              <h3 className="font-extrabold text-white text-sm">참여도 비례 금전 분배</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                경매 최종 낙찰금(예: 3만 금전)을 문파원들의 주간 참여 포인트 비율로 100% 공정 자동 분배합니다.
+              </p>
             </div>
           </div>
         </div>
