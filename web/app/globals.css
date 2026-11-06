@@ -10,8 +10,18 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  line-height: 1.65;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+}
+
+p, li, h1, h2, h3, h4, div {
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* Custom scrollbars */

@@ -207,11 +207,12 @@ export default function AttendancePage() {
           <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
-          <div>
+          <div className="space-y-1">
             <h3 className="text-sm font-bold text-white">디스코드 봇 실시간 연동 안내</h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              디스코드 스크린샷 인증 시 텍스트에 <code className="text-amber-300 bg-slate-950 px-1.5 py-0.5 rounded">요신</code> (수동 1P) 또는 <code className="text-sky-300 bg-slate-950 px-1.5 py-0.5 rounded">요신 분신</code> (분신 0.25P)을 적어주시면 봇이 이 웹사이트에 즉시 자동 반영합니다!
-            </p>
+            <div className="text-xs text-slate-400 space-y-0.5">
+              <p>• <strong>수동 참여(+1.0P):</strong> 스크린샷과 함께 <code className="text-emerald-300 bg-slate-950 px-1.5 py-0.5 rounded">요신</code> 입력 시 자동 반영</p>
+              <p>• <strong>분신 등록(+0.25P):</strong> 스크린샷과 함께 <code className="text-sky-300 bg-slate-950 px-1.5 py-0.5 rounded">요신 분신</code> 입력 시 자동 반영</p>
+            </div>
           </div>
         </div>
       </div>

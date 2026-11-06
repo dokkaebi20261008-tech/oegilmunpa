@@ -69,9 +69,10 @@ export default function RegisterPage() {
           <Sparkles className="w-7 h-7 text-white" />
         </div>
         <h1 className="text-2xl font-black text-white tracking-tight">외길 문파 정회원 가입</h1>
-        <p className="text-xs text-slate-400">
-          게임 내 캐릭터 닉네임을 정확히 입력해 주세요. (출석 체크와 자동 매칭됩니다)
-        </p>
+        <div className="text-xs text-slate-400 space-y-0.5 leading-relaxed">
+          <p>게임 내 캐릭터 닉네임을 정확히 입력해 주세요.</p>
+          <p className="text-slate-500">(주간 컨텐츠 출석 체크 및 정산과 자동 매칭됩니다)</p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

@@ -162,9 +162,10 @@ export default function ShopPage() {
             <ShoppingBag className="w-7 h-7 text-amber-400" />
             <span>외길 문파 상점</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            문파 컨텐츠 완료 시 획득한 문파 재화 및 금전으로 유용한 아이템을 구매하고 분배할 수 있습니다.
-          </p>
+          <div className="mt-1.5 text-xs sm:text-sm text-slate-400 space-y-0.5">
+            <p>• 문파 컨텐츠 완료 보상으로 획득한 문파 재화 및 금전으로 아이템을 구매합니다.</p>
+            <p>• 구매한 귀중품은 경매장에서 최소 입찰가를 설정하여 경매 및 분배를 진행할 수 있습니다.</p>
+          </div>
         </div>
 
         {currentUser?.role === 'ADMIN' && (
@@ -179,11 +180,14 @@ export default function ShopPage() {
       </div>
 
       {/* Info Banner */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center space-x-3 text-xs text-slate-300">
-        <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
-        <div>
-          <span className="font-bold text-white">문파 재화 획득 안내: </span>
-          요신 토벌령, 결계지 방어, 미혹의 정원, 신기 쟁탈전 완료 시 문파 전체에 재화가 적립되며, 문파원 누구나 필요한 비약과 강화 재료를 구매할 수 있습니다.
+      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 sm:p-5 flex items-start space-x-3 text-xs text-slate-300">
+        <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="space-y-1 leading-relaxed">
+          <div className="font-bold text-white">문파 재화 획득 및 활용 안내</div>
+          <p className="text-slate-400">
+            • 4대 컨텐츠(요신, 결계지, 미혹, 신기) 클리어 시 문파 전체 재화가 적립됩니다.<br />
+            • 적립된 재화로 상점 내 비약 및 보물 상자를 구매하여 경매 및 분배에 활용합니다.
+          </p>
         </div>
       </div>
 

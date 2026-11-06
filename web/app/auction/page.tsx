@@ -227,9 +227,10 @@ export default function AuctionPage() {
             <Gavel className="w-7 h-7 text-amber-400" />
             <span>외길 문파 경매장 & 금전 분배소</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            문파 컨텐츠 획득 아이템을 경매에 부치고, 낙찰된 금전을 전 문파원의 참여 포인트(수동 1P / 분신 0.25P)에 비례하여 100% 분배합니다.
-          </p>
+          <div className="mt-1.5 text-xs sm:text-sm text-slate-400 space-y-0.5">
+            <p>• 최소 시작 입찰가와 최소 호가 단위를 설정하여 실시간 경매를 진행합니다.</p>
+            <p>• 최종 낙찰 금액은 문파원의 주간 참여 포인트(수동 1P / 분신 0.25P) 비율로 100% 분배됩니다.</p>
+          </div>
         </div>
 
         {currentUser?.role === 'ADMIN' && (
@@ -432,9 +433,10 @@ export default function AuctionPage() {
             <span>실시간 포인트 분배 모의 계산기</span>
           </div>
 
-          <p className="text-xs text-slate-400">
-            상품 금액(예: 30,000 금전)을 입력하면 현재 주간 출석 포인트(수동 1P / 분신 0.25P)에 따라 각 문파원에게 몇 금전씩 분배되는지 즉시 계산합니다.
-          </p>
+          <div className="text-xs text-slate-400 space-y-0.5 leading-relaxed">
+            <p>• 예상 낙찰 금액(예: 30,000 금전)을 입력해 보세요.</p>
+            <p>• 현재 주간 포인트에 따라 문파원별 예상 지급액이 즉시 계산됩니다.</p>
+          </div>
 
           <div className="space-y-1.5">
             <label className="text-xs text-slate-300 font-semibold">경매 총 금전 (금전)</label>

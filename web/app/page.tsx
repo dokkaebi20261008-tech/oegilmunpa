@@ -149,21 +149,36 @@ export default function HomePage() {
               </span>
             </h1>
 
-            <div className="max-w-2xl mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-5 text-sm text-slate-300 leading-relaxed space-y-2">
-              <div className="text-amber-300 font-bold flex items-center justify-center space-x-2">
-                <ShieldCheck className="w-4 h-4" />
-                <span>문파원 회원가입 및 로그인 안내</span>
+            <div className="max-w-xl mx-auto bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 text-left space-y-3">
+              <div className="text-amber-300 font-bold text-sm flex items-center space-x-2 border-b border-slate-800 pb-2.5">
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span>외길 문파 정회원 전용 이용 안내</span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-300">
-                본 사이트는 <strong>문파 컨텐츠 참여율 확인, 문파 상점 아이템 구매, 최소 입찰가를 직접 설정한 경매 진행, 그리고 최종 낙찰금의 공정한 분배</strong>까지 모든 과정을 원스톱으로 관리하는 문파원 전용 포털입니다.
-              </p>
-              <p className="text-xs text-slate-400">
-                보안 및 비인가자 유출 차단을 위해 <span className="text-amber-400 font-bold">회원가입 후 문파장의 승인을 받은 정회원만 로그인하여 열람</span>하실 수 있습니다.
-              </p>
+
+              <ul className="space-y-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <li className="flex items-start space-x-2">
+                  <span className="text-amber-400 font-bold">•</span>
+                  <span>
+                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 → 문파 상점 아이템 구매 → 최소 입찰가 경매 진행 → 참여도 비례 금전 분배까지 한곳에서 이루어집니다.
+                  </span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-indigo-400 font-bold">•</span>
+                  <span>
+                    <strong>열람 권한:</strong> 외부 유출 방지를 위해 <span className="text-amber-300 font-bold">회원가입 후 문파장 승인을 받은 정회원</span>만 로그인하여 확인하실 수 있습니다.
+                  </span>
+                </li>
+                <li className="flex items-start space-x-2">
+                  <span className="text-emerald-400 font-bold">•</span>
+                  <span>
+                    <strong>신규 가입:</strong> 게임 내 실제 캐릭터 닉네임으로 <strong>[회원가입 요청]</strong>을 신청하시면 문파장 승인 즉시 이용 가능합니다.
+                  </span>
+                </li>
+              </ul>
             </div>
 
             {/* Primary Action Buttons */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
               <Link
                 href="/login"
                 className="w-full sm:w-1/2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
@@ -184,87 +199,44 @@ export default function HomePage() {
         </div>
 
         {/* 4-Step Core Flow Guide */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
-          <div className="text-center space-y-1">
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Core Guild Lifecycle</span>
-            <h2 className="text-xl sm:text-2xl font-black text-white">외길 문파 원스톱 시스템 흐름</h2>
-            <p className="text-xs sm:text-sm text-slate-400">
-              컨텐츠 참여부터 상점 구매, 최소 입찰가 경매 및 투명한 분배까지 유기적으로 연결됩니다.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-black">
-                1
-              </div>
-              <h3 className="font-extrabold text-white text-sm">컨텐츠 참여율 집계</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                디스코드 인증을 통해 수동 참가(1.0P)와 분신 등록(0.25P)이 출석부에 실시간 자동 누적됩니다.
-              </p>
-            </div>
-
-            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center font-black">
-                2
-              </div>
-              <h3 className="font-extrabold text-white text-sm">문파 상점 아이템 구매</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                컨텐츠 종료 후 획득한 문파 재화나 금전으로 상점에서 귀중한 비약과 전리품 아이템을 구매합니다.
-              </p>
-            </div>
-
-            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black">
-                3
-              </div>
-              <h3 className="font-extrabold text-white text-sm">최소 입찰가 경매 진행</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                상품의 최소 시작가와 최소 호가 단위를 직접 설정하고 전 문파원이 실시간으로 입찰에 참여합니다.
-              </p>
-            </div>
-
-            <div className="bg-[#131929] border border-slate-800 rounded-2xl p-5 space-y-2.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black">
-                4
-              </div>
-              <h3 className="font-extrabold text-white text-sm">참여도 비례 금전 분배</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                경매 최종 낙찰금(예: 3만 금전)을 문파원들의 주간 참여 포인트 비율로 100% 공정 자동 분배합니다.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 3-Step Guide Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-black">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-black text-sm">
               1
             </div>
-            <h3 className="text-base font-bold text-white">회원가입 요청</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">컨텐츠 참여율 집계</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              아이디, 비밀번호와 함께 <strong>게임 내 실제 캐릭터 닉네임</strong>을 입력하여 정회원 등록을 요청합니다.
+              디스코드 인증으로 수동(1.0P)과 분신(0.25P) 점수가 실시간 누적됩니다.
             </p>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-black">
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center font-black text-sm">
               2
             </div>
-            <h3 className="text-base font-bold text-white">문파장 승인</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">문파 상점 구매</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              문파장이 등록 요청을 1:1 확인 후 승인합니다. 승인이 완료되면 대기 상태가 해제되어 즉시 로그인 가능합니다.
+              문파 재화 및 금전으로 상점의 비약과 전리품 아이템을 구매합니다.
             </p>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-black">
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-sm">
               3
             </div>
-            <h3 className="text-base font-bold text-white">실시간 참여 & 분배</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">최소 입찰가 경매</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              로그인 후 본인의 출석 점수(수동 1P / 분신 0.25P)와 경매 낙찰금 기준 실시간 배분금을 확인하실 수 있습니다.
+              최소 시작가와 호가 단위를 설정하여 실시간 경매 입찰을 진행합니다.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-sm">
+              4
+            </div>
+            <h3 className="font-extrabold text-white text-sm pt-1">참여율 비례 분배</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              최종 낙찰금(예: 3만 금전)을 참여 포인트 비율대로 100% 자동 분배합니다.
             </p>
           </div>
         </div>
@@ -299,10 +271,10 @@ export default function HomePage() {
               공정하고 투명한 금전 분배 포털
             </span>
           </h1>
-          <p className="mt-3 text-sm text-slate-300 leading-relaxed">
-            디스코드에 스크린샷을 올리면 봇이 자동으로 수동(1.0P) 및 분신(0.25P) 참여를 인식합니다.
-            문파 경매 종료 시 낙찰된 금전(예: 30,000 금전)은 전 문파원의 참여 포인트에 비례하여 100% 자동 분배됩니다.
-          </p>
+          <div className="mt-3 space-y-1 text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p>• 디스코드 인증 시 수동(1.0P) 및 분신(0.25P) 참여 점수가 실시간 자동 누적됩니다.</p>
+            <p>• 상점 아이템 구매 및 최소 입찰가 경매 종료 시, 낙찰금이 포인트 비율로 100% 자동 분배됩니다.</p>
+          </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
