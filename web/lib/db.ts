@@ -30,6 +30,17 @@ export interface DatabaseSchema {
   currentWeek: string;
 }
 
+export interface WednesdayScheduleInfo {
+  nowKSTFormatted: string;
+  dayOfWeekKST: number;       // 0(일) ~ 3(수) ~ 6(토)
+  isShopOpen: boolean;        // 매주 수요일 19:00:00 <= KST < 19:30:00
+  isAuctionWindow: boolean;   // 매주 수요일 19:30:00 <= KST < 20:00:00
+  cycleDateStr: string;       // 이번(또는 다음) 수요일 YYYY-MM-DD (KST)
+  shopOpenAtISO: string;      // 수요일 19:00:00 KST (UTC ISO)
+  auctionStartAtISO: string;  // 수요일 19:30:00 KST (UTC ISO)
+  auctionEndAtISO: string;    // 수요일 20:00:00 KST (UTC ISO)
+}
+
 export const DEFAULT_MEMBERS = [
   "뱀설", "상두불", "상겨미", "던롤", "로단", "행뚁", "악군학", "승기",
   "휴이랑", "호랑이야", "쬬아", "옥절이", "빠따왕", "추서", "해암", "쓱삭이",
@@ -42,6 +53,59 @@ export const DEFAULT_MEMBERS = [
 export function getKSTDateStr(date: Date = new Date()): string {
   const kstMs = date.getTime() + 9 * 60 * 60 * 1000;
   return new Date(kstMs).toISOString().slice(0, 10);
+}
+
+/**
+ * 한국 시간(KST) 기준 매주 수요일 상점 오픈(19:00~19:30) 및 자동 경매(19:30~20:00) 스케줄 계산
+ */
+export function getKSTWednesdaySchedule(nowMs: number = Date.now()): WednesdayScheduleInfo {
+  const kstOffsetMs = 9 * 60 * 60 * 1000;
+  const kstNow = new Date(nowMs + kstOffsetMs);
+
+  const year = kstNow.getUTCFullYear();
+  const month = kstNow.getUTCMonth();
+  const date = kstNow.getUTCDate();
+  const day = kstNow.getUTCDay(); // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
+  const hour = kstNow.getUTCHours();
+  const minute = kstNow.getUTCMinutes();
+  const second = kstNow.getUTCSeconds();
+
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  const nowKSTFormatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')} (${dayNames[day]}) ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
+
+  // 매주 수요일 오후 7시(19:00) ~ 오후 7시 30분(19:30 미만)까지만 상점 희망 신청 오픈
+  const isShopOpen = day === 3 && hour === 19 && minute >= 0 && minute < 30;
+  // 매주 수요일 오후 7시 30분(19:30) ~ 오후 8시(20:00 미만) 자동 경매 진행 시간
+  const isAuctionWindow = day === 3 && hour === 19 && minute >= 30 && minute < 60;
+
+  let daysUntilWed = 0;
+  if (day === 3) {
+    daysUntilWed = hour >= 20 ? 7 : 0;
+  } else {
+    daysUntilWed = (3 - day + 7) % 7;
+  }
+
+  const targetWedUTC = new Date(Date.UTC(year, month, date + daysUntilWed, 0, 0, 0));
+  const wy = targetWedUTC.getUTCFullYear();
+  const wm = targetWedUTC.getUTCMonth();
+  const wd = targetWedUTC.getUTCDate();
+
+  const cycleDateStr = `${wy}-${String(wm + 1).padStart(2, '0')}-${String(wd).padStart(2, '0')}`;
+  // KST 19:00 = UTC 10:00, KST 19:30 = UTC 10:30, KST 20:00 = UTC 11:00
+  const shopOpenAtISO = new Date(Date.UTC(wy, wm, wd, 10, 0, 0)).toISOString();
+  const auctionStartAtISO = new Date(Date.UTC(wy, wm, wd, 10, 30, 0)).toISOString();
+  const auctionEndAtISO = new Date(Date.UTC(wy, wm, wd, 11, 0, 0)).toISOString();
+
+  return {
+    nowKSTFormatted,
+    dayOfWeekKST: day,
+    isShopOpen,
+    isAuctionWindow,
+    cycleDateStr,
+    shopOpenAtISO,
+    auctionStartAtISO,
+    auctionEndAtISO
+  };
 }
 
 function getDbPath(): string {
@@ -183,10 +247,25 @@ function migrateSchema(db: DatabaseSchema): boolean {
   if (!isSingleUnified) {
     db.shopItems = getOfficialShopItems(new Date().toISOString());
     migrated = true;
-  } else if (db.shopItems[0].currency !== "용맹의 증표") {
-    db.shopItems[0].currency = "용맹의 증표";
-    db.shopItems[0].description = "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)";
-    migrated = true;
+  } else {
+    if (db.shopItems[0].currency !== "용맹의 증표") {
+      db.shopItems[0].currency = "용맹의 증표";
+      db.shopItems[0].description = "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)";
+      migrated = true;
+    }
+    if (db.shopItems[0].imageUrl !== "/images/shop-weapon.png") {
+      db.shopItems[0].imageUrl = "/images/shop-weapon.png";
+      migrated = true;
+    }
+  }
+
+  if (Array.isArray(db.auctions)) {
+    db.auctions.forEach(a => {
+      if (a.imageUrl !== "/images/shop-weapon.png") {
+        a.imageUrl = "/images/shop-weapon.png";
+        migrated = true;
+      }
+    });
   }
 
   if (typeof db.guildTokens !== 'number') {
@@ -397,20 +476,24 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
 }
 
 /**
- * 30분 구매 희망 대기(SCHEDULED) 완료 시 -> 당일 추가 신청 잠금 + 용맹의 증표 차감 + 30분 익명 경매(ACTIVE) 자동 시작
+ * 매주 수요일 오후 7시 30분(19:30 KST) 도달 시 -> 희망 신청 마감 + 용맹의 증표 차감 + 오후 8시(20:00 KST)까지 30분 익명 경매(ACTIVE) 자동 시작
  */
-export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionItem): void {
+export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionItem, isManualNow: boolean = false): void {
   const nowIso = new Date().toISOString();
-  const startBaseMs = auction.scheduledStartAt
-    ? Math.min(Date.now(), new Date(auction.scheduledStartAt).getTime())
-    : Date.now();
+  const scheduledStartMs = auction.scheduledStartAt ? new Date(auction.scheduledStartAt).getTime() : Date.now();
 
   auction.status = 'ACTIVE';
-  auction.endsAt = new Date(startBaseMs + 30 * 60 * 1000).toISOString();
+  if (isManualNow) {
+    // 관리자가 수동으로 즉시 개시한 경우 현재 시각부터 30분
+    auction.endsAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  } else {
+    // 수요일 19:30 자동 개시 시 정확히 수요일 20:00(19:30 + 30분)에 종료되도록 설정
+    const targetEndMs = scheduledStartMs + 30 * 60 * 1000;
+    auction.endsAt = new Date(targetEndMs > Date.now() ? targetEndMs : Date.now() + 30 * 60 * 1000).toISOString();
+  }
 
   const shopItem = db.shopItems?.[0];
   if (shopItem) {
-    // 30분 대기 종료 순간 당일 희망 신청 불가능 처리
     shopItem.dailyLockedDate = getKSTDateStr();
 
     // 문파 총재화(용맹의 증표) - 상품 재화(11,500) 자동 차감 및 공개 내역 기록
@@ -437,7 +520,7 @@ export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionIte
         type: 'AUCTION_DEDUCT',
         delta: -cost,
         balanceAfter: db.guildTokens,
-        description: `[${shopItem.name}] 경매 개시로 상품 재화 차감 (구매 희망 신청: ${appList})`,
+        description: `[${shopItem.name}] 수요일 19:30 경매 개시로 상품 재화 차감 (희망 신청: ${appList})`,
         actorNickname: appList,
         createdAt: nowIso
       });
@@ -446,14 +529,12 @@ export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionIte
 }
 
 /**
- * 30분 익명 경매(ACTIVE) 종료 시 -> 최고 입찰자 닉네임 공개 + 낙찰가 세금 10% 공제 후 90% 문파 창고 세이브
+ * 매주 수요일 오후 8시(20:00 KST) 익명 경매(ACTIVE) 종료 시 -> 최고 입찰자 닉네임 및 최종 낙찰금액 안내 + 세금 10% 공제 금액(90%) 문파 창고 세이브 기록
  */
 export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem): void {
   const nowIso = new Date().toISOString();
   auction.status = 'ENDED';
 
-  // 입찰자가 없었지만 구매 희망 신청자가 있었던 경우 첫 희망자를 기본 입찰(시작가) 낙찰자로 지정할지,
-  // 혹은 입찰 기록이 있을 때만 창고 금전에 세이브
   const hasWinner =
     (auction.bidsCount > 0 && auction.currentBid > 0) ||
     (auction.applicants && auction.applicants.length > 0 && auction.currentBid > 0);
@@ -463,9 +544,9 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
   }
 
   if (hasWinner && auction.highestBidderNickname && !auction.goldSaved) {
-    const grossBid = auction.currentBid;
-    const taxAmount = Math.floor(grossBid * 0.1);
-    const netSavedGold = grossBid - taxAmount; // 90% 문파 창고 세이브 금전
+    const grossBid = auction.currentBid; // 인게임 지정 분배 시 입력할 최종 낙찰 금액 (원금)
+    const taxAmount = Math.floor(grossBid * 0.1); // 인게임 세금 10%
+    const netSavedGold = grossBid - taxAmount; // 세금 10% 공제 후 문파 창고 세이브 금전 (90%)
 
     auction.grossBid = grossBid;
     auction.taxAmount = taxAmount;
@@ -482,7 +563,7 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
       taxAmount,
       delta: netSavedGold,
       balanceAfter: db.treasuryGold,
-      description: `[${auction.title}] 낙찰자 '${auction.highestBidderNickname}' 지정 분배 정산 (낙찰가 ${grossBid.toLocaleString()}G - 세금 10% ${taxAmount.toLocaleString()}G = 창고 +${netSavedGold.toLocaleString()}G 세이브)`,
+      description: `[${auction.title}] 낙찰자 '${auction.highestBidderNickname}' | 최종 낙찰금액(인게임 지정 분배 입력금): ${grossBid.toLocaleString()} 금전 | 세금 10%(-${taxAmount.toLocaleString()}G) 공제 후 문파 창고 세이브: +${netSavedGold.toLocaleString()} 금전`,
       actorNickname: auction.highestBidderNickname,
       createdAt: nowIso
     });
@@ -505,17 +586,26 @@ export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promi
   let updated = false;
   const nowMs = Date.now();
 
-  for (const auction of db.auctions) {
-    // 1단계: 구매 희망 신청 후 30분 대기(SCHEDULED) 타이머 만료 -> 익명 경매(ACTIVE, 30분) 자동 시작
+  for (let i = db.auctions.length - 1; i >= 0; i--) {
+    const auction = db.auctions[i];
+
+    // 1단계: 수요일 19:30 대기(SCHEDULED) 도달 -> 희망 신청자가 있으면 익명 경매(ACTIVE, 20:00 종료) 자동 시작
     if (auction.status === 'SCHEDULED' && auction.scheduledStartAt) {
       const startMs = new Date(auction.scheduledStartAt).getTime();
       if (!isNaN(startMs) && startMs <= nowMs) {
-        activateScheduledAuction(db, auction);
+        const shopItem = db.shopItems?.[0];
+        const applicantsCount = (auction.applicants?.length || 0) + (shopItem?.applicants?.length || 0);
+        if (applicantsCount > 0) {
+          activateScheduledAuction(db, auction, false);
+        } else {
+          // 희망 신청자가 0명이면 대기 경매 자동 제거
+          db.auctions.splice(i, 1);
+        }
         updated = true;
       }
     }
 
-    // 2단계: 익명 경매(ACTIVE) 30분 타이머 만료 -> 경매 종료(ENDED), 낙찰자 공개 & 세금 10% 공제 후 창고 금전 세이브
+    // 2단계: 수요일 20:00 익명 경매(ACTIVE) 종료 시각 도달 -> 경매 종료(ENDED), 낙찰자/낙찰금액 안내 & 10% 공제 금액 창고 세이브
     if (auction.status === 'ACTIVE' && auction.endsAt) {
       const endsAtMs = new Date(auction.endsAt).getTime();
       if (!isNaN(endsAtMs) && endsAtMs <= nowMs) {

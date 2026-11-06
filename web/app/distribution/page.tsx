@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Coins,
   Calculator,
   Shield,
   Trash2,
@@ -37,10 +36,12 @@ export default function DistributionPage() {
   const [copied, setCopied] = useState(false);
   const [distributing, setDistributing] = useState(false);
 
-  // 신규 문파원 추가 모달
+  // 신규 문파원 추가 모달 (어드민 전용)
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isAdmin = currentUser?.role === 'ADMIN';
 
   const fetchAttendance = () => {
     fetch('/api/attendance', { cache: 'no-store' })
@@ -128,8 +129,9 @@ export default function DistributionPage() {
     };
   }, [attendance, totalAuctionGold, manualWeight, cloneWeight]);
 
-  // 문파원 참여 유형 토글 클릭 (수동 / 분신 / 미참)
+  // 어드민 전용: 문파원 참여 유형 토글 클릭 (수동 / 분신 / 미참)
   const handleToggleContent = async (nickname: string, content: ContentType, type: ParticipationType) => {
+    if (!isAdmin) return;
     setAttendance(prev =>
       prev.map(m => {
         if (m.nickname !== nickname) return m;
@@ -160,8 +162,9 @@ export default function DistributionPage() {
     }
   };
 
-  // 1. 전원 올 수동(4점) 일괄 반영
+  // 어드민 전용 1. 전원 올 수동(4점) 일괄 반영
   const handleSetAllManual = async () => {
+    if (!isAdmin) return;
     if (!confirm('⚡ 모든 등록 문파원의 이번 주 4개 컨텐츠를 [올 수동 (+4.0P)]으로 일괄 반영하시겠습니까?')) return;
     const res = await fetch('/api/attendance', {
       method: 'POST',
@@ -176,8 +179,9 @@ export default function DistributionPage() {
     if (data.success) fetchAttendance();
   };
 
-  // 2. 주간 컨텐츠만 미참으로 초기화 (누적 점수는 초기화되지 않고 이월 유지!)
+  // 어드민 전용 2. 주간 컨텐츠만 미참으로 초기화 (누적 점수는 초기화되지 않고 이월 유지!)
   const handleResetWeeklyContentOnly = async () => {
+    if (!isAdmin) return;
     if (
       !confirm(
         '🔄 일주일이 지나 이번 주 4대 컨텐츠(요신·결계·미혹·신기) 참여 상태만 전부 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 총 점수는 절대 초기화되지 않고 그대로 보존(이월)됩니다!'
@@ -195,8 +199,9 @@ export default function DistributionPage() {
     if (data.success) fetchAttendance();
   };
 
-  // 3. 누적 점수 전체 0P 초기화 (문파 창고 세이브 금전이 모두 분배되어 0 금전일 때만 가능!)
+  // 어드민 전용 3. 누적 점수 전체 0P 초기화 (문파 창고 세이브 금전이 모두 분배되어 0 금전일 때만 가능!)
   const handleResetAllCumulativePoints = async () => {
+    if (!isAdmin) return;
     if (treasuryGold > 0) {
       alert(
         `⚠️ 현재 문파 창고에 아직 분배되지 않은 세이브 금전(${treasuryGold.toLocaleString()} 금전)이 남아있습니다!\n\n점수 초기화는 창고 금전이 모두 분배(창고 잔액 0 금전)된 후에만 실행할 수 있습니다. 먼저 [문파 창고 금전 분배 완료]를 진행해주세요.`
@@ -220,8 +225,9 @@ export default function DistributionPage() {
     if (data.success) fetchAttendance();
   };
 
-  // 4. 문파 창고 세이브 금전 분배 실행 (분배 시 창고 금전 차감)
+  // 어드민 전용 4. 문파 창고 세이브 금전 분배 실행 (분배 시 창고 금전 차감)
   const handleDistributeTreasuryGold = async () => {
+    if (!isAdmin) return;
     if (treasuryGold <= 0) {
       alert('현재 문파 창고에 세이브된 분배 대기 금전이 없습니다. (창고 잔액: 0 금전)');
       return;
@@ -254,9 +260,10 @@ export default function DistributionPage() {
     }
   };
 
-  // 문파원 추가
+  // 어드민 전용: 문파원 추가
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) return;
     const name = newMemberName.trim();
     if (!name) return;
     setIsSubmitting(true);
@@ -281,8 +288,9 @@ export default function DistributionPage() {
     }
   };
 
-  // 문파원 삭제
+  // 어드민 전용: 문파원 삭제
   const handleDeleteMember = async (nickname: string) => {
+    if (!isAdmin) return;
     if (!confirm(`정말로 [${nickname}] 문파원을 현황 목록에서 삭제하시겠습니까?`)) return;
     const res = await fetch('/api/attendance', {
       method: 'POST',
@@ -319,6 +327,24 @@ export default function DistributionPage() {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+  };
+
+  const renderReadOnlyBadge = (item?: { type: string; points: number }) => {
+    if (item?.type === 'MANUAL') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          수동 {manualWeight}P
+        </span>
+      );
+    }
+    if (item?.type === 'CLONE') {
+      return (
+        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30">
+          분신 {cloneWeight}P
+        </span>
+      );
+    }
+    return <span className="text-xs text-slate-500">미참</span>;
   };
 
   const filteredMembers = stats.members.filter(m =>
@@ -367,7 +393,7 @@ export default function DistributionPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* 1. 문파 창고 세이브 금전 & 배점 기준 카드 */}
+      {/* 1. 문파 창고 세이브 금전 (세금 10% 공제 후 실수령) & 배점 기준 카드 (어드민만 수정 가능) */}
       <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-2.5">
@@ -391,12 +417,12 @@ export default function DistributionPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-          <div className="lg:col-span-7 space-y-2">
+          <div className={isAdmin ? 'lg:col-span-7 space-y-2' : 'lg:col-span-12 space-y-2'}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="text-xs font-semibold text-slate-300 block">
                 현재 문파 창고 세이브 금전 (실제 분배 대상 잔액 • 완료 경매 {endedAuctionsCount}건)
               </label>
-              {isCustomGold && (
+              {isAdmin && isCustomGold && (
                 <button
                   type="button"
                   onClick={() => {
@@ -409,23 +435,36 @@ export default function DistributionPage() {
                 </button>
               )}
             </div>
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl select-none">💰</div>
-              <input
-                type="number"
-                value={totalAuctionGold}
-                onChange={e => {
-                  setIsCustomGold(true);
-                  setTotalAuctionGold(Math.max(0, Number(e.target.value) || 0));
-                }}
-                className="w-full bg-[#131929] border border-slate-700/80 rounded-xl pl-14 pr-4 py-3 text-emerald-400 font-black text-xl sm:text-2xl focus:outline-none focus:border-emerald-400 tracking-wide transition-colors"
-                placeholder="0"
-              />
-            </div>
+
+            {isAdmin ? (
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl select-none">💰</div>
+                <input
+                  type="number"
+                  value={totalAuctionGold}
+                  onChange={e => {
+                    setIsCustomGold(true);
+                    setTotalAuctionGold(Math.max(0, Number(e.target.value) || 0));
+                  }}
+                  className="w-full bg-[#131929] border border-slate-700/80 rounded-xl pl-14 pr-4 py-3 text-emerald-400 font-black text-xl sm:text-2xl focus:outline-none focus:border-emerald-400 tracking-wide transition-colors"
+                  placeholder="0"
+                />
+              </div>
+            ) : (
+              <div className="w-full bg-[#131929] border border-slate-800 rounded-xl px-4 py-3.5 flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-300 flex items-center space-x-2">
+                  <span>💰</span>
+                  <span>문파 창고 세이브 금전 (세금 10% 공제 후 적립금)</span>
+                </span>
+                <span className="text-emerald-400 font-black text-xl sm:text-2xl">
+                  {treasuryGold.toLocaleString()} 금전
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="lg:col-span-5 flex flex-col gap-2">
-            {currentUser?.role === 'ADMIN' && (
+          {isAdmin && (
+            <div className="lg:col-span-5 flex flex-col gap-2">
               <button
                 type="button"
                 disabled={distributing || treasuryGold <= 0}
@@ -435,45 +474,53 @@ export default function DistributionPage() {
                 {distributing
                   ? '분배 차감 처리 중...'
                   : treasuryGold > 0
-                  ? `💰 문파 창고 세이브 금전 (${treasuryGold.toLocaleString()}G) 분배 완료 및 창고 차감`
+                  ? `💰 어드민: 문파 창고 세이브 금전 (${treasuryGold.toLocaleString()}G) 분배 완료 및 차감`
                   : '현재 문파 창고 세이브 금전 0 금전 (분배 완료 상태)'}
               </button>
-            )}
-            <p className="text-[11px] text-slate-400 text-center">
-              * 분배 완료 시 창고 세이브 금전이 0G로 차감되며, 이후 [누적 점수 0P 초기화]를 실행할 수 있습니다.
-            </p>
-          </div>
+              <p className="text-[11px] text-slate-400 text-center">
+                * 분배 완료 시 창고 세이브 금전이 0G로 차감되며, 이후 [누적 점수 0P 초기화]를 실행할 수 있습니다.
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* 배점 가중치 */}
+        {/* 배점 가중치 (어드민만 수정 가능, 일반 회원은 읽기 전용) */}
         <div className="pt-4 border-t border-slate-800/80">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-[#131929] border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
               <span className="text-xs text-slate-400 font-medium">수동 참여 배점 (기본 1.0P)</span>
-              <div className="flex items-center space-x-1">
-                <input
-                  type="number"
-                  step="0.1"
-                  value={manualWeight}
-                  onChange={e => setManualWeight(Math.max(0, Number(e.target.value) || 0))}
-                  className="bg-transparent text-white font-bold text-base w-16 text-right focus:outline-none"
-                />
-                <span className="text-slate-400 text-xs font-semibold">점</span>
-              </div>
+              {isAdmin ? (
+                <div className="flex items-center space-x-1">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={manualWeight}
+                    onChange={e => setManualWeight(Math.max(0, Number(e.target.value) || 0))}
+                    className="bg-transparent text-white font-bold text-base w-16 text-right focus:outline-none border-b border-slate-700"
+                  />
+                  <span className="text-slate-400 text-xs font-semibold">점</span>
+                </div>
+              ) : (
+                <span className="text-emerald-400 font-black text-base">{manualWeight} 점</span>
+              )}
             </div>
 
             <div className="bg-[#131929] border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
               <span className="text-xs text-slate-400 font-medium">분신 등록 배점 (기본 0.25P)</span>
-              <div className="flex items-center space-x-1">
-                <input
-                  type="number"
-                  step="0.05"
-                  value={cloneWeight}
-                  onChange={e => setCloneWeight(Math.max(0, Number(e.target.value) || 0))}
-                  className="bg-transparent text-amber-400 font-bold text-base w-16 text-right focus:outline-none"
-                />
-                <span className="text-slate-400 text-xs font-semibold">점</span>
-              </div>
+              {isAdmin ? (
+                <div className="flex items-center space-x-1">
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={cloneWeight}
+                    onChange={e => setCloneWeight(Math.max(0, Number(e.target.value) || 0))}
+                    className="bg-transparent text-amber-400 font-bold text-base w-16 text-right focus:outline-none border-b border-slate-700"
+                  />
+                  <span className="text-slate-400 text-xs font-semibold">점</span>
+                </div>
+              ) : (
+                <span className="text-amber-400 font-black text-base">{cloneWeight} 점</span>
+              )}
             </div>
           </div>
         </div>
@@ -545,7 +592,7 @@ export default function DistributionPage() {
         </div>
       </div>
 
-      {/* 3. 문파원 참여 현황 목록 및 주간 컨텐츠 리셋 / 누적 점수 리셋 분리 */}
+      {/* 3. 문파원 참여 현황 목록 (수정 및 초기화 버튼은 어드민 전용) */}
       <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-xl backdrop-blur">
         <div className="p-4 sm:p-5 border-b border-slate-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
@@ -558,7 +605,7 @@ export default function DistributionPage() {
             </div>
             <p className="text-xs text-slate-400 mt-1">
               • <strong>주간 컨텐츠 미참 초기화</strong>: 일주일 뒤 컨텐츠 체크만 미참으로 리셋하며 <strong>누적 점수는 그대로 유지(이월)</strong>됩니다.<br />
-              • <strong>누적 점수 0P 초기화</strong>: 문파 창고 세이브 금전이 모두 분배(0G)된 후에만 실행할 수 있습니다.
+              • <strong>누적 점수 0P 초기화</strong>: 문파 창고 세이브 금전이 모두 분배(0G)된 후에만 문파장(어드민)이 실행할 수 있습니다.
             </p>
           </div>
 
@@ -574,45 +621,49 @@ export default function DistributionPage() {
               />
             </div>
 
-            <button
-              onClick={handleSetAllManual}
-              className="px-3 py-1.5 rounded-lg bg-[#192238] hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors"
-            >
-              전원 올 수동(+4P)
-            </button>
+            {isAdmin && (
+              <>
+                <button
+                  onClick={handleSetAllManual}
+                  className="px-3 py-1.5 rounded-lg bg-[#192238] hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors"
+                >
+                  전원 올 수동(+4P)
+                </button>
 
-            <button
-              onClick={handleResetWeeklyContentOnly}
-              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-extrabold transition-colors"
-              title="4대 주간 컨텐츠만 미참으로 리셋하고 누적 점수는 그대로 유지합니다"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>주간 컨텐츠만 미참 초기화 (점수 유지)</span>
-            </button>
+                <button
+                  onClick={handleResetWeeklyContentOnly}
+                  className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-extrabold transition-colors"
+                  title="4대 주간 컨텐츠만 미참으로 리셋하고 누적 점수는 그대로 유지합니다"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>주간 컨텐츠만 미참 초기화 (점수 유지)</span>
+                </button>
 
-            <button
-              onClick={handleResetAllCumulativePoints}
-              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-extrabold border transition-colors ${
-                treasuryGold === 0
-                  ? 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/40'
-                  : 'bg-slate-900 text-slate-500 border-slate-800 cursor-not-allowed'
-              }`}
-              title={
-                treasuryGold === 0
-                  ? '금전 분배가 완료되었으므로 누적 점수를 0P로 초기화할 수 있습니다'
-                  : '창고 금전을 먼저 모두 분배해야 점수를 초기화할 수 있습니다'
-              }
-            >
-              <span>누적 점수 0P 초기화 {treasuryGold > 0 ? '(분배 후 가능)' : ''}</span>
-            </button>
+                <button
+                  onClick={handleResetAllCumulativePoints}
+                  className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-extrabold border transition-colors ${
+                    treasuryGold === 0
+                      ? 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/40'
+                      : 'bg-slate-900 text-slate-500 border-slate-800 cursor-not-allowed'
+                  }`}
+                  title={
+                    treasuryGold === 0
+                      ? '금전 분배가 완료되었으므로 누적 점수를 0P로 초기화할 수 있습니다'
+                      : '창고 금전을 먼저 모두 분배해야 점수를 초기화할 수 있습니다'
+                  }
+                >
+                  <span>누적 점수 0P 초기화 {treasuryGold > 0 ? '(분배 후 가능)' : ''}</span>
+                </button>
 
-            <button
-              onClick={() => setIsAddMemberOpen(true)}
-              className="inline-flex items-center space-x-1 px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-sm transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>문파원 추가</span>
-            </button>
+                <button
+                  onClick={() => setIsAddMemberOpen(true)}
+                  className="inline-flex items-center space-x-1 px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-sm transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>문파원 추가</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -644,7 +695,7 @@ export default function DistributionPage() {
                 </th>
                 <th className="py-3 px-3 text-center min-w-[120px]">누적 점수 (이월+주간)</th>
                 <th className="py-3 px-3 text-right min-w-[120px]">창고 금전 배분액</th>
-                <th className="py-3 px-3 text-center w-12">삭제</th>
+                {isAdmin && <th className="py-3 px-3 text-center w-12">삭제</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 bg-[#0d111e]/50">
@@ -670,126 +721,142 @@ export default function DistributionPage() {
 
                     {/* 1. 신기 */}
                     <td className="py-3 px-3 text-center">
-                      <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '신기', 'MANUAL')}
-                          className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
-                            m.singi?.type === 'MANUAL'
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : 'text-slate-400 hover:text-slate-200'
-                          }`}
-                        >
-                          수동
-                        </button>
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '신기', 'ABSENT')}
-                          className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
-                            !m.singi || m.singi.type === 'ABSENT'
-                              ? 'bg-slate-700/80 text-slate-300'
-                              : 'text-slate-500 hover:text-slate-300'
-                          }`}
-                        >
-                          미참
-                        </button>
-                      </div>
+                      {isAdmin ? (
+                        <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '신기', 'MANUAL')}
+                            className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                              m.singi?.type === 'MANUAL'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            수동
+                          </button>
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '신기', 'ABSENT')}
+                            className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                              !m.singi || m.singi.type === 'ABSENT'
+                                ? 'bg-slate-700/80 text-slate-300'
+                                : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                          >
+                            미참
+                          </button>
+                        </div>
+                      ) : (
+                        renderReadOnlyBadge(m.singi)
+                      )}
                     </td>
 
                     {/* 2. 미혹 */}
                     <td className="py-3 px-3 text-center">
-                      <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '미혹', 'MANUAL')}
-                          className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
-                            m.mihok?.type === 'MANUAL'
-                              ? 'bg-pink-600 text-white shadow-sm'
-                              : 'text-slate-400 hover:text-slate-200'
-                          }`}
-                        >
-                          수동
-                        </button>
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '미혹', 'ABSENT')}
-                          className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
-                            !m.mihok || m.mihok.type === 'ABSENT'
-                              ? 'bg-slate-700/80 text-slate-300'
-                              : 'text-slate-500 hover:text-slate-300'
-                          }`}
-                        >
-                          미참
-                        </button>
-                      </div>
+                      {isAdmin ? (
+                        <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '미혹', 'MANUAL')}
+                            className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                              m.mihok?.type === 'MANUAL'
+                                ? 'bg-pink-600 text-white shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            수동
+                          </button>
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '미혹', 'ABSENT')}
+                            className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                              !m.mihok || m.mihok.type === 'ABSENT'
+                                ? 'bg-slate-700/80 text-slate-300'
+                                : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                          >
+                            미참
+                          </button>
+                        </div>
+                      ) : (
+                        renderReadOnlyBadge(m.mihok)
+                      )}
                     </td>
 
                     {/* 3. 요신 */}
                     <td className="py-3 px-3 text-center">
-                      <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '요신', 'MANUAL')}
-                          className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
-                            m.yosin?.type === 'MANUAL'
-                              ? 'bg-purple-600 text-white shadow-sm'
-                              : 'text-slate-400 hover:text-slate-200'
-                          }`}
-                        >
-                          수동
-                        </button>
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '요신', 'CLONE')}
-                          className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
-                            m.yosin?.type === 'CLONE'
-                              ? 'bg-amber-500 text-white font-extrabold shadow-sm'
-                              : 'text-slate-400 hover:text-slate-200'
-                          }`}
-                        >
-                          분신
-                        </button>
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '요신', 'ABSENT')}
-                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                            !m.yosin || m.yosin.type === 'ABSENT'
-                              ? 'bg-slate-700/80 text-slate-300'
-                              : 'text-slate-500 hover:text-slate-300'
-                          }`}
-                        >
-                          미참
-                        </button>
-                      </div>
+                      {isAdmin ? (
+                        <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '요신', 'MANUAL')}
+                            className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                              m.yosin?.type === 'MANUAL'
+                                ? 'bg-purple-600 text-white shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            수동
+                          </button>
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '요신', 'CLONE')}
+                            className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                              m.yosin?.type === 'CLONE'
+                                ? 'bg-amber-500 text-white font-extrabold shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            분신
+                          </button>
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '요신', 'ABSENT')}
+                            className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                              !m.yosin || m.yosin.type === 'ABSENT'
+                                ? 'bg-slate-700/80 text-slate-300'
+                                : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                          >
+                            미참
+                          </button>
+                        </div>
+                      ) : (
+                        renderReadOnlyBadge(m.yosin)
+                      )}
                     </td>
 
                     {/* 4. 결계지 */}
                     <td className="py-3 px-3 text-center">
-                      <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '결계', 'MANUAL')}
-                          className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
-                            m.gyeolgye?.type === 'MANUAL'
-                              ? 'bg-emerald-600 text-white shadow-sm'
-                              : 'text-slate-400 hover:text-slate-200'
-                          }`}
-                        >
-                          수동
-                        </button>
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '결계', 'CLONE')}
-                          className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
-                            m.gyeolgye?.type === 'CLONE'
-                              ? 'bg-amber-500 text-white font-extrabold shadow-sm'
-                              : 'text-slate-400 hover:text-slate-200'
-                          }`}
-                        >
-                          분신
-                        </button>
-                        <button
-                          onClick={() => handleToggleContent(m.nickname, '결계', 'ABSENT')}
-                          className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                            !m.gyeolgye || m.gyeolgye.type === 'ABSENT'
-                              ? 'bg-slate-700/80 text-slate-300'
-                              : 'text-slate-500 hover:text-slate-300'
-                          }`}
-                        >
-                          미참
-                        </button>
-                      </div>
+                      {isAdmin ? (
+                        <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '결계', 'MANUAL')}
+                            className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                              m.gyeolgye?.type === 'MANUAL'
+                                ? 'bg-emerald-600 text-white shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            수동
+                          </button>
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '결계', 'CLONE')}
+                            className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                              m.gyeolgye?.type === 'CLONE'
+                                ? 'bg-amber-500 text-white font-extrabold shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200'
+                            }`}
+                          >
+                            분신
+                          </button>
+                          <button
+                            onClick={() => handleToggleContent(m.nickname, '결계', 'ABSENT')}
+                            className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                              !m.gyeolgye || m.gyeolgye.type === 'ABSENT'
+                                ? 'bg-slate-700/80 text-slate-300'
+                                : 'text-slate-500 hover:text-slate-300'
+                            }`}
+                          >
+                            미참
+                          </button>
+                        </div>
+                      ) : (
+                        renderReadOnlyBadge(m.gyeolgye)
+                      )}
                     </td>
 
                     {/* 누적 점수 */}
@@ -813,16 +880,18 @@ export default function DistributionPage() {
                       </span>
                     </td>
 
-                    {/* 삭제 아이콘 */}
-                    <td className="py-3 px-3 text-center">
-                      <button
-                        onClick={() => handleDeleteMember(m.nickname)}
-                        className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors"
-                        title="문파원 삭제"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                    {/* 삭제 아이콘 (어드민 전용) */}
+                    {isAdmin && (
+                      <td className="py-3 px-3 text-center">
+                        <button
+                          onClick={() => handleDeleteMember(m.nickname)}
+                          className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors"
+                          title="문파원 삭제"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -831,13 +900,13 @@ export default function DistributionPage() {
         </div>
       </div>
 
-      {/* 문파원 추가 모달 */}
-      {isAddMemberOpen && (
+      {/* 문파원 추가 모달 (어드민 전용) */}
+      {isAdmin && isAddMemberOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
           <div className="bg-[#0f172a] border border-slate-700 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-white mb-2 flex items-center space-x-2">
               <Plus className="w-5 h-5 text-amber-400" />
-              <span>신규 문파원 추가</span>
+              <span>신규 문파원 추가 (어드민 전용)</span>
             </h3>
             <form onSubmit={handleAddMember} className="space-y-4">
               <div>

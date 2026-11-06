@@ -68,6 +68,20 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const user = await getCurrentUser(req);
+    const authHeader = req.headers.get('authorization') || '';
+    const userAgent = req.headers.get('user-agent') || '';
+    const isBotRequest =
+      authHeader === `Bearer ${process.env.API_SECRET || 'oegil_secret'}` ||
+      (!user && userAgent.includes('python-requests'));
+
+    if (!isBotRequest && (!user || user.role !== 'ADMIN')) {
+      return NextResponse.json(
+        { success: false, message: '문파장(어드민)만 출석 및 창고 금전/배점 설정을 수정할 수 있습니다.' },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { action, nickname, names, content, type, manualWeight, cloneWeight } = body;
     const db = await getDb();

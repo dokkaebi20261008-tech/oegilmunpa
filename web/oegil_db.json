@@ -1234,7 +1234,7 @@
       "purchasedCount": 0,
       "stock": 10,
       "description": "무기 · 방어구 · 장신구 전설 도안을 선택하여 획득할 수 있는 문파 상점 핵심 상자입니다.",
-      "imageUrl": "/images/shop-weapon-box.png",
+      "imageUrl": "/images/shop-weapon.png",
       "applicants": [],
       "minStartBid": 20000,
       "bidStep": 500

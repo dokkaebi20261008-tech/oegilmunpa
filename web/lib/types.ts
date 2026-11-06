@@ -93,6 +93,8 @@ export interface ShopItem {
   imageUrl?: string;
   icon: string;
   applicants: string[];         // 이 상품을 희망 신청한 문파원 닉네임 목록
+  minStartBid?: number;         // 어드민 설정 최소 시작 입찰가
+  bidStep?: number;             // 어드민 설정 최소 호가 단위
   dailyLockedDate?: string;     // 30분 대기 완료되어 당일 추가 희망 신청 불가 처리된 날짜 (YYYY-MM-DD)
   activeAuctionId?: string;     // 현재 대기 중(SCHEDULED) 또는 진행 중(ACTIVE)인 경매 ID
   createdAt: string;

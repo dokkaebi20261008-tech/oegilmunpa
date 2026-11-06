@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   getDb,
   saveDb,
+  getKSTWednesdaySchedule,
   checkAndFinalizeExpiredAuctions,
   activateScheduledAuction,
   maskAuctionForClient
@@ -21,8 +22,9 @@ export async function GET(req: Request) {
   }
 
   const db = await getDb();
-  // 30분 대기(SCHEDULED) -> 30분 본 경매(ACTIVE) -> 종료(ENDED) 및 10% 세금 공제 창고 세이브 자동 처리
+  // 수요일 19:30 대기(SCHEDULED) -> 19:30~20:00 본 경매(ACTIVE) -> 20:00 종료(ENDED) 및 10% 세금 공제 창고 세이브 자동 처리
   await checkAndFinalizeExpiredAuctions(db);
+  const wednesdaySchedule = getKSTWednesdaySchedule();
 
   const statusOrder: Record<string, number> = {
     ACTIVE: 0,
@@ -42,6 +44,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     success: true,
+    wednesdaySchedule,
     auctions,
     treasuryGold: db.treasuryGold || 0,
     goldLedger: db.goldLedger || [],
@@ -53,8 +56,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser(req);
-    if (!user) {
-      return NextResponse.json({ success: false, message: '정회원 로그인 후 경매 등록이 가능합니다.' }, { status: 401 });
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json({ success: false, message: '문파장(어드민)만 신규 경매를 등록할 수 있습니다.' }, { status: 403 });
     }
 
     const { title, description, imageUrl, startingBid, minBidIncrement, mode } = await req.json();
@@ -74,7 +77,6 @@ export async function POST(req: Request) {
     const nowMs = Date.now();
     const resolvedImage = imageUrl || '/images/shop-weapon.png';
 
-    // mode === 'SCHEDULED' 이면 30분 대기 후 30분 경매 (총 1시간), 기본은 즉시 30분 경매 개시
     const isScheduled = mode === 'SCHEDULED';
     const scheduledStartAt = isScheduled
       ? new Date(nowMs + 30 * 60 * 1000).toISOString()
@@ -88,7 +90,7 @@ export async function POST(req: Request) {
       title: title.trim(),
       description: description
         ? description.trim()
-        : `시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 30분 타이머 종료 시 최고 입찰자 닉네임 공개 및 세금 10% 공제 후 문파 창고 세이브`,
+        : `시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 시 최고 입찰자 닉네임 및 최종 낙찰금액 공개 (세금 10% 공제 후 창고 세이브)`,
       imageUrl: resolvedImage,
       startingBid: sBid,
       minBidIncrement: mInc,
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
     };
 
     if (!isScheduled) {
-      activateScheduledAuction(db, newAuction);
+      activateScheduledAuction(db, newAuction, true);
     }
 
     db.auctions.unshift(newAuction);
