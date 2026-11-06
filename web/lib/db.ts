@@ -132,7 +132,7 @@ function getInitialDb(): DatabaseSchema {
         highestBidderId: "usr_admin",
         status: "ACTIVE",
         bidsCount: 2,
-        endsAt: new Date(Date.now() + 86400000 * 3).toISOString(),
+        endsAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
         createdAt: now,
       }
     ],
@@ -233,17 +233,27 @@ export function getDb(): DatabaseSchema {
           migrated = true;
         }
 
-        // 기존 샘플 경매가 있으면 '전설 도안 선택 상자'로 동기화
+        // 기존 샘플 경매가 있으면 '전설 도안 선택 상자' 및 30분 타이머로 동기화
         const firstAuction = memoryDbCache.auctions?.find(a => a.id === 'auc_1');
-        if (firstAuction && firstAuction.title !== "전설 도안 선택 상자") {
-          firstAuction.title = "전설 도안 선택 상자";
-          firstAuction.description = "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
-          firstAuction.imageUrl = "/images/shop-weapon.png";
-          firstAuction.startingBid = 20000;
-          firstAuction.minBidIncrement = 500;
-          firstAuction.currentBid = 20500;
-          firstAuction.bidsCount = 2;
-          migrated = true;
+        if (firstAuction) {
+          if (firstAuction.title !== "전설 도안 선택 상자") {
+            firstAuction.title = "전설 도안 선택 상자";
+            firstAuction.description = "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
+            firstAuction.imageUrl = "/images/shop-weapon.png";
+            firstAuction.startingBid = 20000;
+            firstAuction.minBidIncrement = 500;
+            firstAuction.currentBid = 20500;
+            firstAuction.bidsCount = 2;
+            migrated = true;
+          }
+          // 기존 3일짜리 샘플 타이머를 30분 타이머로 교정
+          if (
+            firstAuction.status === 'ACTIVE' &&
+            new Date(firstAuction.endsAt).getTime() - Date.now() > 35 * 60 * 1000
+          ) {
+            firstAuction.endsAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+            migrated = true;
+          }
         }
 
         if (memoryDbCache.ladderState === undefined) {
@@ -337,4 +347,36 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
     participants,
     leftoverGold
   };
+}
+
+// 30분 경매 타이머가 만료된 진행 중 경매를 자동으로 종료(ENDED) 처리하고 분배금을 정산
+export function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): boolean {
+  let updated = false;
+  const nowMs = Date.now();
+  for (const auction of db.auctions) {
+    if (auction.status === 'ACTIVE' && auction.endsAt) {
+      const endsAtMs = new Date(auction.endsAt).getTime();
+      if (!isNaN(endsAtMs) && endsAtMs <= nowMs) {
+        auction.status = 'ENDED';
+        auction.distribution = calculateAuctionDistribution(auction.currentBid, db.attendance);
+        updated = true;
+      }
+    }
+  }
+  if (updated) {
+    saveDb(db);
+  }
+  return updated;
+}
+
+// 진행 중인 경매에서는 최고 입찰자 닉네임을 익명('익명 입찰자')으로 마스킹하고, 종료 시 실제 낙찰자 닉네임 공개
+export function maskAuctionForClient(auction: AuctionItem): AuctionItem {
+  if (auction.status === 'ACTIVE') {
+    return {
+      ...auction,
+      highestBidderNickname: auction.bidsCount > 0 ? '익명 입찰자' : undefined,
+      highestBidderId: undefined,
+    };
+  }
+  return auction;
 }

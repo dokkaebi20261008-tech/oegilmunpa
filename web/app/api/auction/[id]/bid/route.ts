@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb, saveDb } from '@/lib/db';
+import { getDb, saveDb, checkAndFinalizeExpiredAuctions, maskAuctionForClient } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -18,18 +18,21 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const db = getDb();
+    // 만료된 30분 경매 자동 종료 체크
+    checkAndFinalizeExpiredAuctions(db);
+
     const auction = db.auctions.find(a => a.id === params.id);
     if (!auction) {
       return NextResponse.json({ success: false, message: '존재하지 않는 경매 물품입니다.' }, { status: 404 });
     }
 
     if (auction.status !== 'ACTIVE') {
-      return NextResponse.json({ success: false, message: '이미 마감되었거나 종료된 경매입니다.' }, { status: 400 });
+      return NextResponse.json({ success: false, message: '경매 제한 시간(30분)이 종료되어 마감된 경매입니다.' }, { status: 400 });
     }
 
     // 최소 필요 입찰가 계산
-    const minRequired = auction.bidsCount === 0 
-      ? auction.startingBid 
+    const minRequired = auction.bidsCount === 0
+      ? auction.startingBid
       : auction.currentBid + auction.minBidIncrement;
 
     if (bidAmount < minRequired) {
@@ -39,6 +42,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }, { status: 400 });
     }
 
+    // DB에는 실제 닉네임을 저장하여 30분 종료 시 최고 입찰자 닉네임이 공개되도록 보존
     auction.currentBid = bidAmount;
     auction.highestBidderNickname = user.nickname;
     auction.highestBidderId = user.userId;
@@ -56,10 +60,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     db.bids.unshift(newBid);
     saveDb(db);
 
+    // 진행 중 응답에서는 최고 입찰자 닉네임 익명 마스킹
     return NextResponse.json({
       success: true,
-      auction,
-      bid: newBid
+      auction: maskAuctionForClient(auction),
+      bid: {
+        ...newBid,
+        bidderNickname: '익명 입찰자',
+        bidderId: undefined
+      }
     });
   } catch (err: any) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });

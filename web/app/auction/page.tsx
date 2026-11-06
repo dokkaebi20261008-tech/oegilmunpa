@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gavel, Clock, Trophy, Coins, Plus, AlertCircle, CheckCircle2, ChevronRight, Calculator, ShieldAlert } from 'lucide-react';
+import { Gavel, Clock, Trophy, Coins, Plus, AlertCircle, Calculator, ShieldAlert, Lock, Eye } from 'lucide-react';
 import { AuctionItem, AuctionDistribution } from '@/lib/types';
 
 export default function AuctionPage() {
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [nowMs, setNowMs] = useState<number>(Date.now());
 
   // 입찰 모달
   const [selectedAuction, setSelectedAuction] = useState<AuctionItem | null>(null);
@@ -21,7 +22,6 @@ export default function AuctionPage() {
   const [newDesc, setNewDesc] = useState('');
   const [newStartBid, setNewStartBid] = useState(20000);
   const [newMinIncrement, setNewMinIncrement] = useState(500);
-  const [newDuration, setNewDuration] = useState(24);
   const [createLoading, setCreateLoading] = useState(false);
 
   // 모의 계산기 (3만 금전 등)
@@ -57,6 +57,28 @@ export default function AuctionPage() {
     };
   }, []);
 
+  // 1초마다 실시간 30분 카운트다운 타이머 갱신 및 만료 시 자동 동기화
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const current = Date.now();
+      setNowMs(current);
+      const hasJustExpired = auctions.some(
+        a => a.status === 'ACTIVE' && a.endsAt && new Date(a.endsAt).getTime() <= current
+      );
+      if (hasJustExpired) {
+        fetchAuctions();
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [auctions]);
+
+  const formatRemainingTime = (endsAt: string) => {
+    const diffSec = Math.max(0, Math.floor((new Date(endsAt).getTime() - nowMs) / 1000));
+    const mins = Math.floor(diffSec / 60);
+    const secs = diffSec % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
   // 모의 계산 실행
   useEffect(() => {
     fetch('/api/attendance', { cache: 'no-store' })
@@ -88,8 +110,8 @@ export default function AuctionPage() {
 
   const handleOpenBid = (auction: AuctionItem) => {
     setSelectedAuction(auction);
-    const minRequired = auction.bidsCount === 0 
-      ? auction.startingBid 
+    const minRequired = auction.bidsCount === 0
+      ? auction.startingBid
       : auction.currentBid + auction.minBidIncrement;
     setBidAmount(minRequired);
     setBidError('');
@@ -114,7 +136,7 @@ export default function AuctionPage() {
       }
       setSelectedAuction(null);
       fetchAuctions();
-      alert(`🎉 [${selectedAuction.title}] ${bidAmount.toLocaleString()}금전 입찰이 성공적으로 등록되었습니다!`);
+      alert(`🎉 [${selectedAuction.title}] ${bidAmount.toLocaleString()}금전 익명 입찰이 성공적으로 등록되었습니다! (30분 종료 시 최고 입찰자 닉네임 공개)`);
     } catch (err: any) {
       setBidError(err.message);
     } finally {
@@ -123,7 +145,7 @@ export default function AuctionPage() {
   };
 
   const handleEndAuction = async (auction: AuctionItem) => {
-    if (!confirm(`'${auction.title}' 경매를 마감하고, 최종 낙찰 금액(${auction.currentBid.toLocaleString()}금전)을 문파원들에게 자동 분배하시겠습니까?`)) {
+    if (!confirm(`'${auction.title}' 경매를 마감하여 최고 입찰자 닉네임을 공개하고, 최종 낙찰 금액(${auction.currentBid.toLocaleString()}금전)을 문파원들에게 자동 분배하시겠습니까?`)) {
       return;
     }
 
@@ -136,7 +158,7 @@ export default function AuctionPage() {
         alert(data.message || '마감 실패');
         return;
       }
-      alert(`✅ 경매가 마감되어 총 ${auction.currentBid.toLocaleString()}금전이 참여 포인트 기준으로 분배 완료되었습니다!`);
+      alert(`✅ 경매가 마감되어 최고 입찰자(${data.auction?.highestBidderNickname || '없음'})가 공개되고 총 ${auction.currentBid.toLocaleString()}금전이 참여 포인트 기준으로 분배 완료되었습니다!`);
       fetchAuctions();
     } catch (err: any) {
       alert('오류 발생: ' + err.message);
@@ -155,8 +177,7 @@ export default function AuctionPage() {
           title: newTitle,
           description: newDesc,
           startingBid: newStartBid,
-          minBidIncrement: newMinIncrement,
-          durationHours: newDuration
+          minBidIncrement: newMinIncrement
         }),
       });
       const data = await res.json();
@@ -166,10 +187,10 @@ export default function AuctionPage() {
         return;
       }
       setIsCreateOpen(false);
-      setNewTitle('');
+      setNewTitle('전설 도안 선택 상자');
       setNewDesc('');
       fetchAuctions();
-      alert('🎉 신규 경매 물품이 정상 등록되었습니다!');
+      alert('🎉 신규 경매 물품이 30분 타이머로 등록되었습니다!');
     } catch (err: any) {
       alert(err.message);
     } finally {
@@ -228,8 +249,8 @@ export default function AuctionPage() {
             <span>외길 문파 경매장 & 금전 분배소</span>
           </h1>
           <div className="mt-1.5 text-xs sm:text-sm text-slate-400 space-y-0.5">
-            <p>• 최소 시작 입찰가와 최소 호가 단위를 설정하여 실시간 경매를 진행합니다.</p>
-            <p>• 최종 낙찰 금액은 문파원의 주간 참여 포인트(수동 1P / 분신 0.25P) 비율로 100% 분배됩니다.</p>
+            <p>• 상품 1개당 <strong>30분 경매 종료 타이머</strong>가 작동하며, 진행 중 최고 입찰자는 <strong>익명</strong>으로 보호됩니다.</p>
+            <p>• 30분 타이머 종료 시 <strong>최고 입찰자의 닉네임이 공개</strong>되고, 낙찰 금전은 주간 참여 포인트 비율로 100% 분배됩니다.</p>
           </div>
         </div>
 
@@ -238,14 +259,14 @@ export default function AuctionPage() {
             href="/shop"
             className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs sm:text-sm transition-all"
           >
-            <span>🪜 상점 사다리 추첨소</span>
+            <span>📦 문파 상점 바로가기</span>
           </a>
           <button
             onClick={() => setIsCreateOpen(true)}
             className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>신규 경매 등록 (입찰가/단위 설정)</span>
+            <span>신규 30분 경매 등록</span>
           </button>
         </div>
       </div>
@@ -257,7 +278,7 @@ export default function AuctionPage() {
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>진행 중인 경매 ({activeAuctions.length}건)</span>
           </h2>
-          <span className="text-xs text-slate-400">정회원 로그인 시 실시간 입찰 가능</span>
+          <span className="text-xs text-slate-400">진행 중 최고 입찰자 익명 • 30분 종료 시 닉네임 공개</span>
         </div>
 
         {loading ? (
@@ -273,6 +294,7 @@ export default function AuctionPage() {
                 auction.bidsCount === 0
                   ? auction.startingBid
                   : auction.currentBid + auction.minBidIncrement;
+              const timeLeftStr = formatRemainingTime(auction.endsAt);
 
               return (
               <div
@@ -284,9 +306,9 @@ export default function AuctionPage() {
                     <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
                       진행중 • 입찰 {auction.bidsCount}회
                     </span>
-                    <span className="flex items-center space-x-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>진행중</span>
+                    <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-extrabold">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>남은 시간 {timeLeftStr}</span>
                     </span>
                   </div>
 
@@ -301,7 +323,7 @@ export default function AuctionPage() {
                         {auction.title}
                       </h3>
                       <p className="mt-1 text-xs text-slate-400 line-clamp-2">
-                        {auction.description || '문파 상점 사다리 추첨 선정 상품'}
+                        {auction.description || '문파 상점 전설 도안 선택 상자 경매'}
                       </p>
                     </div>
                   </div>
@@ -329,11 +351,17 @@ export default function AuctionPage() {
                         {nextMinBid.toLocaleString()} 금전 이상
                       </span>
                     </div>
-                    {auction.highestBidderNickname && (
-                      <div className="text-[11px] text-right text-slate-400">
-                        최고 입찰자: <span className="text-amber-300 font-bold">{auction.highestBidderNickname}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60">
+                      <span className="text-slate-400">현재 최고 입찰자</span>
+                      {auction.bidsCount > 0 ? (
+                        <span className="inline-flex items-center gap-1 text-amber-300 font-bold">
+                          <Lock className="w-3 h-3 text-amber-400" />
+                          <span>익명 입찰자 (종료 시 공개)</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-500">아직 입찰자 없음</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -344,7 +372,7 @@ export default function AuctionPage() {
                       className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2"
                     >
                       <Gavel className="w-4 h-4" />
-                      <span>{nextMinBid.toLocaleString()} 금전부터 입찰하기</span>
+                      <span>{nextMinBid.toLocaleString()} 금전부터 익명 입찰하기</span>
                     </button>
                   ) : (
                     <a
@@ -361,7 +389,7 @@ export default function AuctionPage() {
                       onClick={() => handleEndAuction(auction)}
                       className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors"
                     >
-                      경매 마감 및 즉시 금전 분배 (관리자)
+                      경매 즉시 종료 • 낙찰자 닉네임 공개 및 분배 (관리자)
                     </button>
                   )}
                 </div>
@@ -383,7 +411,7 @@ export default function AuctionPage() {
 
           {endedAuctions.length === 0 ? (
             <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
-              아직 마감된 경매가 없습니다. 위 진행 중인 경매를 마감하면 포인트 비례 분배표가 여기에 표시됩니다.
+              아직 마감된 경매가 없습니다. 30분 경매 타이머가 종료되면 최고 입찰자 닉네임과 포인트 비례 분배표가 여기에 공개됩니다.
             </div>
           ) : (
             endedAuctions.map(item => {
@@ -392,16 +420,18 @@ export default function AuctionPage() {
                 <div key={item.id} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
                     <div>
-                      <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">[낙찰 완료]</span>
-                      <h3 className="text-base font-bold text-white">{item.title}</h3>
+                      <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">[경매 종료 • 낙찰자 공개]</span>
+                      <h3 className="text-base font-bold text-white mt-0.5">{item.title}</h3>
+                      <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-xs">
+                        <Eye className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="text-slate-300">최종 최고 입찰자(낙찰자):</span>
+                        <span className="text-amber-300 font-black">{item.highestBidderNickname || '입찰자 없음'}</span>
+                      </div>
                     </div>
                     <div className="text-right">
                       <span className="text-xs text-slate-400">최종 낙찰가 / 분배 총액</span>
                       <div className="text-xl font-black text-amber-300">
                         {item.currentBid.toLocaleString()} 금전
-                      </div>
-                      <div className="text-[11px] text-slate-400">
-                        낙찰자: <span className="text-white font-bold">{item.highestBidderNickname || '낙찰자 없음'}</span>
                       </div>
                     </div>
                   </div>
@@ -546,7 +576,7 @@ export default function AuctionPage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                 <Gavel className="w-5 h-5 text-amber-400" />
-                <span>경매 입찰하기</span>
+                <span>익명 경매 입찰하기</span>
               </h3>
               <button
                 onClick={() => setSelectedAuction(null)}
@@ -577,13 +607,19 @@ export default function AuctionPage() {
                 <span className="font-bold text-amber-300">
                   {selectedAuction.bidsCount === 0
                     ? `입찰 전 (시작가 ${selectedAuction.startingBid.toLocaleString()} 금전)`
-                    : `${selectedAuction.currentBid.toLocaleString()} 금전`}
+                    : `${selectedAuction.currentBid.toLocaleString()} 금전 (익명 입찰자)`}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">이번 입찰 최소 가능 금액:</span>
                 <span className="font-black text-emerald-400">
                   {minRequired.toLocaleString()} 금전 이상
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">남은 경매 시간:</span>
+                <span className="font-bold text-amber-300">
+                  {formatRemainingTime(selectedAuction.endsAt)} (종료 시 낙찰자 닉네임 공개)
                 </span>
               </div>
             </div>
@@ -642,7 +678,7 @@ export default function AuctionPage() {
                 disabled={bidLoading}
                 className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm hover:from-amber-400 shadow-lg shadow-amber-500/20 disabled:opacity-50"
               >
-                {bidLoading ? '입찰 처리 중...' : `${bidAmount.toLocaleString()} 금전 입찰`}
+                {bidLoading ? '입찰 처리 중...' : `${bidAmount.toLocaleString()} 금전 익명 입찰`}
               </button>
             </div>
           </div>
@@ -660,7 +696,7 @@ export default function AuctionPage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                 <Plus className="w-5 h-5 text-amber-400" />
-                <span>신규 경매 물품 등록 (입찰가/호가 단위 설정)</span>
+                <span>신규 30분 경매 물품 등록</span>
               </h3>
               <button
                 type="button"
@@ -672,11 +708,9 @@ export default function AuctionPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">문파 상점 통합 상품 빠른 선택</label>
+              <label className="text-xs font-semibold text-slate-300">문파 상점 단일 품목 선택</label>
               <div className="grid grid-cols-1 gap-1.5">
-                {[
-                  '전설 도안 선택 상자'
-                ].map(itemName => (
+                {['전설 도안 선택 상자'].map(itemName => (
                   <button
                     key={itemName}
                     type="button"
@@ -695,11 +729,11 @@ export default function AuctionPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">물품명 (직접 입력 가능)</label>
+              <label className="text-xs font-semibold text-slate-300">물품명</label>
               <input
                 type="text"
                 required
-                placeholder="예: 전설 도안 선택 상자"
+                placeholder="전설 도안 선택 상자"
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"
@@ -754,12 +788,15 @@ export default function AuctionPage() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1.5">
               <div>
-                💡 <strong>입찰 예시 안내:</strong>
+                💡 <strong>경매 진행 규칙 안내:</strong>
               </div>
               <div>
                 • 시작가 <strong className="text-amber-300">{newStartBid.toLocaleString()} 금전</strong>으로 시작 시, 다음 사람은 최소 <strong className="text-emerald-300">{(newStartBid + newMinIncrement).toLocaleString()} 금전</strong>(+{newMinIncrement.toLocaleString()} 단위)부터 부를 수 있습니다.
+              </div>
+              <div>
+                • 상품 1개당 <strong className="text-amber-300">⏱️ 30분 경매 종료 타이머</strong>가 자동 적용되며, 진행 중에는 최고 입찰자가 <strong className="text-indigo-300">익명</strong>으로 표시되고 30분 종료 시 <strong className="text-emerald-300">최고 입찰자의 닉네임이 공개</strong>됩니다.
               </div>
             </div>
 
@@ -776,7 +813,7 @@ export default function AuctionPage() {
                 disabled={createLoading}
                 className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-md"
               >
-                {createLoading ? '등록 중...' : '경매 등록 완료'}
+                {createLoading ? '등록 중...' : '30분 경매 등록 완료'}
               </button>
             </div>
           </form>
