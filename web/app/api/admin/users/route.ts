@@ -19,13 +19,18 @@ export async function GET(req: Request) {
     }
 
     const db = await getDb();
+    const isMainAdmin = user.role === 'ADMIN';
+
     const adminViewUsers = db.users
       .map(u => ({
         id: u.id,
         username: u.username,
-        // 문주(ADMIN) 계정의 비밀번호는 누구에게도(부문주 포함) 평문 노출되지 않도록 보호
+        // 문주(ADMIN)만 다른 회원의 비밀번호를 열람할 수 있음.
+        // 부문주(SUB_ADMIN)에게는 어떤 회원의 비밀번호도 노출되지 않고 마스킹 보호됨.
         plainPassword:
-          u.role === 'ADMIN'
+          !isMainAdmin
+            ? '••••••••'
+            : u.role === 'ADMIN'
             ? '(문주 보안 비밀번호)'
             : u.plainPassword || '(이전 가입 계정 - 비번 재설정 가능)',
         nickname: u.nickname,

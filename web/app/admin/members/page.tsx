@@ -40,7 +40,7 @@ export default function AdminMembersPage() {
   const { currentUser, authChecking } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-  const [showPasswords, setShowPasswords] = useState<boolean>(true);
+  const [showPasswords, setShowPasswords] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
@@ -218,7 +218,7 @@ export default function AdminMembersPage() {
   const handleResetPassword = async (user: MemberUser) => {
     const newPass = prompt(
       `[${user.nickname}] 문파원의 새로운 비밀번호를 입력해주세요:`,
-      user.plainPassword || ''
+      isMainAdmin ? (user.plainPassword || '') : ''
     );
     if (!newPass || !newPass.trim()) return;
 
@@ -248,7 +248,10 @@ export default function AdminMembersPage() {
   };
 
   const handleCopyCredentials = (user: MemberUser) => {
-    const text = `[외길 문파 로그인 계정 안내]\n• 등급: ${ROLE_LABELS[user.role] || '문파원'}\n• 캐릭터 닉네임(활동명): ${user.nickname}\n• 로그인 아이디: ${user.username}\n• 비밀번호: ${user.plainPassword || ''}`;
+    const passDisplay = isMainAdmin
+      ? user.plainPassword || ''
+      : '•••••••• (문주만 열람 가능)';
+    const text = `[외길 문파 로그인 계정 안내]\n• 등급: ${ROLE_LABELS[user.role] || '문파원'}\n• 캐릭터 닉네임(활동명): ${user.nickname}\n• 로그인 아이디: ${user.username}\n• 비밀번호: ${passDisplay}`;
     navigator.clipboard.writeText(text);
     setCopiedId(user.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -288,6 +291,9 @@ export default function AdminMembersPage() {
             <p>
               • 문파원들의 등급을 <strong className="text-amber-300">문주</strong>, <strong className="text-purple-300">부문주</strong>, <strong className="text-rose-300">열혈 문파원</strong>, <strong className="text-indigo-300">문파원</strong> 4단계로 자유롭게 조정할 수 있습니다.
             </p>
+            <p>
+              • <strong className="text-amber-300">비밀번호 열람·확인</strong> 기능은 보안상 최고 권력자인 <strong className="text-amber-300">문주</strong>만 가능합니다.
+            </p>
           </div>
         </div>
 
@@ -308,14 +314,16 @@ export default function AdminMembersPage() {
             <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
             <span>새로고침</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setShowPasswords(prev => !prev)}
-            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all whitespace-nowrap"
-          >
-            {showPasswords ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-amber-400" />}
-            <span>{showPasswords ? '비밀번호 숨김' : '비밀번호 보기'}</span>
-          </button>
+          {isMainAdmin && (
+            <button
+              type="button"
+              onClick={() => setShowPasswords(prev => !prev)}
+              className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all whitespace-nowrap"
+            >
+              {showPasswords ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-amber-400" />}
+              <span>{showPasswords ? '비밀번호 숨김' : '비밀번호 보기'}</span>
+            </button>
+          )}
           <span className="px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold text-xs whitespace-nowrap">
             대기: {pendingUsers.length}명 / 등록: {approvedUsers.length}명
           </span>
@@ -381,7 +389,7 @@ export default function AdminMembersPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">설정한 비밀번호:</span>
                       <code className="font-bold text-emerald-300">
-                        {showPasswords ? user.plainPassword : '••••••••'}
+                        {isMainAdmin && showPasswords ? user.plainPassword : '••••••••'}
                       </code>
                     </div>
                   </div>
@@ -482,9 +490,9 @@ export default function AdminMembersPage() {
 
                     <td className="py-3 px-3 sm:px-4 whitespace-nowrap">
                       <code className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-emerald-300 font-bold text-xs">
-                        {isTargetAdmin
+                        {isTargetAdmin && isMainAdmin
                           ? '(문주 보안 비밀번호)'
-                          : showPasswords
+                          : isMainAdmin && showPasswords
                           ? user.plainPassword
                           : '••••••••'}
                       </code>
