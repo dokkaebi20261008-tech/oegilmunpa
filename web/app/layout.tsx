@@ -29,9 +29,27 @@ export default function RootLayout({
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {children}
         </main>
-        <footer className="border-t border-slate-900 bg-slate-950/60 py-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-slate-900 bg-slate-950/60 py-6 text-center text-xs text-slate-500 space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <a
+              href="https://discord.com/invite/tbQtBc8ZTf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#5865F2]/20 hover:bg-[#5865F2]/30 text-indigo-300 border border-[#5865F2]/40 text-xs transition-colors font-semibold"
+            >
+              <span>통합 디스코드</span>
+            </a>
+            <a
+              href="https://open.kakao.com/o/gRASfxRi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#FEE500]/20 hover:bg-[#FEE500]/30 text-amber-300 border border-[#FEE500]/40 text-xs transition-colors font-semibold"
+            >
+              <span>정보 오픈톡방</span>
+            </a>
+          </div>
           <p>© 2026 외길 문파 관리 위원회. All rights reserved.</p>
-          <p className="mt-1 text-[11px] text-slate-600">
+          <p className="text-[11px] text-slate-600">
             수동 참여 1.0P / 분신 등록 0.25P • 경매 낙찰 금전 포인트 비례 자동 분배
           </p>
         </footer>
