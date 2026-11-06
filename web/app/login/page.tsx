@@ -1,14 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Shield, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, User, ArrowRight, AlertCircle, Check } from 'lucide-react';
+
+const SAVED_ID_KEY = 'oegil_saved_username';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberId, setRememberId] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // 페이지 진입 시 저장된 아이디 불러오기
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SAVED_ID_KEY);
+      if (saved) {
+        setUsername(saved);
+        setRememberId(true);
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, []);
+
+  const handleToggleRemember = (checked: boolean) => {
+    setRememberId(checked);
+    try {
+      if (!checked) {
+        localStorage.removeItem(SAVED_ID_KEY);
+      } else if (username.trim()) {
+        localStorage.setItem(SAVED_ID_KEY, username.trim());
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +56,18 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+
+      // 로그인 성공 시 아이디 저장 체크 여부에 따라 저장/삭제
+      try {
+        if (rememberId && username.trim()) {
+          localStorage.setItem(SAVED_ID_KEY, username.trim());
+        } else {
+          localStorage.removeItem(SAVED_ID_KEY);
+        }
+      } catch (e) {
+        // ignore
+      }
+
       window.location.href = '/';
     } catch (err: any) {
       setError(err.message);
@@ -81,6 +122,30 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* 아이디 저장 체크박스 */}
+        <div className="flex items-center justify-between pt-0.5">
+          <label className="inline-flex items-center space-x-2 cursor-pointer select-none group">
+            <input
+              type="checkbox"
+              checked={rememberId}
+              onChange={e => handleToggleRemember(e.target.checked)}
+              className="sr-only"
+            />
+            <span
+              className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
+                rememberId
+                  ? 'bg-amber-500 border-amber-400 text-slate-950'
+                  : 'bg-slate-950 border-slate-700 group-hover:border-slate-500'
+              }`}
+            >
+              {rememberId && <Check className="w-3 h-3 stroke-[3]" />}
+            </span>
+            <span className="text-xs font-semibold text-slate-300 group-hover:text-white transition-colors">
+              아이디 저장
+            </span>
+          </label>
+        </div>
+
         {error && (
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -99,7 +164,7 @@ export default function LoginPage() {
       </form>
 
       <div className="pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
-        아직 외길 문파 정회원 계정이 없으신가요?{' '}
+        아직 외길 문파원이 아니신가요?{' '}
         <Link href="/register" className="font-bold text-amber-400 hover:underline">
           회원가입하기
         </Link>

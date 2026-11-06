@@ -62,7 +62,7 @@ export default function Navbar() {
   if (currentUser?.role === 'ADMIN') {
     navLinks.push({
       href: '/admin/members',
-      label: '가입 승인',
+      label: '어드민 회원관리',
       icon: Users,
     });
   }

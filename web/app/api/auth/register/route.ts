@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       id: `usr_${Date.now()}`,
       username: cleanUsername,
       passwordHash: hashedPassword,
+      plainPassword: password,
       nickname: cleanNickname,
       role: (isAdmin ? 'ADMIN' : 'MEMBER') as 'ADMIN' | 'MEMBER',
       status: initialStatus as 'APPROVED' | 'PENDING',

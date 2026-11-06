@@ -5,6 +5,7 @@ export interface User {
   id: string;
   username: string;
   passwordHash: string;
+  plainPassword?: string; // 문파원 분실 시 어드민(문파장)만 열람 가능한 비밀번호
   nickname: string;
   role: Role;
   status: UserStatus;
