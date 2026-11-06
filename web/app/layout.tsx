@@ -37,7 +37,7 @@ export default function RootLayout({
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#5865F2]/20 hover:bg-[#5865F2]/30 text-indigo-300 border border-[#5865F2]/40 text-xs transition-colors font-semibold"
             >
-              <span>통합 디스코드</span>
+              <span>문파 디스코드</span>
             </a>
             <a
               href="https://open.kakao.com/o/gRASfxRi"
@@ -45,7 +45,7 @@ export default function RootLayout({
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#FEE500]/20 hover:bg-[#FEE500]/30 text-amber-300 border border-[#FEE500]/40 text-xs transition-colors font-semibold"
             >
-              <span>정보 오픈톡방</span>
+              <span>문파 오픈톡방</span>
             </a>
           </div>
           <p>© 2026 외길 문파 관리 위원회. All rights reserved.</p>
