@@ -600,10 +600,10 @@ export default function HomePage() {
               <tr>
                 <th className="py-3 px-4 w-12 text-center">순위</th>
                 <th className="py-3 px-4">문파원 닉네임</th>
-                <th className="py-3 px-4 text-center">1. 요신 토벌령</th>
-                <th className="py-3 px-4 text-center">2. 결계지 방어</th>
-                <th className="py-3 px-4 text-center">3. 미혹의 정원</th>
-                <th className="py-3 px-4 text-center">4. 신기 쟁탈전</th>
+                <th className="py-3 px-4 text-center">1. 신기 쟁탈전</th>
+                <th className="py-3 px-4 text-center">2. 미혹의 정원</th>
+                <th className="py-3 px-4 text-center">3. 요신 토벌령</th>
+                <th className="py-3 px-4 text-center">4. 결계지 방어</th>
                 <th className="py-3 px-4 text-center">총 누적 포인트</th>
                 <th className="py-3 px-4 text-center">주간 참여율</th>
                 <th className="py-3 px-4 text-right">창고 금전 예상 배당금</th>
@@ -639,10 +639,10 @@ export default function HomePage() {
                         </span>
                       )}
                     </td>
+                    <td className="py-3 px-4 text-center">{renderBadge(m.singi)}</td>
+                    <td className="py-3 px-4 text-center">{renderBadge(m.mihok)}</td>
                     <td className="py-3 px-4 text-center">{renderBadge(m.yosin)}</td>
                     <td className="py-3 px-4 text-center">{renderBadge(m.gyeolgye)}</td>
-                    <td className="py-3 px-4 text-center">{renderBadge(m.mihok)}</td>
-                    <td className="py-3 px-4 text-center">{renderBadge(m.singi)}</td>
                     <td className="py-3 px-4 text-center">
                       <span className="font-extrabold text-amber-300 text-sm">{m.totalPoints}P</span>
                       {(m.carriedPoints || 0) > 0 && (

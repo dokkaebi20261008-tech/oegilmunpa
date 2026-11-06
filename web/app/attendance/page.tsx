@@ -18,7 +18,7 @@ export default function AttendancePage() {
   // 관리자 직접 체크 모달
   const [isCheckModalOpen, setIsCheckModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState('');
-  const [selectedContent, setSelectedContent] = useState<ContentType>('요신');
+  const [selectedContent, setSelectedContent] = useState<ContentType>('신기');
   const [selectedType, setSelectedType] = useState<ParticipationType>('MANUAL');
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -82,7 +82,7 @@ export default function AttendancePage() {
   const handleWeeklyContentReset = async () => {
     if (
       !confirm(
-        '🔄 [주간 컨텐츠만 미참 초기화 (점수 유지)]\n\n일주일 컨텐츠 주기가 지나 4대 컨텐츠(요신·결계·미혹·신기) 참여 상태만 모두 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 점수는 0으로 초기화되지 않고 그대로 보존(이월)됩니다.'
+        '🔄 [주간 컨텐츠만 미참 초기화 (점수 유지)]\n\n일주일 컨텐츠 주기가 지나 4대 컨텐츠(신기·미혹·요신·결계) 참여 상태만 모두 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 점수는 0으로 초기화되지 않고 그대로 보존(이월)됩니다.'
       )
     ) {
       return;
@@ -329,10 +329,10 @@ export default function AttendancePage() {
               <tr>
                 <th className="py-3 px-4 w-12 text-center">No</th>
                 <th className="py-3 px-4">문파원 닉네임</th>
-                <th className="py-3 px-4 text-center">1. 요신 토벌령</th>
-                <th className="py-3 px-4 text-center">2. 결계지 방어</th>
-                <th className="py-3 px-4 text-center">3. 미혹의 정원</th>
-                <th className="py-3 px-4 text-center">4. 신기 쟁탈전</th>
+                <th className="py-3 px-4 text-center">1. 신기 쟁탈전</th>
+                <th className="py-3 px-4 text-center">2. 미혹의 정원</th>
+                <th className="py-3 px-4 text-center">3. 요신 토벌령</th>
+                <th className="py-3 px-4 text-center">4. 결계지 방어</th>
                 <th className="py-3 px-4 text-center">이월 점수</th>
                 <th className="py-3 px-4 text-center">이번주 점수</th>
                 <th className="py-3 px-4 text-center">총 누적 포인트</th>
@@ -369,10 +369,10 @@ export default function AttendancePage() {
                     <tr key={member.nickname} className="hover:bg-slate-800/40">
                       <td className="py-3 px-4 text-center text-xs text-slate-500">{index + 1}</td>
                       <td className="py-3 px-4 font-bold text-white">{member.nickname}</td>
+                      <td className="py-3 px-4 text-center">{renderBadge(member.singi)}</td>
+                      <td className="py-3 px-4 text-center">{renderBadge(member.mihok)}</td>
                       <td className="py-3 px-4 text-center">{renderBadge(member.yosin)}</td>
                       <td className="py-3 px-4 text-center">{renderBadge(member.gyeolgye)}</td>
-                      <td className="py-3 px-4 text-center">{renderBadge(member.mihok)}</td>
-                      <td className="py-3 px-4 text-center">{renderBadge(member.singi)}</td>
                       <td className="py-3 px-4 text-center text-xs font-semibold text-slate-400">
                         {carriedPts > 0 ? `${carriedPts}P` : '-'}
                       </td>
@@ -448,10 +448,10 @@ export default function AttendancePage() {
                 onChange={e => setSelectedContent(e.target.value as ContentType)}
                 className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"
               >
-                <option value="요신">1. 요신 토벌령 (분신 등록 가능)</option>
-                <option value="결계">2. 결계지 방어 (분신 등록 가능)</option>
-                <option value="미혹">3. 미혹의 정원 (수동 참여)</option>
-                <option value="신기">4. 신기 쟁탈전 (수동 참여)</option>
+                <option value="신기">1. 신기 쟁탈전 (수동 참여)</option>
+                <option value="미혹">2. 미혹의 정원 (수동 참여)</option>
+                <option value="요신">3. 요신 토벌령 (분신 등록 가능)</option>
+                <option value="결계">4. 결계지 방어 (분신 등록 가능)</option>
               </select>
             </div>
 

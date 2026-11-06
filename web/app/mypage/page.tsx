@@ -148,27 +148,17 @@ export default function MyPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
             <div>
-              <div className="text-xs text-slate-400 font-semibold">1. 요신 토벌령</div>
-              <div className="mt-1">{renderBadge(myAttendance?.yosin)}</div>
+              <div className="text-xs text-slate-400 font-semibold">1. 신기 쟁탈전</div>
+              <div className="mt-1">{renderBadge(myAttendance?.singi)}</div>
             </div>
             <div className="text-right font-black text-sm text-amber-300">
-              {myAttendance?.yosin?.points || 0}P
+              {myAttendance?.singi?.points || 0}P
             </div>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
             <div>
-              <div className="text-xs text-slate-400 font-semibold">2. 결계지 방어</div>
-              <div className="mt-1">{renderBadge(myAttendance?.gyeolgye)}</div>
-            </div>
-            <div className="text-right font-black text-sm text-amber-300">
-              {myAttendance?.gyeolgye?.points || 0}P
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
-            <div>
-              <div className="text-xs text-slate-400 font-semibold">3. 미혹의 정원</div>
+              <div className="text-xs text-slate-400 font-semibold">2. 미혹의 정원</div>
               <div className="mt-1">{renderBadge(myAttendance?.mihok)}</div>
             </div>
             <div className="text-right font-black text-sm text-amber-300">
@@ -178,11 +168,21 @@ export default function MyPage() {
 
           <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
             <div>
-              <div className="text-xs text-slate-400 font-semibold">4. 신기 쟁탈전</div>
-              <div className="mt-1">{renderBadge(myAttendance?.singi)}</div>
+              <div className="text-xs text-slate-400 font-semibold">3. 요신 토벌령</div>
+              <div className="mt-1">{renderBadge(myAttendance?.yosin)}</div>
             </div>
             <div className="text-right font-black text-sm text-amber-300">
-              {myAttendance?.singi?.points || 0}P
+              {myAttendance?.yosin?.points || 0}P
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
+            <div>
+              <div className="text-xs text-slate-400 font-semibold">4. 결계지 방어</div>
+              <div className="mt-1">{renderBadge(myAttendance?.gyeolgye)}</div>
+            </div>
+            <div className="text-right font-black text-sm text-amber-300">
+              {myAttendance?.gyeolgye?.points || 0}P
             </div>
           </div>
         </div>

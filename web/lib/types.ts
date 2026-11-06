@@ -35,7 +35,7 @@ export interface User {
   createdAt: string;
 }
 
-export type ContentType = '요신' | '결계' | '미혹' | '신기';
+export type ContentType = '신기' | '미혹' | '요신' | '결계';
 export type ParticipationType = 'MANUAL' | 'CLONE' | 'ABSENT';
 
 export interface ContentParticipation {

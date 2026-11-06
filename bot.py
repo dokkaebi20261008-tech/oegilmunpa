@@ -272,7 +272,7 @@ def get_admin_embed():
     embed.add_field(name="!현황", value="모든 문파원의 누적 참여 횟수 및 순위 확인", inline=False)
     embed.add_field(name="!문파원추가 [닉네임]", value="신규 문파원을 시트에 등록 (예: `!문파원추가 홍길동`)", inline=False)
     embed.add_field(name="!문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 시트에서 행 삭제 (예: `!문파원삭제 홍길동`)", inline=False)
-    embed.add_field(name="!수동추가 [닉네임1 닉네임2...] [요신/결계/미혹/신기]", value="1명 또는 다수 인원 일괄 수동 체크 (예: `!수동추가 상두불 상겨미 신기`)", inline=False)
+    embed.add_field(name="!수동추가 [닉네임1 닉네임2...] [신기/미혹/요신/결계]", value="1명 또는 다수 인원 일괄 수동 체크 (예: `!수동추가 상두불 상겨미 신기`)", inline=False)
     embed.add_field(name="!초기화", value="주간 분배 정산 완료 후 전원 참여 횟수 0으로 리셋", inline=False)
     embed.add_field(name="!채널업데이트", value="새 채널 생성 없이, 기존 채널들의 안내 카드를 최신 내용으로 갱신", inline=False)
     return embed
