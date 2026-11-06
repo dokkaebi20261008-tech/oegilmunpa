@@ -143,10 +143,9 @@ async def on_message(message: discord.Message):
                         pass
                     continue
 
-                # 분신 등록 여부 자동 판별 (요신/결계지 등)
-                is_clone = any(k in msg_text for k in ["분신", "분신등록", "자동"])
-                part_type = "CLONE" if is_clone else "MANUAL"
-                part_badge = "👤 분신 등록 (+0.25P)" if is_clone else "⚔️ 직접 수동 참가 (+1.0P)"
+                # 스크린샷 업로드 인원은 항상 정상 수동 참가자로 처리 (+1.0P)
+                part_type = "MANUAL"
+                part_badge = "⚔️ 직접 수동 참가 (+1.0P)"
 
                 # 3. 구글 시트에 참여 횟수 +1 반영 (컨텐츠 체크박스 체크)
                 updated, unknown = await sheet_mgr.add_participation(detected_names, detected_content)
@@ -273,7 +272,7 @@ def get_admin_embed():
     embed.add_field(name="!현황", value="모든 문파원의 누적 참여 횟수 및 순위 확인", inline=False)
     embed.add_field(name="!문파원추가 [닉네임]", value="신규 문파원을 시트에 등록 (예: `!문파원추가 홍길동`)", inline=False)
     embed.add_field(name="!문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 시트에서 행 삭제 (예: `!문파원삭제 홍길동`)", inline=False)
-    embed.add_field(name="!수동추가 [닉네임] [요신/결계/미혹/신기]", value="스크린샷 누락/보정 시 해당 컨텐츠 수동 체크 (예: `!수동추가 홍길동 신기`)", inline=False)
+    embed.add_field(name="!수동추가 [닉네임1 닉네임2...] [요신/결계/미혹/신기]", value="1명 또는 다수 인원 일괄 수동 체크 (예: `!수동추가 상두불 상겨미 신기`)", inline=False)
     embed.add_field(name="!초기화", value="주간 분배 정산 완료 후 전원 참여 횟수 0으로 리셋", inline=False)
     embed.add_field(name="!채널업데이트", value="새 채널 생성 없이, 기존 채널들의 안내 카드를 최신 내용으로 갱신", inline=False)
     return embed
@@ -604,14 +603,16 @@ MANUAL_CONTENT_KEYWORDS = {
 
 @bot.command(name="수동추가", aliases=["참여추가", "체크", "수동체크"])
 @commands.check(is_manager_or_admin)
-async def cmd_manual_add(ctx, name: str = None, *, content: str = None):
-    """[문파장/운영진] 스크린샷 미인식 또는 누락 시 특정 문파원의 컨텐츠 체크박스를 수동으로 체크합니다."""
-    if not name:
+async def cmd_manual_add(ctx, *, args_text: str = None):
+    """[문파장/운영진] 1명 또는 2명 이상 다수 문파원의 컨텐츠 체크박스를 한 번에 수동으로 체크합니다."""
+    if not args_text or not args_text.strip():
         embed = discord.Embed(
             title="⚠️ 문파원 닉네임과 컨텐츠명을 입력해주세요!",
-            description="스크린샷에서 누락된 문파원의 **닉네임**과 참여한 **컨텐츠 이름**을 적어주세요.\n\n"
-                        "💡 **사용법**: `!수동추가 [닉네임] [컨텐츠]`\n"
-                        "💡 **예시**: `!수동추가 홍길동 요신` 또는 `!수동추가 최강홍섭 신기`\n\n"
+            description="스크린샷에서 누락된 문파원의 **닉네임(1명 또는 여러 명)**과 참여한 **컨텐츠 이름**을 적어주세요.\n\n"
+                        "💡 **1명 추가 예시**: `!수동추가 상두불 신기`\n"
+                        "💡 **다수(2명 이상) 동시 추가 예시**:\n"
+                        "• `!수동추가 상두불 상겨미 던롤 신기` (띄어쓰기로 구분)\n"
+                        "• `!수동추가 상두불, 상겨미, 던롤 신기` (쉼표로 구분)\n\n"
                         "**[컨텐츠 키워드]**\n"
                         "• `요신` : 요신 토벌령\n"
                         "• `결계` : 결계지 방어\n"
@@ -622,85 +623,105 @@ async def cmd_manual_add(ctx, name: str = None, *, content: str = None):
         await ctx.send(embed=embed)
         return
 
-    # 순서를 반대로 입력한 경우 (예: !수동추가 신기 홍길동) 자동 감지 및 맞바꿈
-    if name in ["요신", "토벌", "결계", "방어", "미혹", "정원", "신기", "쟁탈", "1", "2", "3", "4"] and content:
-        name, content = content, name
+    # 쉼표(,) 및 줄바꿈을 공백으로 치환 후 토큰 분리
+    tokens = [t.strip() for t in args_text.replace(",", " ").replace("\n", " ").split() if t.strip()]
 
-    # 컨텐츠 매핑 (스크린샷 인증과 동일한 키워드: 요신, 결계, 미혹, 신기)
     detected_content = ""
-    if content:
-        content_clean = content.strip().lower()
-        for kw, full_name in MANUAL_CONTENT_KEYWORDS.items():
-            if kw in content_clean:
-                detected_content = full_name
-                break
+    raw_names = []
 
-    if not detected_content:
+    for tok in tokens:
+        tok_lower = tok.lower()
+        # 컨텐츠 키워드 토큰인지 확인
+        matched_c = None
+        if tok_lower in MANUAL_CONTENT_KEYWORDS:
+            matched_c = MANUAL_CONTENT_KEYWORDS[tok_lower]
+        else:
+            for kw, full_name in MANUAL_CONTENT_KEYWORDS.items():
+                if kw not in ["1", "2", "3", "4"] and kw in tok_lower:
+                    matched_c = full_name
+                    break
+
+        if matched_c:
+            detected_content = matched_c
+        else:
+            raw_names.append(tok)
+
+    if not detected_content or not raw_names:
         embed = discord.Embed(
-            title="⚠️ 참여 컨텐츠를 지정해주세요!",
-            description=f"**'{name}'** 님이 참여한 컨텐츠를 함께 적어주세요.\n"
-                        "우리 외길 문파는 4대 컨텐츠별 체크박스(☑)로 운영됩니다.\n\n"
-                        "**[컨텐츠 키워드]**\n"
-                        "• `요신` : 요신 토벌령\n"
-                        "• `결계` : 결계지 방어\n"
-                        "• `미혹` : 미혹의 정원\n"
-                        "• `신기` : 신기 쟁탈전\n\n"
-                        f"💡 **예시**: `!수동추가 {name} 요신` 또는 `!수동추가 {name} 신기`",
+            title="⚠️ 문파원 닉네임과 참여 컨텐츠를 함께 적어주세요!",
+            description="1명 또는 여러 명의 문파원 닉네임과 컨텐츠 키워드(`요신`, `결계`, `미혹`, `신기`)를 함께 입력해야 합니다.\n\n"
+                        "💡 **1명 예시**: `!수동추가 상두불 신기`\n"
+                        "💡 **여러 명 예시**: `!수동추가 상두불 상겨미 던롤 신기`",
             color=discord.Color.orange()
         )
         await ctx.send(embed=embed)
         return
 
-    name = name.strip()
-    status_msg = await ctx.send(f"⏳ **'{name}'** 님의 **[{detected_content}]** 참여를 구글 시트에 반영 중입니다...")
+    status_msg = await ctx.send(
+        f"⏳ **총 {len(raw_names)}명**({', '.join(raw_names)})의 **[{detected_content}]** 수동 참여를 구글 시트 및 웹사이트에 반영 중입니다..."
+    )
 
     try:
         members = await sheet_mgr.get_all_members()
         member_names = list(members.keys())
 
-        # 닉네임 정확 매칭 or 퍼지 매칭
-        target_name = None
-        if name in members:
-            target_name = name
-        else:
-            match = process.extractOne(name, member_names, scorer=fuzz.ratio, score_cutoff=80)
-            if match:
-                target_name = match[0]
+        target_names = []
+        not_found_names = []
 
-        if not target_name:
+        for name in raw_names:
+            if name in members:
+                if name not in target_names:
+                    target_names.append(name)
+            else:
+                match = process.extractOne(name, member_names, scorer=fuzz.ratio, score_cutoff=80)
+                if match:
+                    matched_name = match[0]
+                    if matched_name not in target_names:
+                        target_names.append(matched_name)
+                else:
+                    not_found_names.append(name)
+
+        if not target_names:
             embed_not_found = discord.Embed(
                 title="⚠️ 시트에 등록되지 않은 문파원입니다",
-                description=f"**'{name}'** 님을 구글 시트 명단에서 찾을 수 없습니다.\n\n"
-                            f"💡 신규 문파원이라면 먼저 `!문파원추가 {name}`으로 등록한 후 다시 시도해주세요.",
+                description=f"입력하신 **{', '.join(not_found_names)}** 님을 구글 시트 명단에서 찾을 수 없습니다.\n\n"
+                            f"💡 신규 문파원이라면 먼저 `!문파원추가 [닉네임]`으로 등록한 후 다시 시도해주세요.",
                 color=discord.Color.red()
             )
             await status_msg.edit(content=None, embed=embed_not_found)
             return
 
-        # 분신 여부 판별
-        is_clone = any(k in (content or "") for k in ["분신", "분신등록", "자동"])
-        part_type = "CLONE" if is_clone else "MANUAL"
-        part_badge = "👤 분신 등록 (+0.25P)" if is_clone else "⚔️ 직접 수동 참가 (+1.0P)"
+        part_type = "MANUAL"
+        part_badge = "⚔️ 직접 수동 참가 (+1.0P)"
 
-        updated, unknown = await sheet_mgr.add_participation([target_name], detected_content)
+        updated, unknown = await sheet_mgr.add_participation(target_names, detected_content)
 
-        # 웹사이트 API로 출석 & 포인트(수동 1.0P / 분신 0.25P) 실시간 동기화
-        await sync_to_website({"nickname": target_name, "content": detected_content, "type": part_type})
+        # 웹사이트 API로 다수 인원 출석 & 포인트(수동 1.0P) 실시간 일괄 동기화
+        await sync_to_website({"names": target_names, "content": detected_content, "type": part_type})
 
         if updated:
             embed_success = discord.Embed(
-                title=f"✅ 수동 참여 체크 완료 ({detected_content})",
-                description=f"**{target_name}** 님의 **{detected_content}** 체크가 완료되었습니다!\n\n"
-                            f"• 반영 결과: **{updated[0]}**\n"
+                title=f"✅ 수동 참여 체크 완료 ({detected_content} • 총 {len(updated)}명)",
+                description=f"요청하신 문파원들의 **{detected_content}** 수동 참가(+1.0P) 체크가 일괄 완료되었습니다!\n"
                             f"• 참여 형태: **{part_badge}**",
                 color=discord.Color.green()
             )
+            updated_lines = [f"{idx}. {u}" for idx, u in enumerate(updated, start=1)]
+            embed_success.add_field(
+                name=f"✅ 반영 완료 명단 ({len(updated)}명)",
+                value="\n".join(updated_lines[:25]) + (f"\n...외 {len(updated_lines)-25}명" if len(updated_lines) > 25 else ""),
+                inline=False
+            )
+            if not_found_names or unknown:
+                missed = list(dict.fromkeys(not_found_names + unknown))
+                embed_success.add_field(name="❓ 미등록/확인 필요 인원", value=", ".join(missed), inline=False)
+
             embed_success.add_field(name="📊 실시간 분배 시트", value=f"[구글 스프레드시트 바로가기]({SHEET_PUBLIC_URL})", inline=True)
             embed_success.add_field(name="🌐 외길 문파 웹사이트", value=f"[웹사이트 바로가기]({config.WEB_SITE_URL})", inline=True)
-            embed_success.set_footer(text="구글 시트 및 웹사이트에 실시간 반영되어 총 포인트 및 예상 분배금이 자동 갱신되었습니다.")
+            embed_success.set_footer(text="구글 시트 및 웹사이트에 실시간 반영되어 총 포인트 및 분배금이 자동 갱신되었습니다.")
             await status_msg.edit(content=None, embed=embed_success)
         else:
-            await status_msg.edit(content=f"❌ **'{target_name}'** 님의 시트 반영에 실패했습니다. 시트 상태를 확인해주세요.")
+            await status_msg.edit(content=f"❌ 시트 반영에 실패했습니다. 시트 상태를 확인해주세요.")
 
     except Exception as e:
         logger.error(f"수동 추가 오류: {e}")
@@ -763,8 +784,8 @@ async def cmd_help(ctx):
     embed.add_field(name="🔄 !채널업데이트", value="새 채널을 만들지 않고, 이미 만들어진 채널의 안내 카드만 최신화합니다.", inline=False)
     embed.add_field(name="➕ !문파원추가 [닉네임]", value="새로운 문파원을 구글 시트에 신규 등록합니다.", inline=False)
     embed.add_field(name="🗑️ !문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 구글 시트에서 행 삭제합니다.", inline=False)
-    embed.add_field(name="✏️ !수동추가 [닉네임] [컨텐츠] (분신)", value="수동 체크 (예: `!수동추가 홍길동 요신` -> 1P / `!수동추가 홍길동 요신 분신` -> 0.25P)", inline=False)
-    embed.add_field(name="📸 스크린샷 자동 집계", value="스크린샷과 함께 컨텐츠명(요신/결계/미혹/신기)을 적어 올리면 자동 체크됩니다. (분신일 경우 '분신' 단어 포함 시 0.25P)", inline=False)
+    embed.add_field(name="✏️ !수동추가 [닉네임1 닉네임2...] [컨텐츠]", value="1명 또는 다수 일괄 수동 체크 (예: `!수동추가 상두불 신기` 또는 `!수동추가 상두불 상겨미 던롤 신기`)", inline=False)
+    embed.add_field(name="📸 스크린샷 자동 집계", value="스크린샷과 함께 컨텐츠명(요신/결계/미혹/신기)을 적어 올리면 전원 정상 수동 참가(+1.0P)로 자동 체크됩니다.", inline=False)
     embed.add_field(name="!현황", value="현재 문파원들의 주간 참여 순위를 확인합니다.", inline=False)
     embed.add_field(name="!초기화", value="[관리자 전용] 주간 분배 정산 종료 후 모든 체크박스를 리셋합니다.", inline=False)
     await ctx.send(embed=embed)
