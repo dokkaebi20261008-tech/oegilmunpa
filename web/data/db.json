@@ -1439,6 +1439,21 @@
   },
   "auctions": [
     {
+      "id": "auc_1793961421305",
+      "title": "산군의 어금니 장신구 도안 선택 상자",
+      "description": "[사다리 선정] 구매 희망자(1명): 던롤 • 시작 입찰가 20,000 금전 / 최소 호가 단위 +500 금전",
+      "imageUrl": "/images/shop-acc.png",
+      "startingBid": 20000,
+      "minBidIncrement": 500,
+      "currentBid": 20500,
+      "status": "ACTIVE",
+      "bidsCount": 2,
+      "endsAt": "2026-11-07T10:37:01.305Z",
+      "createdAt": "2026-11-06T10:37:01.305Z",
+      "highestBidderNickname": "문파장",
+      "highestBidderId": "usr_admin"
+    },
+    {
       "id": "auc_1793958431470",
       "title": "🔥 [전설] 신기 쟁탈전 보물 상패",
       "description": "",
@@ -1534,15 +1549,15 @@
     },
     {
       "id": "auc_1",
-      "title": "🔥 [전설] 신기 쟁탈전 보물 상패 (3만 금전 분배 샘플)",
-      "description": "문파 컨텐츠 종료 후 획득한 전설 등급 보물입니다. 낙찰 금액(예: 30,000 금전)은 전 문파원의 참여 포인트 비율(수동 1점 / 분신 0.25점)로 차등 분배됩니다.",
-      "startingBid": 10000,
-      "minBidIncrement": 1000,
-      "currentBid": 31000,
+      "title": "전설 무기 도안 선택 상자",
+      "description": "문파 상점 사다리 추첨 선정 상품 • 시작가 20,000 금전 / 최소 호가 단위 500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.",
+      "startingBid": 20000,
+      "minBidIncrement": 500,
+      "currentBid": 20500,
       "highestBidderNickname": "테스트전사1",
       "highestBidderId": "usr_1793957075381",
       "status": "ENDED",
-      "bidsCount": 4,
+      "bidsCount": 2,
       "endsAt": "2026-11-09T09:24:35.313Z",
       "createdAt": "2026-11-06T09:24:35.312Z",
       "distribution": {
@@ -1577,10 +1592,27 @@
           }
         ],
         "leftoverGold": 2
-      }
+      },
+      "imageUrl": "/images/shop-weapon.png"
     }
   ],
   "bids": [
+    {
+      "id": "bid_1793961421353",
+      "auctionId": "auc_1793961421305",
+      "bidderNickname": "문파장",
+      "bidderId": "usr_admin",
+      "amount": 20500,
+      "createdAt": "2026-11-06T10:37:01.353Z"
+    },
+    {
+      "id": "bid_1793961421339",
+      "auctionId": "auc_1793961421305",
+      "bidderNickname": "문파장",
+      "bidderId": "usr_admin",
+      "amount": 20000,
+      "createdAt": "2026-11-06T10:37:01.339Z"
+    },
     {
       "id": "bid_1793958432254",
       "auctionId": "auc_1793958431470",
@@ -1625,38 +1657,354 @@
   "shopItems": [
     {
       "id": "shop_1",
-      "name": "✨ 용맹의 문파 비약 (공격력 +15%)",
-      "description": "1시간 동안 모든 데미지가 15% 증가하는 문파 전용 비약",
-      "category": "소모품",
-      "price": 500,
-      "currency": "문파재화",
-      "stock": 50,
-      "icon": "flask-round",
-      "createdAt": "2026-11-06T09:24:35.312Z"
+      "name": "전설 무기 도안 선택 상자",
+      "description": "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
+      "category": "무기 도안",
+      "price": 11500,
+      "currency": "문파주화",
+      "stock": 10,
+      "maxStock": 10,
+      "weeklyLimit": "문파 주간 한정: (0/10)",
+      "imageUrl": "/images/shop-weapon.png",
+      "icon": "sword",
+      "applicants": [
+        "뱀설",
+        "상두불"
+      ],
+      "createdAt": "2026-11-06T10:37:01.237Z"
     },
     {
       "id": "shop_2",
-      "name": "🛡️ 결계의 파편 (방어력 +10%)",
-      "description": "결계지 방어 성공 시 제작 가능한 고급 수호석",
-      "category": "장비",
-      "price": 1500,
-      "currency": "문파재화",
-      "stock": 20,
+      "name": "산군의 위엄 방어구 도안 선택 상자",
+      "description": "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
+      "category": "방어구 도안",
+      "price": 11500,
+      "currency": "문파주화",
+      "stock": 10,
+      "maxStock": 10,
+      "weeklyLimit": "문파 주간 한정: (0/10)",
+      "imageUrl": "/images/shop-armor.png",
       "icon": "shield",
-      "createdAt": "2026-11-06T09:24:35.312Z"
+      "applicants": [
+        "해암",
+        "로단"
+      ],
+      "createdAt": "2026-11-06T10:37:01.237Z"
     },
     {
       "id": "shop_3",
-      "name": "🎁 문파 보물 상자 (무작위 희귀 획득)",
-      "description": "금전 및 희귀 강화 재료가 무작위로 등장하는 상자",
-      "category": "특수",
-      "price": 3000,
-      "currency": "금전",
-      "stock": 10,
-      "icon": "gift",
-      "createdAt": "2026-11-06T09:24:35.312Z"
+      "name": "산군의 어금니 장신구 도안 선택 상자",
+      "description": "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
+      "category": "장신구 도안",
+      "price": 11500,
+      "currency": "문파주화",
+      "stock": 9,
+      "maxStock": 10,
+      "weeklyLimit": "문파 주간 한정: (1/10)",
+      "imageUrl": "/images/shop-acc.png",
+      "icon": "gem",
+      "applicants": [
+        "던롤"
+      ],
+      "createdAt": "2026-11-06T10:37:01.237Z"
     }
   ],
   "purchases": [],
-  "currentWeek": "2026-W45"
+  "currentWeek": "2026-W45",
+  "ladderState": {
+    "id": "ladder_1793961421298",
+    "createdAt": "2026-11-06T10:37:01.298Z",
+    "executedBy": "문파장",
+    "numCols": 3,
+    "totalSteps": 8,
+    "startLabels": [
+      "1번 사다리",
+      "2번 사다리",
+      "3번 사다리"
+    ],
+    "bottomItems": [
+      {
+        "itemId": "shop_3",
+        "name": "산군의 어금니 장신구 도안 선택 상자",
+        "imageUrl": "/images/shop-acc.png",
+        "applicants": [
+          "던롤"
+        ]
+      },
+      {
+        "itemId": "shop_1",
+        "name": "전설 무기 도안 선택 상자",
+        "imageUrl": "/images/shop-weapon.png",
+        "applicants": [
+          "뱀설",
+          "상두불"
+        ]
+      },
+      {
+        "itemId": "shop_2",
+        "name": "산군의 위엄 방어구 도안 선택 상자",
+        "imageUrl": "/images/shop-armor.png",
+        "applicants": [
+          "해암",
+          "로단"
+        ]
+      }
+    ],
+    "rungs": [
+      {
+        "col": 1,
+        "row": 1
+      },
+      {
+        "col": 0,
+        "row": 2
+      },
+      {
+        "col": 0,
+        "row": 3
+      },
+      {
+        "col": 0,
+        "row": 5
+      },
+      {
+        "col": 1,
+        "row": 6
+      },
+      {
+        "col": 1,
+        "row": 7
+      },
+      {
+        "col": 0,
+        "row": 8
+      }
+    ],
+    "chosenStartCol": 0,
+    "winningBottomCol": 0,
+    "path": [
+      {
+        "col": 0,
+        "row": 0
+      },
+      {
+        "col": 0,
+        "row": 1
+      },
+      {
+        "col": 0,
+        "row": 2
+      },
+      {
+        "col": 1,
+        "row": 2
+      },
+      {
+        "col": 1,
+        "row": 3
+      },
+      {
+        "col": 0,
+        "row": 3
+      },
+      {
+        "col": 0,
+        "row": 4
+      },
+      {
+        "col": 0,
+        "row": 5
+      },
+      {
+        "col": 1,
+        "row": 5
+      },
+      {
+        "col": 1,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 7
+      },
+      {
+        "col": 1,
+        "row": 7
+      },
+      {
+        "col": 1,
+        "row": 8
+      },
+      {
+        "col": 0,
+        "row": 8
+      },
+      {
+        "col": 0,
+        "row": 9
+      }
+    ],
+    "winnerItem": {
+      "itemId": "shop_3",
+      "name": "산군의 어금니 장신구 도안 선택 상자",
+      "imageUrl": "/images/shop-acc.png",
+      "applicants": [
+        "던롤"
+      ]
+    },
+    "linkedAuctionId": "auc_1793961421305"
+  },
+  "ladderHistory": [
+    {
+      "id": "ladder_1793961421298",
+      "createdAt": "2026-11-06T10:37:01.298Z",
+      "executedBy": "문파장",
+      "numCols": 3,
+      "totalSteps": 8,
+      "startLabels": [
+        "1번 사다리",
+        "2번 사다리",
+        "3번 사다리"
+      ],
+      "bottomItems": [
+        {
+          "itemId": "shop_3",
+          "name": "산군의 어금니 장신구 도안 선택 상자",
+          "imageUrl": "/images/shop-acc.png",
+          "applicants": [
+            "던롤"
+          ]
+        },
+        {
+          "itemId": "shop_1",
+          "name": "전설 무기 도안 선택 상자",
+          "imageUrl": "/images/shop-weapon.png",
+          "applicants": [
+            "뱀설",
+            "상두불"
+          ]
+        },
+        {
+          "itemId": "shop_2",
+          "name": "산군의 위엄 방어구 도안 선택 상자",
+          "imageUrl": "/images/shop-armor.png",
+          "applicants": [
+            "해암",
+            "로단"
+          ]
+        }
+      ],
+      "rungs": [
+        {
+          "col": 1,
+          "row": 1
+        },
+        {
+          "col": 0,
+          "row": 2
+        },
+        {
+          "col": 0,
+          "row": 3
+        },
+        {
+          "col": 0,
+          "row": 5
+        },
+        {
+          "col": 1,
+          "row": 6
+        },
+        {
+          "col": 1,
+          "row": 7
+        },
+        {
+          "col": 0,
+          "row": 8
+        }
+      ],
+      "chosenStartCol": 0,
+      "winningBottomCol": 0,
+      "path": [
+        {
+          "col": 0,
+          "row": 0
+        },
+        {
+          "col": 0,
+          "row": 1
+        },
+        {
+          "col": 0,
+          "row": 2
+        },
+        {
+          "col": 1,
+          "row": 2
+        },
+        {
+          "col": 1,
+          "row": 3
+        },
+        {
+          "col": 0,
+          "row": 3
+        },
+        {
+          "col": 0,
+          "row": 4
+        },
+        {
+          "col": 0,
+          "row": 5
+        },
+        {
+          "col": 1,
+          "row": 5
+        },
+        {
+          "col": 1,
+          "row": 6
+        },
+        {
+          "col": 2,
+          "row": 6
+        },
+        {
+          "col": 2,
+          "row": 7
+        },
+        {
+          "col": 1,
+          "row": 7
+        },
+        {
+          "col": 1,
+          "row": 8
+        },
+        {
+          "col": 0,
+          "row": 8
+        },
+        {
+          "col": 0,
+          "row": 9
+        }
+      ],
+      "winnerItem": {
+        "itemId": "shop_3",
+        "name": "산군의 어금니 장신구 도안 선택 상자",
+        "imageUrl": "/images/shop-acc.png",
+        "applicants": [
+          "던롤"
+        ]
+      },
+      "linkedAuctionId": "auc_1793961421305"
+    }
+  ]
 }

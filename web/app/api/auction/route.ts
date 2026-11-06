@@ -31,19 +31,19 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser(req);
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json({ success: false, message: '경매 물품 등록은 문파장/관리자만 가능합니다.' }, { status: 403 });
+    if (!user) {
+      return NextResponse.json({ success: false, message: '정회원 로그인 후 경매 등록이 가능합니다.' }, { status: 401 });
     }
 
-    const { title, description, startingBid, minBidIncrement, durationHours } = await req.json();
+    const { title, description, imageUrl, startingBid, minBidIncrement, durationHours } = await req.json();
 
     if (!title || !startingBid || !minBidIncrement) {
-      return NextResponse.json({ success: false, message: '물품명, 시작 입찰가, 최소 호가 단위를 입력해주세요.' }, { status: 400 });
+      return NextResponse.json({ success: false, message: '물품명, 최소 시작 입찰가, 최소 호가 단위를 입력해주세요.' }, { status: 400 });
     }
 
-    const sBid = parseInt(startingBid, 10);
-    const mInc = parseInt(minBidIncrement, 10);
-    const hours = parseInt(durationHours || '72', 10);
+    const sBid = parseInt(String(startingBid), 10);
+    const mInc = parseInt(String(minBidIncrement), 10);
+    const hours = parseInt(String(durationHours || '72'), 10);
 
     if (sBid <= 0 || mInc <= 0) {
       return NextResponse.json({ success: false, message: '금액은 0보다 커야 합니다.' }, { status: 400 });
@@ -53,10 +53,19 @@ export async function POST(req: Request) {
     const now = new Date();
     const endsAt = new Date(now.getTime() + hours * 3600000).toISOString();
 
+    // 물품명에 맞는 기본 아이콘 자동 매칭
+    let resolvedImage = imageUrl;
+    if (!resolvedImage) {
+      if (title.includes('방어구')) resolvedImage = '/images/shop-armor.png';
+      else if (title.includes('장신구') || title.includes('어금니')) resolvedImage = '/images/shop-acc.png';
+      else resolvedImage = '/images/shop-weapon.png';
+    }
+
     const newAuction = {
       id: `auc_${Date.now()}`,
       title: title.trim(),
-      description: description ? description.trim() : '',
+      description: description ? description.trim() : `시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전`,
+      imageUrl: resolvedImage,
       startingBid: sBid,
       minBidIncrement: mInc,
       currentBid: sBid,

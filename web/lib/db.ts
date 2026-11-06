@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { User, MemberAttendance, AuctionItem, BidRecord, ShopItem, PurchaseRequest, ContentType, ParticipationType, AuctionDistribution } from './types';
+import { User, MemberAttendance, AuctionItem, BidRecord, ShopItem, PurchaseRequest, ContentType, ParticipationType, AuctionDistribution, LadderState } from './types';
 
 interface DatabaseSchema {
   users: User[];
@@ -10,6 +10,8 @@ interface DatabaseSchema {
   bids: BidRecord[];
   shopItems: ShopItem[];
   purchases: PurchaseRequest[];
+  ladderState?: LadderState | null;
+  ladderHistory?: LadderState[];
   currentWeek: string;
 }
 
@@ -79,6 +81,56 @@ function createInitialAttendance(members: string[]): Record<string, MemberAttend
   return att;
 }
 
+function getOfficialShopItems(now: string): ShopItem[] {
+  return [
+    {
+      id: "shop_1",
+      name: "전설 무기 도안 선택 상자",
+      description: "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
+      category: "무기 도안",
+      price: 11500,
+      currency: "문파주화",
+      stock: 10,
+      maxStock: 10,
+      weeklyLimit: "문파 주간 한정: (0/10)",
+      imageUrl: "/images/shop-weapon.png",
+      icon: "sword",
+      applicants: ["뱀설", "상두불"],
+      createdAt: now,
+    },
+    {
+      id: "shop_2",
+      name: "산군의 위엄 방어구 도안 선택 상자",
+      description: "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
+      category: "방어구 도안",
+      price: 11500,
+      currency: "문파주화",
+      stock: 10,
+      maxStock: 10,
+      weeklyLimit: "문파 주간 한정: (0/10)",
+      imageUrl: "/images/shop-armor.png",
+      icon: "shield",
+      applicants: ["해암", "로단"],
+      createdAt: now,
+    },
+    {
+      id: "shop_3",
+      name: "산군의 어금니 장신구 도안 선택 상자",
+      description: "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
+      category: "장신구 도안",
+      price: 11500,
+      currency: "문파주화",
+      stock: 10,
+      maxStock: 10,
+      weeklyLimit: "문파 주간 한정: (0/10)",
+      imageUrl: "/images/shop-acc.png",
+      icon: "gem",
+      applicants: ["던롤"],
+      createdAt: now,
+    }
+  ];
+}
+
 function getInitialDb(): DatabaseSchema {
   const now = new Date().toISOString();
   return {
@@ -107,15 +159,16 @@ function getInitialDb(): DatabaseSchema {
     auctions: [
       {
         id: "auc_1",
-        title: "🔥 [전설] 신기 쟁탈전 보물 상패 (3만 금전 분배 샘플)",
-        description: "문파 컨텐츠 종료 후 획득한 전설 등급 보물입니다. 낙찰 금액(예: 30,000 금전)은 전 문파원의 참여 포인트 비율(수동 1점 / 분신 0.25점)로 차등 분배됩니다.",
-        startingBid: 10000,
-        minBidIncrement: 1000,
-        currentBid: 30000,
+        title: "전설 무기 도안 선택 상자",
+        description: "문파 상점 사다리 추첨 선정 상품 • 시작가 20,000 금전 / 최소 호가 단위 500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.",
+        imageUrl: "/images/shop-weapon.png",
+        startingBid: 20000,
+        minBidIncrement: 500,
+        currentBid: 20500,
         highestBidderNickname: "뱀설",
         highestBidderId: "usr_demo",
         status: "ACTIVE",
-        bidsCount: 3,
+        bidsCount: 2,
         endsAt: new Date(Date.now() + 86400000 * 3).toISOString(),
         createdAt: now,
       }
@@ -134,46 +187,14 @@ function getInitialDb(): DatabaseSchema {
         auctionId: "auc_1",
         bidderNickname: "뱀설",
         bidderId: "usr_demo",
-        amount: 30000,
+        amount: 20500,
         createdAt: new Date(Date.now() - 1800000).toISOString(),
       }
     ],
-    shopItems: [
-      {
-        id: "shop_1",
-        name: "✨ 용맹의 문파 비약 (공격력 +15%)",
-        description: "1시간 동안 모든 데미지가 15% 증가하는 문파 전용 비약",
-        category: "소모품",
-        price: 500,
-        currency: "문파재화",
-        stock: 50,
-        icon: "flask-round",
-        createdAt: now,
-      },
-      {
-        id: "shop_2",
-        name: "🛡️ 결계의 파편 (방어력 +10%)",
-        description: "결계지 방어 성공 시 제작 가능한 고급 수호석",
-        category: "장비",
-        price: 1500,
-        currency: "문파재화",
-        stock: 20,
-        icon: "shield",
-        createdAt: now,
-      },
-      {
-        id: "shop_3",
-        name: "🎁 문파 보물 상자 (무작위 희귀 획득)",
-        description: "금전 및 희귀 강화 재료가 무작위로 등장하는 상자",
-        category: "특수",
-        price: 3000,
-        currency: "금전",
-        stock: 10,
-        icon: "gift",
-        createdAt: now,
-      }
-    ],
+    shopItems: getOfficialShopItems(now),
     purchases: [],
+    ladderState: null,
+    ladderHistory: [],
     currentWeek: "2026-W45"
   };
 }
@@ -185,10 +206,52 @@ export function getDb(): DatabaseSchema {
     if (fs.existsSync(filePath)) {
       const data = fs.readFileSync(filePath, 'utf-8');
       memoryDbCache = JSON.parse(data);
+      let migrated = false;
       if (memoryDbCache && memoryDbCache.users) {
         memoryDbCache.users.forEach(u => {
-          if (!u.status) u.status = 'APPROVED';
+          if (!u.status) {
+            u.status = 'APPROVED';
+            migrated = true;
+          }
         });
+      }
+      // 기존 구버전 상점 아이템이 있으면 공식 3대 도안 선택 상자로 자동 마이그레이션
+      if (memoryDbCache) {
+        const hasOfficial = memoryDbCache.shopItems?.some(i => i.name === "전설 무기 도안 선택 상자");
+        if (!hasOfficial) {
+          memoryDbCache.shopItems = getOfficialShopItems(new Date().toISOString());
+          migrated = true;
+        } else {
+          memoryDbCache.shopItems.forEach(item => {
+            if (!Array.isArray(item.applicants)) {
+              item.applicants = [];
+              migrated = true;
+            }
+          });
+        }
+        // 기존 구버전 샘플 경매(보물 상패)가 있으면 도안 선택 상자 샘플로 자동 마이그레이션
+        const oldAuction = memoryDbCache.auctions?.find(a => a.id === 'auc_1' && a.title.includes('보물 상패'));
+        if (oldAuction) {
+          oldAuction.title = "전설 무기 도안 선택 상자";
+          oldAuction.description = "문파 상점 사다리 추첨 선정 상품 • 시작가 20,000 금전 / 최소 호가 단위 500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
+          oldAuction.imageUrl = "/images/shop-weapon.png";
+          oldAuction.startingBid = 20000;
+          oldAuction.minBidIncrement = 500;
+          oldAuction.currentBid = 20500;
+          oldAuction.bidsCount = 2;
+          migrated = true;
+        }
+        if (memoryDbCache.ladderState === undefined) {
+          memoryDbCache.ladderState = null;
+          migrated = true;
+        }
+        if (!Array.isArray(memoryDbCache.ladderHistory)) {
+          memoryDbCache.ladderHistory = [];
+          migrated = true;
+        }
+        if (migrated) {
+          saveDb(memoryDbCache);
+        }
       }
       return memoryDbCache!;
     }

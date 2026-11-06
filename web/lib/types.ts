@@ -76,10 +76,42 @@ export interface ShopItem {
   description: string;
   category: string;
   price: number;
-  currency: '금전' | '문파재화' | '용맹의증표';
+  currency: '금전' | '문파재화' | '문파주화' | '용맹의증표';
   stock: number;
+  maxStock?: number;
+  weeklyLimit?: string;
+  imageUrl?: string;
   icon: string;
+  applicants: string[]; // 이 상품을 희망 신청한 문파원 닉네임 목록
   createdAt: string;
+}
+
+export interface LadderRung {
+  col: number; // col과 col+1을 연결하는 가로줄 (0 <= col < numCols - 1)
+  row: number; // 위에서부터의 단계 (1 <= row <= totalSteps)
+}
+
+export interface LadderItemOption {
+  itemId: string;
+  name: string;
+  imageUrl: string;
+  applicants: string[];
+}
+
+export interface LadderState {
+  id: string;
+  createdAt: string;
+  executedBy: string;
+  numCols: number;
+  totalSteps: number;
+  startLabels: string[];              // 상단 출발 번호 (예: ["1번 추첨줄", "2번 추첨줄", "3번 추첨줄"])
+  bottomItems: LadderItemOption[];    // 하단 배치된 상품 목록
+  rungs: LadderRung[];                // 사다리 가로줄 목록
+  chosenStartCol: number;             // 선택된 출발 열 (0-based)
+  winningBottomCol: number;           // 사다리를 타고 도착한 하단 열 (0-based)
+  path: { col: number; row: number }[]; // 사다리 이동 경로 좌표
+  winnerItem: LadderItemOption;       // 최종 당첨된 상품
+  linkedAuctionId?: string;           // 이 사다리 결과로 생성된 경매 ID (있을 경우)
 }
 
 export interface PurchaseRequest {

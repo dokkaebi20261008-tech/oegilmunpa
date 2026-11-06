@@ -15,13 +15,13 @@ export default function AuctionPage() {
   const [bidError, setBidError] = useState<string>('');
   const [bidLoading, setBidLoading] = useState(false);
 
-  // 신규 등록 모달 (관리자 전용)
+  // 신규 등록 모달
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
+  const [newTitle, setNewTitle] = useState('전설 무기 도안 선택 상자');
   const [newDesc, setNewDesc] = useState('');
-  const [newStartBid, setNewStartBid] = useState(10000);
-  const [newMinIncrement, setNewMinIncrement] = useState(1000);
-  const [newDuration, setNewDuration] = useState(72);
+  const [newStartBid, setNewStartBid] = useState(20000);
+  const [newMinIncrement, setNewMinIncrement] = useState(500);
+  const [newDuration, setNewDuration] = useState(24);
   const [createLoading, setCreateLoading] = useState(false);
 
   // 모의 계산기 (3만 금전 등)
@@ -233,15 +233,21 @@ export default function AuctionPage() {
           </div>
         </div>
 
-        {currentUser?.role === 'ADMIN' && (
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <a
+            href="/shop"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs sm:text-sm transition-all"
+          >
+            <span>🪜 상점 사다리 추첨소</span>
+          </a>
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all self-start sm:self-auto"
+            className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>신규 경매 등록 (관리자)</span>
+            <span>신규 경매 등록 (입찰가/단위 설정)</span>
           </button>
-        )}
+        </div>
       </div>
 
       {/* Active Auctions Section */}
@@ -262,48 +268,70 @@ export default function AuctionPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {activeAuctions.map(auction => (
+            {activeAuctions.map(auction => {
+              const nextMinBid =
+                auction.bidsCount === 0
+                  ? auction.startingBid
+                  : auction.currentBid + auction.minBidIncrement;
+
+              return (
               <div
                 key={auction.id}
                 className="bg-slate-900/70 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between transition-all"
               >
                 <div>
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                     <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
                       진행중 • 입찰 {auction.bidsCount}회
                     </span>
                     <span className="flex items-center space-x-1">
                       <Clock className="w-3.5 h-3.5" />
-                      <span>3일 남음</span>
+                      <span>진행중</span>
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-bold text-white leading-snug">
-                    {auction.title}
-                  </h3>
-
-                  <p className="mt-2 text-xs text-slate-400 line-clamp-2">
-                    {auction.description || '문파 컨텐츠 보상 아이템'}
-                  </p>
+                  <div className="flex items-center space-x-3.5">
+                    <img
+                      src={auction.imageUrl || '/images/shop-weapon.png'}
+                      alt={auction.title}
+                      className="w-14 h-14 rounded-xl border border-amber-400/60 object-cover shrink-0 shadow-md"
+                    />
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-extrabold text-white leading-snug truncate">
+                        {auction.title}
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-400 line-clamp-2">
+                        {auction.description || '문파 상점 사다리 추첨 선정 상품'}
+                      </p>
+                    </div>
+                  </div>
 
                   <div className="mt-4 p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400">시작 입찰가</span>
-                      <span className="text-slate-300 font-semibold">{auction.startingBid.toLocaleString()} 금전</span>
+                      <span className="text-slate-400">최소 구매 입찰가 (시작가)</span>
+                      <span className="text-slate-200 font-bold">{auction.startingBid.toLocaleString()} 금전</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400">최소 호가 단위</span>
-                      <span className="text-slate-300 font-semibold">+{auction.minBidIncrement.toLocaleString()} 금전</span>
+                      <span className="text-slate-400">최소 입찰 단위 (호가)</span>
+                      <span className="text-emerald-400 font-bold">+{auction.minBidIncrement.toLocaleString()} 금전</span>
                     </div>
                     <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-                      <span className="text-xs font-bold text-amber-400">현재 최고 입찰가</span>
+                      <span className="text-xs font-bold text-amber-400">
+                        {auction.bidsCount === 0 ? '첫 입찰 시작가' : '현재 최고 입찰가'}
+                      </span>
                       <span className="text-lg font-black text-amber-300">
                         {auction.currentBid.toLocaleString()} 금전
                       </span>
                     </div>
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60">
+                      <span className="text-slate-400">다음 최소 입찰 가능 금액</span>
+                      <span className="text-white font-extrabold">
+                        {nextMinBid.toLocaleString()} 금전 이상
+                      </span>
+                    </div>
                     {auction.highestBidderNickname && (
                       <div className="text-[11px] text-right text-slate-400">
-                        최고 입찰자: <span className="text-white font-bold">{auction.highestBidderNickname}</span>
+                        최고 입찰자: <span className="text-amber-300 font-bold">{auction.highestBidderNickname}</span>
                       </div>
                     )}
                   </div>
@@ -316,7 +344,7 @@ export default function AuctionPage() {
                       className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-2"
                     >
                       <Gavel className="w-4 h-4" />
-                      <span>입찰 참여하기</span>
+                      <span>{nextMinBid.toLocaleString()} 금전부터 입찰하기</span>
                     </button>
                   ) : (
                     <a
@@ -338,7 +366,8 @@ export default function AuctionPage() {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -505,7 +534,13 @@ export default function AuctionPage() {
       </div>
 
       {/* Bid Modal */}
-      {selectedAuction && (
+      {selectedAuction && (() => {
+        const minRequired =
+          selectedAuction.bidsCount === 0
+            ? selectedAuction.startingBid
+            : selectedAuction.currentBid + selectedAuction.minBidIncrement;
+
+        return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -521,11 +556,35 @@ export default function AuctionPage() {
               </button>
             </div>
 
-            <div>
-              <div className="text-sm font-bold text-white">{selectedAuction.title}</div>
-              <div className="text-xs text-slate-400 mt-1">
-                현재 최고 입찰가: <span className="font-bold text-amber-300">{selectedAuction.currentBid.toLocaleString()} 금전</span>
-                {' '}(최소 호가: +{selectedAuction.minBidIncrement.toLocaleString()})
+            <div className="flex items-center space-x-3 p-3 rounded-xl bg-slate-950 border border-slate-800">
+              <img
+                src={selectedAuction.imageUrl || '/images/shop-weapon.png'}
+                alt={selectedAuction.title}
+                className="w-12 h-12 rounded-xl border border-amber-400/50 object-cover shrink-0"
+              />
+              <div>
+                <div className="text-sm font-bold text-white">{selectedAuction.title}</div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  시작 입찰가: <span className="text-slate-200 font-semibold">{selectedAuction.startingBid.toLocaleString()} 금전</span>
+                  {' • '}호가 단위: <span className="text-emerald-400 font-bold">+{selectedAuction.minBidIncrement.toLocaleString()} 금전</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">현재 최고 입찰가:</span>
+                <span className="font-bold text-amber-300">
+                  {selectedAuction.bidsCount === 0
+                    ? `입찰 전 (시작가 ${selectedAuction.startingBid.toLocaleString()} 금전)`
+                    : `${selectedAuction.currentBid.toLocaleString()} 금전`}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">이번 입찰 최소 가능 금액:</span>
+                <span className="font-black text-emerald-400">
+                  {minRequired.toLocaleString()} 금전 이상
+                </span>
               </div>
             </div>
 
@@ -538,7 +597,14 @@ export default function AuctionPage() {
                 step={selectedAuction.minBidIncrement}
                 className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-lg font-black text-amber-300 focus:outline-none focus:border-indigo-500"
               />
-              <div className="flex gap-2 pt-1">
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setBidAmount(minRequired)}
+                  className="px-2.5 py-1 rounded bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 text-xs text-emerald-300 font-bold"
+                >
+                  최소 가능액 ({minRequired.toLocaleString()})
+                </button>
                 {[1, 2, 5].map(mult => {
                   const addVal = selectedAuction.minBidIncrement * mult;
                   return (
@@ -576,14 +642,15 @@ export default function AuctionPage() {
                 disabled={bidLoading}
                 className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm hover:from-amber-400 shadow-lg shadow-amber-500/20 disabled:opacity-50"
               >
-                {bidLoading ? '입찰 처리 중...' : `${bidAmount.toLocaleString()}금전 입찰`}
+                {bidLoading ? '입찰 처리 중...' : `${bidAmount.toLocaleString()} 금전 입찰`}
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
-      {/* Admin Create Auction Modal */}
+      {/* Create Auction Modal */}
       {isCreateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <form
@@ -593,7 +660,7 @@ export default function AuctionPage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white flex items-center space-x-2">
                 <Plus className="w-5 h-5 text-amber-400" />
-                <span>신규 경매 물품 등록 (관리자)</span>
+                <span>신규 경매 물품 등록 (입찰가/호가 단위 설정)</span>
               </h3>
               <button
                 type="button"
@@ -604,32 +671,46 @@ export default function AuctionPage() {
               </button>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300">문파 상점 3대 상품 빠른 선택</label>
+              <div className="grid grid-cols-1 gap-1.5">
+                {[
+                  '전설 무기 도안 선택 상자',
+                  '산군의 위엄 방어구 도안 선택 상자',
+                  '산군의 어금니 장신구 도안 선택 상자'
+                ].map(itemName => (
+                  <button
+                    key={itemName}
+                    type="button"
+                    onClick={() => setNewTitle(itemName)}
+                    className={`px-3 py-2 rounded-xl text-left text-xs font-bold border transition-all flex items-center justify-between ${
+                      newTitle === itemName
+                        ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                        : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>{itemName}</span>
+                    {newTitle === itemName && <span className="text-[10px] font-black">✓ 선택됨</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">물품명 (아이템 이름)</label>
+              <label className="text-xs font-semibold text-slate-300">물품명 (직접 입력 가능)</label>
               <input
                 type="text"
                 required
-                placeholder="예: [전설] 신기 쟁탈전 보물 상자"
+                placeholder="예: 전설 무기 도안 선택 상자"
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">물품 설명</label>
-              <textarea
-                rows={2}
-                placeholder="낙찰된 금액은 전 문파원의 출석 포인트에 비례하여 자동 분배됩니다."
-                value={newDesc}
-                onChange={e => setNewDesc(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">최소 입찰가 (시작가)</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">1. 최소 구매 입찰가 (시작가)</label>
                 <input
                   type="number"
                   required
@@ -637,31 +718,54 @@ export default function AuctionPage() {
                   onChange={e => setNewStartBid(parseInt(e.target.value, 10) || 0)}
                   className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-amber-300 font-bold focus:outline-none focus:border-indigo-500"
                 />
+                <div className="flex flex-wrap gap-1">
+                  {[10000, 20000, 30000, 50000].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setNewStartBid(v)}
+                      className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 font-semibold"
+                    >
+                      {(v / 10000)}만
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">최소 입찰 단위 (호가)</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">2. 최소 입찰 단위 (호가)</label>
                 <input
                   type="number"
                   required
                   value={newMinIncrement}
                   onChange={e => setNewMinIncrement(parseInt(e.target.value, 10) || 0)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-amber-300 font-bold focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-emerald-300 font-bold focus:outline-none focus:border-indigo-500"
                 />
+                <div className="flex flex-wrap gap-1">
+                  {[100, 500, 1000, 5000].map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setNewMinIncrement(v)}
+                      className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 font-semibold"
+                    >
+                      +{v.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-300">경매 진행 시간 (시간)</label>
-              <input
-                type="number"
-                value={newDuration}
-                onChange={e => setNewDuration(parseInt(e.target.value, 10) || 24)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"
-              />
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1">
+              <div>
+                💡 <strong>입찰 예시 안내:</strong>
+              </div>
+              <div>
+                • 시작가 <strong className="text-amber-300">{newStartBid.toLocaleString()} 금전</strong>으로 시작 시, 다음 사람은 최소 <strong className="text-emerald-300">{(newStartBid + newMinIncrement).toLocaleString()} 금전</strong>(+{newMinIncrement.toLocaleString()} 단위)부터 부를 수 있습니다.
+              </div>
             </div>
 
-            <div className="flex space-x-3 pt-3">
+            <div className="flex space-x-3 pt-2">
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(false)}

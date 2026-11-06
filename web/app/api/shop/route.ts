@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, saveDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { LadderRung, LadderItemOption, LadderState } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,85 +18,293 @@ export async function GET(req: Request) {
   const db = getDb();
   return NextResponse.json({
     success: true,
-    items: db.shopItems || []
+    items: db.shopItems || [],
+    ladderState: db.ladderState || null,
+    ladderHistory: db.ladderHistory || [],
+    members: db.members || []
   });
 }
 
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser(req);
-    const body = await req.json();
-    const { action } = body;
-
-    const db = getDb();
-
-    if (action === 'ADD') {
-      if (user?.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '상점 물품 등록은 관리자만 가능합니다.' }, { status: 403 });
-      }
-
-      const { name, description, category, price, currency, stock, icon } = body;
-      if (!name || !price) {
-        return NextResponse.json({ success: false, message: '아이템명과 가격을 입력해주세요.' }, { status: 400 });
-      }
-
-      const newItem = {
-        id: `shop_${Date.now()}`,
-        name: name.trim(),
-        description: description ? description.trim() : '',
-        category: category || '일반',
-        price: parseInt(price, 10),
-        currency: currency || '문파재화',
-        stock: parseInt(stock || '99', 10),
-        icon: icon || 'package',
-        createdAt: new Date().toISOString()
-      };
-
-      db.shopItems.push(newItem);
-      saveDb(db);
-
-      return NextResponse.json({ success: true, item: newItem });
+    if (!user) {
+      return NextResponse.json({ success: false, message: '정회원 로그인 후 이용 가능합니다.' }, { status: 401 });
     }
 
-    if (action === 'PURCHASE') {
-      if (!user) {
-        return NextResponse.json({ success: false, message: '로그인 후 구매 신청이 가능합니다.' }, { status: 401 });
-      }
+    const body = await req.json();
+    const { action } = body;
+    const db = getDb();
 
-      const { itemId } = body;
+    // 1. 내 캐릭터(또는 지정 닉네임)로 상품 구매 희망 신청 / 취소 토글
+    if (action === 'TOGGLE_APPLICANT') {
+      const { itemId, nickname } = body;
+      const targetName = (nickname || user.nickname || '').trim();
       const item = db.shopItems.find(i => i.id === itemId);
       if (!item) {
-        return NextResponse.json({ success: false, message: '존재하지 않는 아이템입니다.' }, { status: 404 });
+        return NextResponse.json({ success: false, message: '존재하지 않는 상점 상품입니다.' }, { status: 404 });
+      }
+      if (!Array.isArray(item.applicants)) item.applicants = [];
+
+      const exists = item.applicants.includes(targetName);
+      if (exists) {
+        item.applicants = item.applicants.filter(n => n !== targetName);
+      } else {
+        item.applicants.push(targetName);
+      }
+      saveDb(db);
+      return NextResponse.json({
+        success: true,
+        applied: !exists,
+        item,
+        items: db.shopItems
+      });
+    }
+
+    // 2. 특정 문파원을 해당 상품 희망자에 직접 추가
+    if (action === 'ADD_APPLICANT') {
+      const { itemId, nickname } = body;
+      const targetName = (nickname || '').trim();
+      if (!targetName) {
+        return NextResponse.json({ success: false, message: '추가할 문파원 닉네임을 입력해주세요.' }, { status: 400 });
+      }
+      const item = db.shopItems.find(i => i.id === itemId);
+      if (!item) {
+        return NextResponse.json({ success: false, message: '존재하지 않는 상점 상품입니다.' }, { status: 404 });
+      }
+      if (!Array.isArray(item.applicants)) item.applicants = [];
+      if (!item.applicants.includes(targetName)) {
+        item.applicants.push(targetName);
+        saveDb(db);
+      }
+      return NextResponse.json({
+        success: true,
+        item,
+        items: db.shopItems
+      });
+    }
+
+    // 3. 특정 문파원을 해당 상품 희망자에서 제거
+    if (action === 'REMOVE_APPLICANT') {
+      const { itemId, nickname } = body;
+      const item = db.shopItems.find(i => i.id === itemId);
+      if (!item) {
+        return NextResponse.json({ success: false, message: '존재하지 않는 상점 상품입니다.' }, { status: 404 });
+      }
+      if (Array.isArray(item.applicants)) {
+        item.applicants = item.applicants.filter(n => n !== nickname);
+        saveDb(db);
+      }
+      return NextResponse.json({
+        success: true,
+        item,
+        items: db.shopItems
+      });
+    }
+
+    // 4. 전체 상품 희망자 명단 초기화
+    if (action === 'RESET_APPLICANTS') {
+      db.shopItems.forEach(item => {
+        item.applicants = [];
+      });
+      saveDb(db);
+      return NextResponse.json({
+        success: true,
+        items: db.shopItems
+      });
+    }
+
+    // 5. 사다리 타기 실행 (상품 추첨 및 전 문파원 실시간 결과 공유)
+    if (action === 'RUN_LADDER') {
+      const { onlyWithApplicants = true, startCol } = body;
+
+      // 후보 상품 추출: 희망자가 있는 상품만 추첨할지, 3가지 전체를 추첨할지 결정
+      let candidates = db.shopItems.filter(i => Array.isArray(i.applicants) && i.applicants.length > 0);
+      if (!onlyWithApplicants || candidates.length === 0) {
+        candidates = [...db.shopItems];
       }
 
-      if (item.stock <= 0) {
-        return NextResponse.json({ success: false, message: '재고가 부족합니다.' }, { status: 400 });
+      // 만약 희망자가 있는 상품이 1개뿐인데 사다리를 돌리는 경우, 3가지 상품을 하단에 배치하되 희망 상품들을 포함하여 최소 3줄 사다리 구성
+      let ladderCandidates: LadderItemOption[] = [];
+      if (candidates.length === 1 && db.shopItems.length >= 3) {
+        // 희망자가 있는 1개 상품을 포함하여 3개 줄 구성 (당첨 확률 또는 비교 추첨용으로 전체 3상품 배치)
+        ladderCandidates = db.shopItems.map(i => ({
+          itemId: i.id,
+          name: i.name,
+          imageUrl: i.imageUrl || '/images/shop-weapon.png',
+          applicants: i.applicants || []
+        }));
+      } else {
+        ladderCandidates = candidates.map(i => ({
+          itemId: i.id,
+          name: i.name,
+          imageUrl: i.imageUrl || '/images/shop-weapon.png',
+          applicants: i.applicants || []
+        }));
       }
 
-      const newPurchase = {
-        id: `pur_${Date.now()}`,
-        itemId: item.id,
-        itemName: item.name,
-        buyerNickname: user.nickname,
-        buyerId: user.userId,
-        price: item.price,
-        currency: item.currency,
-        status: 'PENDING' as const,
-        createdAt: new Date().toISOString()
+      // 하단 상품 순서 무작위 셔플 (Fisher-Yates)
+      const bottomItems = [...ladderCandidates];
+      for (let i = bottomItems.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bottomItems[i], bottomItems[j]] = [bottomItems[j], bottomItems[i]];
+      }
+
+      const numCols = bottomItems.length;
+      const totalSteps = 8;
+      const rungs: LadderRung[] = [];
+
+      // 각 가로 단계(1..totalSteps)별로 인접한 가로줄이 겹치지 않도록 사다리 가로줄 생성
+      for (let r = 1; r <= totalSteps; r++) {
+        let c = 0;
+        while (c < numCols - 1) {
+          if (Math.random() < 0.55) {
+            rungs.push({ col: c, row: r });
+            c += 2; // 인접 열 동시 가로줄 방지
+          } else {
+            c += 1;
+          }
+        }
+      }
+
+      // 각 열 사이에 최소 1개 이상의 가로줄이 있도록 보장
+      for (let gap = 0; gap < numCols - 1; gap++) {
+        const hasRung = rungs.some(rg => rg.col === gap);
+        if (!hasRung) {
+          // 비어있는 행 찾아서 추가
+          for (let r = 1; r <= totalSteps; r++) {
+            const conflict = rungs.some(rg => rg.row === r && Math.abs(rg.col - gap) <= 1);
+            if (!conflict) {
+              rungs.push({ col: gap, row: r });
+              break;
+            }
+          }
+        }
+      }
+
+      // 출발 열 결정 (지정된 출발 번호가 있으면 사용, 없으면 무작위)
+      const chosenStartCol =
+        typeof startCol === 'number' && startCol >= 0 && startCol < numCols
+          ? startCol
+          : Math.floor(Math.random() * numCols);
+
+      // 사다리 경로 추적 계산
+      let curCol = chosenStartCol;
+      const path: { col: number; row: number }[] = [{ col: curCol, row: 0 }];
+
+      for (let r = 1; r <= totalSteps; r++) {
+        path.push({ col: curCol, row: r });
+        const rightRung = rungs.find(rg => rg.row === r && rg.col === curCol);
+        const leftRung = rungs.find(rg => rg.row === r && rg.col === curCol - 1);
+
+        if (rightRung) {
+          curCol += 1;
+          path.push({ col: curCol, row: r });
+        } else if (leftRung) {
+          curCol -= 1;
+          path.push({ col: curCol, row: r });
+        }
+      }
+
+      path.push({ col: curCol, row: totalSteps + 1 });
+
+      const winningBottomCol = curCol;
+      const winnerItem = bottomItems[winningBottomCol];
+      const startLabels = Array.from({ length: numCols }, (_, idx) => `${idx + 1}번 사다리`);
+
+      const newLadder: LadderState = {
+        id: `ladder_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        executedBy: user.nickname,
+        numCols,
+        totalSteps,
+        startLabels,
+        bottomItems,
+        rungs,
+        chosenStartCol,
+        winningBottomCol,
+        path,
+        winnerItem
       };
 
-      item.stock -= 1;
-      db.purchases.push(newPurchase);
+      db.ladderState = newLadder;
+      if (!Array.isArray(db.ladderHistory)) db.ladderHistory = [];
+      db.ladderHistory.unshift(newLadder);
+      if (db.ladderHistory.length > 10) {
+        db.ladderHistory = db.ladderHistory.slice(0, 10);
+      }
+
       saveDb(db);
 
       return NextResponse.json({
         success: true,
-        message: `'${item.name}' 구매 신청이 완료되었습니다. 관리자 확인 후 지급됩니다.`,
-        purchase: newPurchase
+        ladderState: newLadder,
+        ladderHistory: db.ladderHistory
       });
     }
 
-    return NextResponse.json({ success: false, message: '유효한 action이 아닙니다.' }, { status: 400 });
+    // 6. 뽑힌 상점 상품으로 즉시 경매 시작하기 (최소 구매 입찰가 & 최소 입찰 호가 단위 설정)
+    if (action === 'START_AUCTION_FROM_SHOP') {
+      const { itemId, startingBid, minBidIncrement, durationHours } = body;
+      const item = db.shopItems.find(i => i.id === itemId);
+      if (!item) {
+        return NextResponse.json({ success: false, message: '존재하지 않는 상점 상품입니다.' }, { status: 404 });
+      }
+
+      const sBid = parseInt(String(startingBid), 10);
+      const mInc = parseInt(String(minBidIncrement), 10);
+      const hours = parseInt(String(durationHours || '24'), 10);
+
+      if (!sBid || sBid <= 0 || !mInc || mInc <= 0) {
+        return NextResponse.json({
+          success: false,
+          message: '최소 구매 입찰가(시작가)와 최소 입찰 단위(호가)를 올바르게 입력해주세요.'
+        }, { status: 400 });
+      }
+
+      const now = new Date();
+      const endsAt = new Date(now.getTime() + hours * 3600000).toISOString();
+      const applicantsText =
+        item.applicants && item.applicants.length > 0
+          ? `구매 희망자(${item.applicants.length}명): ${item.applicants.join(', ')}`
+          : '문파 상점 추첨 상품';
+
+      const newAuction = {
+        id: `auc_${Date.now()}`,
+        title: item.name,
+        description: `[사다리 선정] ${applicantsText} • 시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전`,
+        imageUrl: item.imageUrl || '/images/shop-weapon.png',
+        startingBid: sBid,
+        minBidIncrement: mInc,
+        currentBid: sBid,
+        status: 'ACTIVE' as const,
+        bidsCount: 0,
+        endsAt,
+        createdAt: now.toISOString()
+      };
+
+      // 주간 한정 카운트 업데이트 표시 (예: (1/10))
+      if (item.stock > 0) {
+        item.stock -= 1;
+        const used = (item.maxStock || 10) - item.stock;
+        item.weeklyLimit = `문파 주간 한정: (${used}/${item.maxStock || 10})`;
+      }
+
+      db.auctions.unshift(newAuction);
+      if (db.ladderState && db.ladderState.winnerItem.itemId === item.id) {
+        db.ladderState.linkedAuctionId = newAuction.id;
+      }
+
+      saveDb(db);
+
+      return NextResponse.json({
+        success: true,
+        message: `[${item.name}] 경매가 오픈되었습니다! (최소 입찰가 ${sBid.toLocaleString()} 금전 / 호가 단위 +${mInc.toLocaleString()} 금전)`,
+        auction: newAuction
+      });
+    }
+
+    return NextResponse.json({ success: false, message: '유효한 요청이 아닙니다.' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
