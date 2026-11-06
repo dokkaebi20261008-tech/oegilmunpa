@@ -1,0 +1,209 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Shield, Swords, Gavel, ShoppingBag, User as UserIcon, LogOut, CheckCircle2, Menu, X, Users } from 'lucide-react';
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) {
+          setCurrentUser(data.user);
+          if (data.user.role === 'ADMIN') {
+            fetch('/api/admin/users')
+              .then(r => r.json())
+              .then(ud => setPendingCount(ud.pendingCount || 0))
+              .catch(() => {});
+          }
+        } else {
+          setCurrentUser(null);
+        }
+      })
+      .catch(() => setCurrentUser(null));
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    setCurrentUser(null);
+    window.location.href = '/';
+  };
+
+  const navLinks = [
+    { href: '/', label: '출석 대시보드', icon: Swords },
+    { href: '/attendance', label: '상세 출석부', icon: CheckCircle2 },
+    { href: '/auction', label: '문파 경매장', icon: Gavel },
+    { href: '/shop', label: '문파 상점', icon: ShoppingBag },
+  ];
+
+  if (currentUser?.role === 'ADMIN') {
+    navLinks.push({
+      href: '/admin/members',
+      label: '가입 승인',
+      icon: Users,
+    });
+  }
+
+  return (
+    <nav className="sticky top-0 z-50 bg-[#0f172a]/95 backdrop-blur border-b border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <div className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent">
+                외길 문파
+              </div>
+              <div className="text-[10px] text-slate-400 -mt-1 tracking-wider uppercase font-semibold">
+                Dokkaebi Guild System
+              </div>
+            </div>
+          </Link>
+
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-indigo-600/20 text-amber-300 border border-indigo-500/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                  <span>{link.label}</span>
+                  {link.href === '/admin/members' && pendingCount > 0 && (
+                    <span className="ml-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
+                      {pendingCount}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* User Controls */}
+          <div className="hidden md:flex items-center space-x-3">
+            {currentUser ? (
+              <div className="flex items-center space-x-3 bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-1.5">
+                <Link href="/mypage" className="flex items-center space-x-2 text-sm hover:opacity-80 transition-opacity">
+                  <div className="w-7 h-7 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-xs font-bold text-indigo-300">
+                    {currentUser.nickname.slice(0, 1)}
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-200">{currentUser.nickname}</span>
+                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                      {currentUser.role === 'ADMIN' ? '문파장' : '정회원'}
+                    </span>
+                  </div>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                  title="로그아웃"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-3.5 py-1.5 text-sm font-semibold text-slate-900 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-sm transition-colors"
+                >
+                  회원가입
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="flex md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-800 bg-[#0f172a] px-4 pt-3 pb-4 space-y-2">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-base font-medium ${
+                  isActive ? 'bg-indigo-600/30 text-amber-300' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Icon className="w-5 h-5 text-slate-400" />
+                <span>{link.label}</span>
+              </Link>
+            );
+          })}
+          <div className="pt-3 border-t border-slate-800">
+            {currentUser ? (
+              <div className="flex items-center justify-between">
+                <Link href="/mypage" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-200">
+                  {currentUser.nickname} ({currentUser.role === 'ADMIN' ? '문파장' : '정회원'})
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-rose-400 hover:underline"
+                >
+                  로그아웃
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2 text-sm font-medium bg-slate-800 text-white rounded-lg"
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2 text-sm font-bold bg-amber-400 text-slate-900 rounded-lg"
+                >
+                  회원가입
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}

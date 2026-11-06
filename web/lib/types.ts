@@ -1,0 +1,95 @@
+export type Role = 'ADMIN' | 'MEMBER';
+export type UserStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+  nickname: string;
+  role: Role;
+  status: UserStatus;
+  createdAt: string;
+}
+
+export type ContentType = '요신' | '결계' | '미혹' | '신기';
+export type ParticipationType = 'MANUAL' | 'CLONE' | 'ABSENT';
+
+export interface ContentParticipation {
+  type: ParticipationType;
+  points: number; // MANUAL: 1.0, CLONE: 0.25, ABSENT: 0
+  updatedAt?: string;
+}
+
+export interface MemberAttendance {
+  nickname: string;
+  yosin: ContentParticipation;     // 요신 토벌령 (수동 1.0 / 분신 0.25)
+  gyeolgye: ContentParticipation;  // 결계지 방어 (수동 1.0 / 분신 0.25)
+  mihok: ContentParticipation;     // 미혹의 정원 (수동 1.0)
+  singi: ContentParticipation;     // 신기 쟁탈전 (수동 1.0)
+  totalPoints: number;            // 주간 총 포인트 (최대 4.0)
+  rate: number;                   // 참여율 (%)
+}
+
+export interface AuctionDistributionParticipant {
+  nickname: string;
+  points: number;
+  share: number; // 배분된 금전
+}
+
+export interface AuctionDistribution {
+  totalGold: number;
+  totalPoints: number;
+  goldPerPoint: number;
+  participants: AuctionDistributionParticipant[];
+  leftoverGold: number; // 잔여 금전 (문파 금고 적립)
+}
+
+export interface BidRecord {
+  id: string;
+  auctionId: string;
+  bidderNickname: string;
+  bidderId: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AuctionItem {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl?: string;
+  startingBid: number;          // 최소 입찰가 (시작가)
+  minBidIncrement: number;      // 최소 입찰 단위 (호가 단위)
+  currentBid: number;           // 현재 최고 입찰가
+  highestBidderNickname?: string;
+  highestBidderId?: string;
+  status: 'ACTIVE' | 'ENDED' | 'CANCELLED';
+  bidsCount: number;
+  endsAt: string;
+  createdAt: string;
+  distribution?: AuctionDistribution; // 낙찰 완료 시 계산된 분배 내역
+}
+
+export interface ShopItem {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  currency: '금전' | '문파재화' | '용맹의증표';
+  stock: number;
+  icon: string;
+  createdAt: string;
+}
+
+export interface PurchaseRequest {
+  id: string;
+  itemId: string;
+  itemName: string;
+  buyerNickname: string;
+  buyerId: string;
+  price: number;
+  currency: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+}

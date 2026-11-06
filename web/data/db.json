@@ -1,0 +1,1397 @@
+{
+  "users": [
+    {
+      "id": "usr_admin",
+      "username": "admin",
+      "passwordHash": "admin1234",
+      "nickname": "문파장",
+      "role": "ADMIN",
+      "createdAt": "2026-11-06T09:24:35.312Z",
+      "status": "APPROVED"
+    },
+    {
+      "id": "usr_demo",
+      "username": "member1",
+      "passwordHash": "1234",
+      "nickname": "뱀설",
+      "role": "MEMBER",
+      "createdAt": "2026-11-06T09:24:35.312Z",
+      "status": "APPROVED"
+    },
+    {
+      "id": "usr_1793957075381",
+      "username": "testuser99",
+      "passwordHash": "password123!",
+      "nickname": "테스트전사1",
+      "role": "MEMBER",
+      "createdAt": "2026-11-06T09:24:35.381Z",
+      "status": "APPROVED"
+    },
+    {
+      "id": "usr_1793957698654",
+      "username": "pending_user_99",
+      "passwordHash": "password1234",
+      "nickname": "신규문파원99",
+      "role": "MEMBER",
+      "status": "APPROVED",
+      "createdAt": "2026-11-06T09:34:58.654Z"
+    },
+    {
+      "id": "usr_1793957785698",
+      "username": "user_1793957785",
+      "passwordHash": "password1234",
+      "nickname": "문파원_1793957785",
+      "role": "MEMBER",
+      "status": "PENDING",
+      "createdAt": "2026-11-06T09:36:25.698Z"
+    },
+    {
+      "id": "usr_1793957849627",
+      "username": "user_1793957849",
+      "passwordHash": "password1234",
+      "nickname": "문파원_1793957849",
+      "role": "MEMBER",
+      "status": "APPROVED",
+      "createdAt": "2026-11-06T09:37:29.627Z"
+    }
+  ],
+  "members": [
+    "뱀설",
+    "상두불",
+    "상겨미",
+    "던롤",
+    "로단",
+    "행뚁",
+    "악군학",
+    "승기",
+    "휴이랑",
+    "호랑이야",
+    "쬬아",
+    "옥절이",
+    "빠따왕",
+    "추서",
+    "해암",
+    "쓱삭이",
+    "꼬다야",
+    "모던블루",
+    "요령서",
+    "믕치",
+    "딱딱똥",
+    "지골몬",
+    "마표",
+    "이병헌",
+    "우주여행",
+    "월계",
+    "강원도호랭이",
+    "환이햄",
+    "저급",
+    "쪼로",
+    "서리눈",
+    "아아라",
+    "멍식2",
+    "채권",
+    "승환킴",
+    "사찰",
+    "다하네",
+    "탑몬스터",
+    "희옥이",
+    "붕찬",
+    "정지태",
+    "가시개미",
+    "소사마귀",
+    "어프로치",
+    "츱",
+    "냥냥쨉",
+    "냥냥킥",
+    "무당청명",
+    "테스트전사1",
+    "테스트전사2",
+    "신규문파원99",
+    "문파원_1793957785",
+    "문파원_1793957849"
+  ],
+  "attendance": {
+    "뱀설": {
+      "nickname": "뱀설",
+      "yosin": {
+        "type": "MANUAL",
+        "points": 1
+      },
+      "gyeolgye": {
+        "type": "MANUAL",
+        "points": 1
+      },
+      "mihok": {
+        "type": "MANUAL",
+        "points": 1
+      },
+      "singi": {
+        "type": "MANUAL",
+        "points": 1
+      },
+      "totalPoints": 4,
+      "rate": 100
+    },
+    "상두불": {
+      "nickname": "상두불",
+      "yosin": {
+        "type": "MANUAL",
+        "points": 1
+      },
+      "gyeolgye": {
+        "type": "CLONE",
+        "points": 0.25
+      },
+      "mihok": {
+        "type": "MANUAL",
+        "points": 1
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 2.25,
+      "rate": 56
+    },
+    "상겨미": {
+      "nickname": "상겨미",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "던롤": {
+      "nickname": "던롤",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "로단": {
+      "nickname": "로단",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "행뚁": {
+      "nickname": "행뚁",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "악군학": {
+      "nickname": "악군학",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "승기": {
+      "nickname": "승기",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "휴이랑": {
+      "nickname": "휴이랑",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "호랑이야": {
+      "nickname": "호랑이야",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "쬬아": {
+      "nickname": "쬬아",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "옥절이": {
+      "nickname": "옥절이",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "빠따왕": {
+      "nickname": "빠따왕",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "추서": {
+      "nickname": "추서",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "해암": {
+      "nickname": "해암",
+      "yosin": {
+        "type": "CLONE",
+        "points": 0.25
+      },
+      "gyeolgye": {
+        "type": "CLONE",
+        "points": 0.25
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0.5,
+      "rate": 12.5
+    },
+    "쓱삭이": {
+      "nickname": "쓱삭이",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "꼬다야": {
+      "nickname": "꼬다야",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "모던블루": {
+      "nickname": "모던블루",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "요령서": {
+      "nickname": "요령서",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "믕치": {
+      "nickname": "믕치",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "딱딱똥": {
+      "nickname": "딱딱똥",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "지골몬": {
+      "nickname": "지골몬",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "마표": {
+      "nickname": "마표",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "이병헌": {
+      "nickname": "이병헌",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "우주여행": {
+      "nickname": "우주여행",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "월계": {
+      "nickname": "월계",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "강원도호랭이": {
+      "nickname": "강원도호랭이",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "환이햄": {
+      "nickname": "환이햄",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "저급": {
+      "nickname": "저급",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "쪼로": {
+      "nickname": "쪼로",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "서리눈": {
+      "nickname": "서리눈",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "아아라": {
+      "nickname": "아아라",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "멍식2": {
+      "nickname": "멍식2",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "채권": {
+      "nickname": "채권",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "승환킴": {
+      "nickname": "승환킴",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "사찰": {
+      "nickname": "사찰",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "다하네": {
+      "nickname": "다하네",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "탑몬스터": {
+      "nickname": "탑몬스터",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "희옥이": {
+      "nickname": "희옥이",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "붕찬": {
+      "nickname": "붕찬",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "정지태": {
+      "nickname": "정지태",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "가시개미": {
+      "nickname": "가시개미",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "소사마귀": {
+      "nickname": "소사마귀",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "어프로치": {
+      "nickname": "어프로치",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "츱": {
+      "nickname": "츱",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "냥냥쨉": {
+      "nickname": "냥냥쨉",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "냥냥킥": {
+      "nickname": "냥냥킥",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "무당청명": {
+      "nickname": "무당청명",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "테스트전사1": {
+      "nickname": "테스트전사1",
+      "yosin": {
+        "type": "MANUAL",
+        "points": 1,
+        "updatedAt": "2026-11-06T09:37:57.208Z"
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 1,
+      "rate": 25
+    },
+    "테스트전사2": {
+      "nickname": "테스트전사2",
+      "yosin": {
+        "type": "CLONE",
+        "points": 0.25,
+        "updatedAt": "2026-11-06T09:37:57.233Z"
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0.25,
+      "rate": 6
+    },
+    "신규문파원99": {
+      "nickname": "신규문파원99",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "문파원_1793957785": {
+      "nickname": "문파원_1793957785",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    },
+    "문파원_1793957849": {
+      "nickname": "문파원_1793957849",
+      "yosin": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "gyeolgye": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "mihok": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "singi": {
+        "type": "ABSENT",
+        "points": 0
+      },
+      "totalPoints": 0,
+      "rate": 0
+    }
+  },
+  "auctions": [
+    {
+      "id": "auc_1793957877362",
+      "title": "🔥 [전설] 신기 쟁탈전 보물 상패",
+      "description": "",
+      "startingBid": 10000,
+      "minBidIncrement": 1000,
+      "currentBid": 11000,
+      "status": "ENDED",
+      "bidsCount": 1,
+      "endsAt": "2026-11-09T09:37:57.362Z",
+      "createdAt": "2026-11-06T09:37:57.362Z",
+      "highestBidderNickname": "테스트전사1",
+      "highestBidderId": "usr_1793957075381",
+      "distribution": {
+        "totalGold": 11000,
+        "totalPoints": 8,
+        "goldPerPoint": 1375,
+        "participants": [
+          {
+            "nickname": "뱀설",
+            "points": 4,
+            "share": 5500
+          },
+          {
+            "nickname": "상두불",
+            "points": 2.25,
+            "share": 3093
+          },
+          {
+            "nickname": "테스트전사1",
+            "points": 1,
+            "share": 1375
+          },
+          {
+            "nickname": "해암",
+            "points": 0.5,
+            "share": 687
+          },
+          {
+            "nickname": "테스트전사2",
+            "points": 0.25,
+            "share": 343
+          }
+        ],
+        "leftoverGold": 2
+      }
+    },
+    {
+      "id": "auc_1",
+      "title": "🔥 [전설] 신기 쟁탈전 보물 상패 (3만 금전 분배 샘플)",
+      "description": "문파 컨텐츠 종료 후 획득한 전설 등급 보물입니다. 낙찰 금액(예: 30,000 금전)은 전 문파원의 참여 포인트 비율(수동 1점 / 분신 0.25점)로 차등 분배됩니다.",
+      "startingBid": 10000,
+      "minBidIncrement": 1000,
+      "currentBid": 31000,
+      "highestBidderNickname": "테스트전사1",
+      "highestBidderId": "usr_1793957075381",
+      "status": "ENDED",
+      "bidsCount": 4,
+      "endsAt": "2026-11-09T09:24:35.313Z",
+      "createdAt": "2026-11-06T09:24:35.312Z",
+      "distribution": {
+        "totalGold": 31000,
+        "totalPoints": 8,
+        "goldPerPoint": 3875,
+        "participants": [
+          {
+            "nickname": "뱀설",
+            "points": 4,
+            "share": 15500
+          },
+          {
+            "nickname": "상두불",
+            "points": 2.25,
+            "share": 8718
+          },
+          {
+            "nickname": "테스트전사1",
+            "points": 1,
+            "share": 3875
+          },
+          {
+            "nickname": "해암",
+            "points": 0.5,
+            "share": 1937
+          },
+          {
+            "nickname": "테스트전사2",
+            "points": 0.25,
+            "share": 968
+          }
+        ],
+        "leftoverGold": 2
+      }
+    }
+  ],
+  "bids": [
+    {
+      "id": "bid_1793957877398",
+      "auctionId": "auc_1793957877362",
+      "bidderNickname": "테스트전사1",
+      "bidderId": "usr_1793957075381",
+      "amount": 11000,
+      "createdAt": "2026-11-06T09:37:57.398Z"
+    },
+    {
+      "id": "bid_1793957495362",
+      "auctionId": "auc_1",
+      "bidderNickname": "테스트전사1",
+      "bidderId": "usr_1793957075381",
+      "amount": 31000,
+      "createdAt": "2026-11-06T09:31:35.362Z"
+    },
+    {
+      "id": "bid_1",
+      "auctionId": "auc_1",
+      "bidderNickname": "상두불",
+      "bidderId": "usr_sangdubul",
+      "amount": 20000,
+      "createdAt": "2026-11-06T07:24:35.313Z"
+    },
+    {
+      "id": "bid_2",
+      "auctionId": "auc_1",
+      "bidderNickname": "뱀설",
+      "bidderId": "usr_demo",
+      "amount": 30000,
+      "createdAt": "2026-11-06T08:54:35.313Z"
+    }
+  ],
+  "shopItems": [
+    {
+      "id": "shop_1",
+      "name": "✨ 용맹의 문파 비약 (공격력 +15%)",
+      "description": "1시간 동안 모든 데미지가 15% 증가하는 문파 전용 비약",
+      "category": "소모품",
+      "price": 500,
+      "currency": "문파재화",
+      "stock": 50,
+      "icon": "flask-round",
+      "createdAt": "2026-11-06T09:24:35.312Z"
+    },
+    {
+      "id": "shop_2",
+      "name": "🛡️ 결계의 파편 (방어력 +10%)",
+      "description": "결계지 방어 성공 시 제작 가능한 고급 수호석",
+      "category": "장비",
+      "price": 1500,
+      "currency": "문파재화",
+      "stock": 20,
+      "icon": "shield",
+      "createdAt": "2026-11-06T09:24:35.312Z"
+    },
+    {
+      "id": "shop_3",
+      "name": "🎁 문파 보물 상자 (무작위 희귀 획득)",
+      "description": "금전 및 희귀 강화 재료가 무작위로 등장하는 상자",
+      "category": "특수",
+      "price": 3000,
+      "currency": "금전",
+      "stock": 10,
+      "icon": "gift",
+      "createdAt": "2026-11-06T09:24:35.312Z"
+    }
+  ],
+  "purchases": [],
+  "currentWeek": "2026-W45"
+}
