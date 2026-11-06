@@ -530,7 +530,7 @@ export default function AuctionPage() {
                           <p className="text-[11px] text-slate-400 truncate mt-0.5">
                             {isScheduled
                               ? `희망자: ${(auction.applicants || []).join(', ') || '접수 중'}`
-                              : '무기·방어구·장신구 통합 도안 상자'}
+                              : '무기 및 산군 방어구·장신구 통합 도안 상자'}
                           </p>
                         </div>
                       </div>

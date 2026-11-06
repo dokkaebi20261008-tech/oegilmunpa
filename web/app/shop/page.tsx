@@ -551,9 +551,12 @@ export default function ShopPage() {
               />
               <div className="space-y-1">
                 <span className="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300">
-                  문파 상점 핵심 상품 (무기·방어구·장신구 도안 통합)
+                  문파 상점 핵심 상품 (무기 및 산군 방어구·장신구 도안 통합)
                 </span>
                 <h2 className="text-lg sm:text-xl font-black text-white">{singleItem.name}</h2>
+                <p className="text-xs text-slate-400">
+                  무기 전설 도안 및 산군 방어구 · 산군 장신구 도안을 선택하여 획득할 수 있습니다.
+                </p>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-base sm:text-lg font-black text-rose-400">
                     {singleItem.price.toLocaleString()}

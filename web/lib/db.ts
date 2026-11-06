@@ -145,8 +145,8 @@ function getOfficialShopItems(now: string): ShopItem[] {
     {
       id: "shop_1",
       name: "전설 도안 선택 상자",
-      description: "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)",
-      category: "무기·방어구·장신구 통합",
+      description: "무기 및 산군 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)",
+      category: "무기 및 산군 방어구·장신구 통합",
       price: 11500,
       currency: "용맹의 증표",
       stock: 10,
@@ -250,7 +250,7 @@ function migrateSchema(db: DatabaseSchema): boolean {
   } else {
     if (db.shopItems[0].currency !== "용맹의 증표") {
       db.shopItems[0].currency = "용맹의 증표";
-      db.shopItems[0].description = "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)";
+      db.shopItems[0].description = "무기 및 산군 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)";
       migrated = true;
     }
     if (db.shopItems[0].imageUrl !== "/images/shop-weapon.png") {
