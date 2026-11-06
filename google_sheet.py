@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 import asyncio
 import requests
@@ -8,13 +9,21 @@ import config
 logger = logging.getLogger(__name__)
 
 class GoogleSheetManager:
-    """구글 스프레드시트와 연동하여 문파원 명단 및 4대 컨텐츠 참여를 관리하는 클래스"""
+    """문파원 명단 및 4대 컨텐츠 참여 관리 클래스 (구글 시트 가동 중단 시 외길 문파 공식 웹 포털 DB 단독 전담)"""
 
     def __init__(self, gas_url: str = config.GAS_WEBAPP_URL):
         self.gas_url = gas_url
 
+    @property
+    def is_enabled(self) -> bool:
+        return getattr(config, "ENABLE_GOOGLE_SHEETS", False)
+
     def connect(self) -> bool:
         """연동 상태 확인"""
+        if not self.is_enabled:
+            logger.info("ℹ️ 구글 스프레드시트 가동이 중단되었습니다. (외길 문파 공식 웹 포털 DB 전담 운영 모드)")
+            return True
+
         if not self.gas_url:
             logger.error("GAS_WEBAPP_URL이 설정되지 않았습니다.")
             return False
@@ -31,7 +40,11 @@ class GoogleSheetManager:
             return False
 
     def _call_gas(self, payload: dict) -> dict:
-        """GAS 웹 앱으로 POST 요청 전송 (자동 리다이렉트 추적 및 재시도)"""
+        """GAS 웹 앱으로 POST 요청 전송 (연동 중단 시 원천 차단)"""
+        if not self.is_enabled:
+            logger.warning("구글 스프레드시트가 비활성화(가동 중단)되어 있어 GAS 호출을 차단합니다.")
+            return {}
+
         headers = {"Content-Type": "application/json"}
         last_err = None
         for attempt in range(2):
@@ -46,8 +59,29 @@ class GoogleSheetManager:
             raise last_err
         return {}
 
+    def _call_web_api(self, payload: dict) -> dict:
+        """웹사이트 출석 API 호출 (배포 및 로컬 엔드포인트 자동 시도)"""
+        urls = [
+            f"{config.WEB_SITE_URL}/api/attendance",
+            "http://localhost:3000/api/attendance"
+        ]
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "python-requests/oegil-bot"
+        }
+        for url in urls:
+            try:
+                res = requests.post(url, json=payload, headers=headers, timeout=15)
+                if res.ok:
+                    return res.json()
+            except Exception:
+                pass
+        return {}
+
     def setup_sheet_sync(self) -> Tuple[bool, str]:
-        """구글 시트를 도깨비 문파 4대 컨텐츠 및 34명 명단으로 자동 빌드"""
+        """시트 자동 빌드 (구글 시트 비활성화 시 안내 메시지 반환)"""
+        if not self.is_enabled:
+            return True, "구글 시트 가동이 중단된 상태입니다. (외길 문파 공식 웹 포털 DB 운영 중)"
         res = self._call_gas({"action": "setup_sheet"})
         return res.get("success", False), res.get("message", "")
 
@@ -55,7 +89,59 @@ class GoogleSheetManager:
         return await asyncio.to_thread(self.setup_sheet_sync)
 
     def get_all_members_sync(self) -> Dict[str, dict]:
-        """시트에서 모든 문파원 목록 및 참여 횟수 조회"""
+        """모든 문파원 목록 및 참여 점수/횟수 조회"""
+        if not self.is_enabled:
+            # 1. 웹 포털 API 실시간 조회
+            urls = [
+                f"{config.WEB_SITE_URL}/api/attendance",
+                "http://localhost:3000/api/attendance"
+            ]
+            headers = {"User-Agent": "python-requests/oegil-bot"}
+            for url in urls:
+                try:
+                    res = requests.get(url, headers=headers, timeout=10)
+                    if res.ok:
+                        data = res.json()
+                        att_list = data.get("attendance", [])
+                        if att_list:
+                            members_dict = {}
+                            for idx, m in enumerate(att_list, start=1):
+                                nick = m.get("nickname")
+                                if nick:
+                                    pts = m.get("totalPoints") if m.get("totalPoints") is not None else m.get("weeklyPoints", 0)
+                                    members_dict[nick] = {
+                                        "row": idx,
+                                        "count": pts,
+                                        "name": nick,
+                                        "totalPoints": m.get("totalPoints", 0),
+                                        "weeklyPoints": m.get("weeklyPoints", 0)
+                                    }
+                            return members_dict
+                except Exception as e:
+                    logger.debug(f"웹 API 조회 시도 ({url}): {e}")
+
+            # 2. 로컬 db.json 폴백
+            local_db = os.path.join(os.path.dirname(__file__), "web", "data", "db.json")
+            if os.path.exists(local_db):
+                try:
+                    with open(local_db, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        att_map = data.get("attendance", {})
+                        members_dict = {}
+                        for idx, (nick, m) in enumerate(att_map.items(), start=1):
+                            pts = m.get("totalPoints") if m.get("totalPoints") is not None else m.get("weeklyPoints", 0)
+                            members_dict[nick] = {
+                                "row": idx,
+                                "count": pts,
+                                "name": nick,
+                                "totalPoints": m.get("totalPoints", 0),
+                                "weeklyPoints": m.get("weeklyPoints", 0)
+                            }
+                        return members_dict
+                except Exception as e:
+                    logger.error(f"로컬 db.json 폴백 읽기 오류: {e}")
+            return {}
+
         res = self._call_gas({"action": "get_members"})
         if res.get("success"):
             return res.get("members", {})
@@ -65,11 +151,21 @@ class GoogleSheetManager:
         return await asyncio.to_thread(self.get_all_members_sync)
 
     def add_participation_sync(self, recognized_names: List[str], content_name: str = "") -> Tuple[List[str], List[str]]:
-        """인식된 문파원들의 특정 컨텐츠 체크박스 체크 (대규모 인원 시 분할 안전 처리)"""
+        """인식된 문파원들의 특정 컨텐츠 출석 체크"""
         if not recognized_names:
             return [], []
 
-        # 15명 이하일 때는 단일 호출로 신속 처리
+        if not self.is_enabled:
+            data = self._call_web_api({
+                "names": recognized_names,
+                "content": content_name,
+                "type": "MANUAL"
+            })
+            if data.get("success"):
+                return recognized_names, []
+            return recognized_names, []
+
+        # 구글 시트 활성화 시
         if len(recognized_names) <= 15:
             res = self._call_gas({
                 "action": "add_participation", 
@@ -80,8 +176,6 @@ class GoogleSheetManager:
                 return res.get("updated", []), res.get("unknown", [])
             return [], recognized_names
 
-        # 15명 초과 대규모 인원일 경우: 15명씩 나누어 전송하여 구글 시트 타임아웃을 원천 차단
-        logger.info(f"대규모 인원 감지 ({len(recognized_names)}명) - 15명씩 분할하여 안전하게 시트에 반영합니다.")
         all_updated = []
         all_unknown = []
         chunk_size = 15
@@ -104,6 +198,10 @@ class GoogleSheetManager:
 
     def add_new_member_sync(self, name: str) -> bool:
         """신규 문파원 등록"""
+        if not self.is_enabled:
+            data = self._call_web_api({"action": "ADD_MEMBER", "nickname": name})
+            return data.get("success", False)
+
         res = self._call_gas({"action": "add_member", "name": name})
         return res.get("success", False)
 
@@ -111,7 +209,13 @@ class GoogleSheetManager:
         return await asyncio.to_thread(self.add_new_member_sync, name)
 
     def delete_member_sync(self, name: str) -> Tuple[bool, str]:
-        """문파원 삭제 (구글 시트에서 해당 행 삭제)"""
+        """문파원 삭제"""
+        if not self.is_enabled:
+            data = self._call_web_api({"action": "DELETE_MEMBER", "nickname": name})
+            if data.get("success"):
+                return True, data.get("message", f"'{name}' 문파원이 웹 포털 출석부에서 삭제되었습니다.")
+            return False, data.get("message", "문파원 삭제에 실패했습니다.")
+
         res = self._call_gas({"action": "delete_member", "name": name})
         if res.get("success"):
             return True, res.get("message", f"'{name}' 문파원이 삭제되었습니다.")
@@ -121,7 +225,12 @@ class GoogleSheetManager:
         return await asyncio.to_thread(self.delete_member_sync, name)
 
     def reset_all_counts_sync(self) -> int:
-        """모든 문파원 체크박스를 해제하여 참여 횟수 0으로 리셋"""
+        """출석부 리셋"""
+        if not self.is_enabled:
+            self._call_web_api({"action": "RESET_WEEKLY_CONTENT"})
+            members = self.get_all_members_sync()
+            return len(members)
+
         res = self._call_gas({"action": "reset"})
         return res.get("reset_count", 0)
 

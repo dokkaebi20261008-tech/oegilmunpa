@@ -30,16 +30,25 @@ sheet_mgr = GoogleSheetManager()
 scanner = NicknameScanner()
 
 SHEET_PUBLIC_URL = "https://docs.google.com/spreadsheets/d/1HKKUt_nW6H01moxJwmjsdjGnEwOrKHj9Cy-AjYFWUC4/edit?gid=0#gid=0"
+PORTAL_ATTENDANCE_URL = f"{config.WEB_SITE_URL}/attendance"
+PORTAL_MAIN_URL = config.WEB_SITE_URL
+
+def get_portal_url():
+    """현재 활성화된 포털/시트 URL 반환"""
+    if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+        return SHEET_PUBLIC_URL
+    return PORTAL_ATTENDANCE_URL
 
 def _post_to_web_sync(payload: dict):
     import requests
     urls = [f"{config.WEB_SITE_URL}/api/attendance"]
     if "localhost" not in config.WEB_SITE_URL:
         urls.append("http://localhost:3000/api/attendance")
+    headers = {"Content-Type": "application/json", "User-Agent": "python-requests/oegil-bot"}
     for url in urls:
         for attempt in range(2):
             try:
-                res = requests.post(url, json=payload, timeout=20)
+                res = requests.post(url, json=payload, headers=headers, timeout=20)
                 if res.ok:
                     break
             except Exception as e:
@@ -96,14 +105,14 @@ async def on_message(message: discord.Message):
                 description="어떤 컨텐츠에 참여한 스크린샷인지 확인되지 않았습니다.\n"
                             "사진을 올리실 때 **컨텐츠 이름**을 메시지에 꼭 적어주세요!\n\n"
                             "**[인식 가능한 컨텐츠 키워드]**\n"
-                            "• `요신` (1. 요신 토벌령)\n"
-                            "• `결계` (2. 결계지 방어)\n"
-                            "• `미혹` (3. 미혹의 정원)\n"
-                            "• `신기` (4. 신기 쟁탈전)\n\n"
+                            "• `신기` (1. 신기 쟁탈전)\n"
+                            "• `미혹` (2. 미혹의 정원)\n"
+                            "• `요신` (3. 요신 토벌령)\n"
+                            "• `결계` (4. 결계지 방어)\n\n"
                             "💡 **예시**: 사진과 함께 `신기` 또는 `신기 쟁탈전 완료` 라고 적어서 다시 업로드해 주세요.",
                 color=discord.Color.orange()
             )
-            embed_warn.set_footer(text="컨텐츠명이 정확히 입력되어야 구글 시트 해당 칸에 체크(☑)됩니다.")
+            embed_warn.set_footer(text="컨텐츠명이 정확히 입력되어야 외길 문파 공식 웹 포털 출석부에 체크됩니다.")
             await message.reply(embed=embed_warn)
             return
 
@@ -117,14 +126,13 @@ async def on_message(message: discord.Message):
             status_msg = await message.reply(f"🔍 **{content_label}스크린샷에서 문파원 닉네임을 분석하는 중입니다...**")
             
             try:
-                # 1. 시트에서 현재 등록된 문파원 목록 가져오기
+                # 1. 현재 등록된 문파원 목록 가져오기 (웹 포털 DB)
                 members = await sheet_mgr.get_all_members()
                 member_names = list(members.keys())
 
                 if not member_names:
                     await status_msg.edit(
-                        content="⚠️ **구글 시트에 등록된 문파원 명단이 비어있습니다.**\n"
-                                "구글 시트 Apps Script에서 `setupDokkaebiSheet`를 실행해주세요."
+                        content="⚠️ **외길 문파 공식 웹 포털에 등록된 문파원 명단이 비어있습니다.**"
                     )
                     continue
 
@@ -147,14 +155,15 @@ async def on_message(message: discord.Message):
                 part_type = "MANUAL"
                 part_badge = "⚔️ 직접 수동 참가 (+1.0P)"
 
-                # 3. 구글 시트에 참여 횟수 +1 반영 (컨텐츠 체크박스 체크)
+                # 3. 출석 체크 반영 (구글 시트 가동 중단 시 웹 포털에 직접 반영됨)
                 updated, unknown = await sheet_mgr.add_participation(detected_names, detected_content)
 
-                # 4. 웹사이트 API로 출석 & 포인트(수동 1.0P / 분신 0.25P) 실시간 동기화
-                await sync_to_website({"names": detected_names, "content": detected_content, "type": part_type})
+                # 구글 시트 활성화 모드일 경우 웹사이트로도 동기화
+                if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+                    await sync_to_website({"names": detected_names, "content": detected_content, "type": part_type})
 
-                # 5. 결과 디스코드 임베드로 전송
-                title_text = f"⚔️ 도깨비의 세계 외길 문파 참여 집계 완료"
+                # 4. 결과 디스코드 임베드로 전송
+                title_text = f"⚔️ 외길 문파 참여 집계 완료"
                 if detected_content:
                     title_text += f" ({detected_content})"
 
@@ -177,11 +186,11 @@ async def on_message(message: discord.Message):
                     embed.add_field(name="❓ 미등록 인원", value=unknown_text, inline=False)
 
                 embed.add_field(
-                    name="🌐 외길 문파 웹사이트",
-                    value=f"[👉 실시간 출석 & 경매 분배 포털 열기]({config.WEB_SITE_URL})",
+                    name="🌐 외길 문파 공식 웹 포털",
+                    value=f"[👉 실시간 출석 & 경매 분배 포털 열기]({PORTAL_ATTENDANCE_URL})",
                     inline=False
                 )
-                embed.set_footer(text="구글 시트 및 외길 문파 웹사이트에 실시간 반영되었습니다. 경매 낙찰 시 포인트 비례 자동 분배됩니다.")
+                embed.set_footer(text="외길 문파 공식 웹 포털에 실시간 반영되었습니다. 경매 낙찰 시 포인트 비례 자동 분배됩니다.")
                 await status_msg.edit(content=None, embed=embed)
                 try:
                     await message.add_reaction("✅")
@@ -210,10 +219,10 @@ def get_rules_embed():
     )
     embed.add_field(
         name="⚔️ 매주 체크하는 4대 컨텐츠",
-        value="1️⃣ **요신 토벌령**\n"
-              "2️⃣ **결계지 방어**\n"
-              "3️⃣ **미혹의 정원**\n"
-              "4️⃣ **신기 쟁탈전**",
+        value="1️⃣ **신기 쟁탈전**\n"
+              "2️⃣ **미혹의 정원**\n"
+              "3️⃣ **요신 토벌령**\n"
+              "4️⃣ **결계지 방어**",
         inline=False
     )
     embed.add_field(
@@ -237,15 +246,26 @@ def get_rules_embed():
     return embed
 
 def get_sheet_embed():
-    embed = discord.Embed(
-        title="📊 도깨비의 세계 [외길] 문파 참여 & 분배 관리 시트",
-        description="아래 링크를 통해 실시간 참여 횟수와 예상 분배 용맹의 증표를 확인하실 수 있습니다.",
-        color=discord.Color.blue(),
-        url=SHEET_PUBLIC_URL
-    )
-    embed.add_field(name="🔗 관리 시트 바로가기", value=f"[👉 구글 스프레드시트 열기]({SHEET_PUBLIC_URL})", inline=False)
-    embed.add_field(name="💡 안내", value="• 봇이 스크린샷을 인식하면 체크박스(☑)가 자동으로 체크됩니다.\n• 문파장 정산 시 총 용맹의 증표 수량을 입력하면 분배액이 자동 계산됩니다.", inline=False)
-    return embed
+    if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+        embed = discord.Embed(
+            title="📊 도깨비의 세계 [외길] 문파 참여 & 분배 관리 시트",
+            description="아래 링크를 통해 실시간 참여 횟수와 예상 분배 용맹의 증표를 확인하실 수 있습니다.",
+            color=discord.Color.blue(),
+            url=SHEET_PUBLIC_URL
+        )
+        embed.add_field(name="🔗 관리 시트 바로가기", value=f"[👉 구글 스프레드시트 열기]({SHEET_PUBLIC_URL})", inline=False)
+        embed.add_field(name="💡 안내", value="• 봇이 스크린샷을 인식하면 체크박스(☑)가 자동으로 체크됩니다.\n• 문파장 정산 시 총 용맹의 증표 수량을 입력하면 분배액이 자동 계산됩니다.", inline=False)
+        return embed
+    else:
+        embed = discord.Embed(
+            title="📊 도깨비의 세계 [외길] 문파 실시간 출석 & 분배 포털",
+            description="아래 링크를 통해 실시간 출석 현황과 용맹의 증표 및 창고 금전 예상 분배를 확인하실 수 있습니다.",
+            color=discord.Color.blue(),
+            url=PORTAL_ATTENDANCE_URL
+        )
+        embed.add_field(name="🌐 공식 웹 출석부 바로가기", value=f"[👉 실시간 출석부 열기]({PORTAL_ATTENDANCE_URL})", inline=False)
+        embed.add_field(name="💡 안내", value="• 봇이 스크린샷을 인식하면 공식 웹 포털 출석부에 즉시 자동 반영됩니다.\n• 상점 신청 ➔ 자동 경매 ➔ 문파 창고 금전 분배까지 원스톱으로 관리됩니다.", inline=False)
+        return embed
 
 def get_cert_embed():
     embed = discord.Embed(
@@ -255,9 +275,9 @@ def get_cert_embed():
     )
     embed.add_field(
         name="📝 참여 인증 방법",
-        value="1. **요신 토벌령 / 결계지 방어 / 미혹의 정원 / 신기 쟁탈전** 참여 화면을 캡처합니다.\n"
-              "2. 이 채널에 이미지를 업로드합니다. (메시지에 `요신`, `결계`, `미혹`, `신기`를 함께 적어주시면 해당 컨텐츠에 정확히 체크됩니다!)\n"
-              "3. 봇이 화면 속 문파원 닉네임을 자동 감지하여 시트에 **체크(☑)**를 반영합니다!\n"
+        value="1. **신기 쟁탈전 / 미혹의 정원 / 요신 토벌령 / 결계지 방어** 참여 화면을 캡처합니다.\n"
+              "2. 이 채널에 이미지를 업로드합니다. (메시지에 `신기`, `미혹`, `요신`, `결계`를 함께 적어주시면 해당 컨텐츠에 정확히 체크됩니다!)\n"
+              "3. 봇이 화면 속 문파원 닉네임을 자동 감지하여 공식 출석부에 **체크**를 반영합니다!\n"
               "4. 감지가 완료되면 봇이 `✅` 반응과 함께 집계 결과를 안내합니다.",
         inline=False
     )
@@ -270,10 +290,12 @@ def get_admin_embed():
         color=discord.Color.dark_red()
     )
     embed.add_field(name="!현황", value="모든 문파원의 누적 참여 횟수 및 순위 확인", inline=False)
-    embed.add_field(name="!문파원추가 [닉네임]", value="신규 문파원을 시트에 등록 (예: `!문파원추가 홍길동`)", inline=False)
-    embed.add_field(name="!문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 시트에서 행 삭제 (예: `!문파원삭제 홍길동`)", inline=False)
+    embed.add_field(name="!문파원추가 [닉네임]", value="신규 문파원을 공식 출석부에 등록 (예: `!문파원추가 홍길동`)", inline=False)
+    embed.add_field(name="!문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 공식 출석부에서 삭제 (예: `!문파원삭제 홍길동`)", inline=False)
     embed.add_field(name="!수동추가 [닉네임1 닉네임2...] [신기/미혹/요신/결계]", value="1명 또는 다수 인원 일괄 수동 체크 (예: `!수동추가 상두불 상겨미 신기`)", inline=False)
-    embed.add_field(name="!초기화", value="주간 분배 정산 완료 후 전원 참여 횟수 0으로 리셋", inline=False)
+    embed.add_field(name="!초기화", value="주간 분배 정산 완료 후 전원 참여 내역 리셋", inline=False)
+    embed.add_field(name="!채널업데이트", value="새 채널 생성 없이, 기존 채널들의 안내 카드를 최신 내용으로 갱신", inline=False)
+    return embed
     embed.add_field(name="!채널업데이트", value="새 채널 생성 없이, 기존 채널들의 안내 카드를 최신 내용으로 갱신", inline=False)
     return embed
 
@@ -440,7 +462,7 @@ async def cmd_status(ctx):
     try:
         members = await sheet_mgr.get_all_members()
         if not members:
-            await ctx.send("시트에 등록된 문파원이 없습니다.")
+            await ctx.send("등록된 문파원이 없습니다.")
             return
 
         sorted_members = sorted(members.items(), key=lambda x: x[1].get("count", 0), reverse=True)
@@ -472,7 +494,7 @@ async def cmd_status(ctx):
                     inline=False
                 )
 
-        embed.set_footer(text="구글 시트 체크박스 실시간 연동 • 용맹의 증표 분배 기준")
+        embed.set_footer(text="외길 문파 공식 웹 포털 실시간 연동 • 용맹의 증표 & 금전 분배 기준")
         await ctx.send(embed=embed)
     except Exception as e:
         await ctx.send(f"❌ 조회 중 오류: {e}")
@@ -493,7 +515,7 @@ async def cmd_add_member(ctx, *, name: str = None):
         return
 
     name = name.strip()
-    status_msg = await ctx.send(f"⏳ **'{name}'** 문파원을 구글 시트에 등록하는 중입니다...")
+    status_msg = await ctx.send(f"⏳ **'{name}'** 문파원을 공식 웹 포털에 등록하는 중입니다...")
 
     try:
         # 이미 등록된 문파원인지 확인
@@ -501,7 +523,7 @@ async def cmd_add_member(ctx, *, name: str = None):
         if name in members:
             embed_exist = discord.Embed(
                 title="⚠️ 이미 등록된 문파원입니다",
-                description=f"**'{name}'** 님은 이미 구글 시트({members[name].get('row')}행)에 등록되어 있습니다.\n"
+                description=f"**'{name}'** 님은 이미 공식 출석부에 등록되어 있습니다.\n"
                             f"추가 등록 없이 바로 스크린샷 인증을 진행하시면 됩니다.",
                 color=discord.Color.gold()
             )
@@ -510,17 +532,18 @@ async def cmd_add_member(ctx, *, name: str = None):
 
         success = await sheet_mgr.add_new_member(name)
         if success:
-            await sync_to_website({"action": "ADD_MEMBER", "nickname": name})
+            if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+                await sync_to_website({"action": "ADD_MEMBER", "nickname": name})
             embed_success = discord.Embed(
                 title="🎉 신규 문파원 등록 완료!",
-                description=f"**'{name}'** 님이 구글 시트 및 공식 웹사이트 출석부에 정상적으로 추가되었습니다.\n"
-                            f"이제 컨텐츠 스크린샷을 올리시면 자동으로 닉네임이 인식되어 체크(☑)됩니다.",
+                description=f"**'{name}'** 님이 공식 웹사이트 출석부에 정상적으로 추가되었습니다.\n"
+                            f"이제 컨텐츠 스크린샷을 올리시면 자동으로 닉네임이 인식되어 체크됩니다.",
                 color=discord.Color.green()
             )
-            embed_success.add_field(name="📊 실시간 분배 시트", value=f"[구글 스프레드시트 바로가기]({SHEET_PUBLIC_URL})", inline=False)
+            embed_success.add_field(name="🌐 실시간 출석부", value=f"[웹 포털 출석부 바로가기]({PORTAL_ATTENDANCE_URL})", inline=False)
             await status_msg.edit(content=None, embed=embed_success)
         else:
-            await status_msg.edit(content=f"❌ **'{name}'** 문파원 등록에 실패했습니다. 시트 상태를 확인해주세요.")
+            await status_msg.edit(content=f"❌ **'{name}'** 문파원 등록에 실패했습니다. 포털 상태를 확인해주세요.")
     except Exception as e:
         logger.error(f"문파원 추가 오류: {e}")
         await status_msg.edit(content=f"❌ 등록 중 오류가 발생했습니다: {e}")
@@ -541,7 +564,7 @@ async def cmd_delete_member(ctx, *, name: str = None):
         return
 
     name = name.strip()
-    status_msg = await ctx.send(f"⏳ **'{name}'** 문파원을 구글 시트에서 확인 후 삭제하는 중입니다...")
+    status_msg = await ctx.send(f"⏳ **'{name}'** 문파원을 공식 웹 포털에서 확인 후 삭제하는 중입니다...")
 
     try:
         members = await sheet_mgr.get_all_members()
@@ -557,8 +580,8 @@ async def cmd_delete_member(ctx, *, name: str = None):
 
         if not target_name:
             embed_not_found = discord.Embed(
-                title="⚠️ 시트에 등록되지 않은 문파원입니다",
-                description=f"**'{name}'** 님을 구글 시트 명단에서 찾을 수 없습니다.\n\n"
+                title="⚠️ 등록되지 않은 문파원입니다",
+                description=f"**'{name}'** 님을 공식 출석부 명단에서 찾을 수 없습니다.\n\n"
                             f"💡 현재 등록된 문파원 명단은 `!현황` 명령어로 확인하실 수 있습니다.",
                 color=discord.Color.red()
             )
@@ -567,15 +590,16 @@ async def cmd_delete_member(ctx, *, name: str = None):
 
         success, msg = await sheet_mgr.delete_member(target_name)
         if success:
-            await sync_to_website({"action": "DELETE_MEMBER", "nickname": target_name})
+            if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+                await sync_to_website({"action": "DELETE_MEMBER", "nickname": target_name})
             embed_success = discord.Embed(
                 title="🗑️ 문파원 삭제 완료",
-                description=f"**'{target_name}'** 문파원의 행이 구글 시트 및 웹사이트 출석부에서 성공적으로 삭제되었습니다.\n\n"
+                description=f"**'{target_name}'** 문파원이 웹사이트 출석부에서 성공적으로 삭제되었습니다.\n\n"
                             f"• 봇의 자동 감지 명단 및 참여 통계에서 즉시 제외되었습니다.\n"
-                            f"• 번호(No.) 및 등록 문파원 수가 자동으로 재정렬되었습니다.",
+                            f"• 등록 문파원 수가 자동으로 재정렬되었습니다.",
                 color=discord.Color.green()
             )
-            embed_success.add_field(name="📊 실시간 분배 시트", value=f"[구글 스프레드시트 바로가기]({SHEET_PUBLIC_URL})", inline=False)
+            embed_success.add_field(name="🌐 실시간 출석부", value=f"[웹 포털 출석부 바로가기]({PORTAL_ATTENDANCE_URL})", inline=False)
             await status_msg.edit(content=None, embed=embed_success)
         else:
             await status_msg.edit(content=f"❌ **'{target_name}'** 문파원 삭제 실패: {msg}")
@@ -584,27 +608,27 @@ async def cmd_delete_member(ctx, *, name: str = None):
         await status_msg.edit(content=f"❌ 삭제 중 오류가 발생했습니다: {e}")
 
 MANUAL_CONTENT_KEYWORDS = {
-    "1": "요신 토벌령",
-    "요신": "요신 토벌령",
-    "토벌": "요신 토벌령",
-    "토벌령": "요신 토벌령",
-    "2": "결계지 방어",
-    "결계": "결계지 방어",
-    "결계지": "결계지 방어",
-    "방어": "결계지 방어",
-    "3": "미혹의 정원",
-    "미혹": "미혹의 정원",
-    "정원": "미혹의 정원",
-    "4": "신기 쟁탈전",
+    "1": "신기 쟁탈전",
     "신기": "신기 쟁탈전",
     "쟁탈": "신기 쟁탈전",
     "쟁탈전": "신기 쟁탈전",
+    "2": "미혹의 정원",
+    "미혹": "미혹의 정원",
+    "정원": "미혹의 정원",
+    "3": "요신 토벌령",
+    "요신": "요신 토벌령",
+    "토벌": "요신 토벌령",
+    "토벌령": "요신 토벌령",
+    "4": "결계지 방어",
+    "결계": "결계지 방어",
+    "결계지": "결계지 방어",
+    "방어": "결계지 방어",
 }
 
 @bot.command(name="수동추가", aliases=["참여추가", "체크", "수동체크"])
 @commands.check(is_manager_or_admin)
 async def cmd_manual_add(ctx, *, args_text: str = None):
-    """[문파장/운영진] 1명 또는 2명 이상 다수 문파원의 컨텐츠 체크박스를 한 번에 수동으로 체크합니다."""
+    """[문파장/운영진] 1명 또는 2명 이상 다수 문파원의 컨텐츠 참여를 한 번에 수동으로 체크합니다."""
     if not args_text or not args_text.strip():
         embed = discord.Embed(
             title="⚠️ 문파원 닉네임과 컨텐츠명을 입력해주세요!",
@@ -614,10 +638,10 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
                         "• `!수동추가 상두불 상겨미 던롤 신기` (띄어쓰기로 구분)\n"
                         "• `!수동추가 상두불, 상겨미, 던롤 신기` (쉼표로 구분)\n\n"
                         "**[컨텐츠 키워드]**\n"
-                        "• `요신` : 요신 토벌령\n"
-                        "• `결계` : 결계지 방어\n"
-                        "• `미혹` : 미혹의 정원\n"
-                        "• `신기` : 신기 쟁탈전",
+                        "• `신기` : 1. 신기 쟁탈전\n"
+                        "• `미혹` : 2. 미혹의 정원\n"
+                        "• `요신` : 3. 요신 토벌령\n"
+                        "• `결계` : 4. 결계지 방어",
             color=discord.Color.orange()
         )
         await ctx.send(embed=embed)
@@ -631,7 +655,6 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
 
     for tok in tokens:
         tok_lower = tok.lower()
-        # 컨텐츠 키워드 토큰인지 확인
         matched_c = None
         if tok_lower in MANUAL_CONTENT_KEYWORDS:
             matched_c = MANUAL_CONTENT_KEYWORDS[tok_lower]
@@ -649,7 +672,7 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
     if not detected_content or not raw_names:
         embed = discord.Embed(
             title="⚠️ 문파원 닉네임과 참여 컨텐츠를 함께 적어주세요!",
-            description="1명 또는 여러 명의 문파원 닉네임과 컨텐츠 키워드(`요신`, `결계`, `미혹`, `신기`)를 함께 입력해야 합니다.\n\n"
+            description="1명 또는 여러 명의 문파원 닉네임과 컨텐츠 키워드(`신기`, `미혹`, `요신`, `결계`)를 함께 입력해야 합니다.\n\n"
                         "💡 **1명 예시**: `!수동추가 상두불 신기`\n"
                         "💡 **여러 명 예시**: `!수동추가 상두불 상겨미 던롤 신기`",
             color=discord.Color.orange()
@@ -658,7 +681,7 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
         return
 
     status_msg = await ctx.send(
-        f"⏳ **총 {len(raw_names)}명**({', '.join(raw_names)})의 **[{detected_content}]** 수동 참여를 구글 시트 및 웹사이트에 반영 중입니다..."
+        f"⏳ **총 {len(raw_names)}명**({', '.join(raw_names)})의 **[{detected_content}]** 수동 참여를 공식 웹 포털에 반영 중입니다..."
     )
 
     try:
@@ -683,8 +706,8 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
 
         if not target_names:
             embed_not_found = discord.Embed(
-                title="⚠️ 시트에 등록되지 않은 문파원입니다",
-                description=f"입력하신 **{', '.join(not_found_names)}** 님을 구글 시트 명단에서 찾을 수 없습니다.\n\n"
+                title="⚠️ 등록되지 않은 문파원입니다",
+                description=f"입력하신 **{', '.join(not_found_names)}** 님을 공식 출석부 명단에서 찾을 수 없습니다.\n\n"
                             f"💡 신규 문파원이라면 먼저 `!문파원추가 [닉네임]`으로 등록한 후 다시 시도해주세요.",
                 color=discord.Color.red()
             )
@@ -696,8 +719,8 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
 
         updated, unknown = await sheet_mgr.add_participation(target_names, detected_content)
 
-        # 웹사이트 API로 다수 인원 출석 & 포인트(수동 1.0P) 실시간 일괄 동기화
-        await sync_to_website({"names": target_names, "content": detected_content, "type": part_type})
+        if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+            await sync_to_website({"names": target_names, "content": detected_content, "type": part_type})
 
         if updated:
             embed_success = discord.Embed(
@@ -716,12 +739,11 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
                 missed = list(dict.fromkeys(not_found_names + unknown))
                 embed_success.add_field(name="❓ 미등록/확인 필요 인원", value=", ".join(missed), inline=False)
 
-            embed_success.add_field(name="📊 실시간 분배 시트", value=f"[구글 스프레드시트 바로가기]({SHEET_PUBLIC_URL})", inline=True)
-            embed_success.add_field(name="🌐 외길 문파 웹사이트", value=f"[웹사이트 바로가기]({config.WEB_SITE_URL})", inline=True)
-            embed_success.set_footer(text="구글 시트 및 웹사이트에 실시간 반영되어 총 포인트 및 분배금이 자동 갱신되었습니다.")
+            embed_success.add_field(name="🌐 실시간 출석부", value=f"[웹 포털 출석부 바로가기]({PORTAL_ATTENDANCE_URL})", inline=False)
+            embed_success.set_footer(text="공식 웹 포털에 실시간 반영되어 총 포인트 및 분배금이 자동 갱신되었습니다.")
             await status_msg.edit(content=None, embed=embed_success)
         else:
-            await status_msg.edit(content=f"❌ 시트 반영에 실패했습니다. 시트 상태를 확인해주세요.")
+            await status_msg.edit(content=f"❌ 출석 반영에 실패했습니다. 포털 상태를 확인해주세요.")
 
     except Exception as e:
         logger.error(f"수동 추가 오류: {e}")
@@ -730,8 +752,8 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
 @bot.command(name="초기화", aliases=["리셋"])
 @commands.check(is_manager_or_admin)
 async def cmd_reset(ctx):
-    """[문파장/부문주/간부 전용] 모든 문파원의 체크박스를 해제하여 0으로 리셋합니다."""
-    confirm_msg = await ctx.send("⚠️ **경고**: 이번 주차 정산이 끝나고 모든 체크박스를 0으로 초기화하시겠습니까? (15초 내에 '네' 입력)")
+    """[문파장/부문주/간부 전용] 주간 참여 내역을 초기화합니다."""
+    confirm_msg = await ctx.send("⚠️ **경고**: 이번 주차 정산이 끝나고 모든 주간 참여 내역을 초기화하시겠습니까? (15초 내에 '네' 입력)")
 
     def check(m):
         return m.author == ctx.author and m.channel == ctx.channel and m.content.strip() == "네"
@@ -739,8 +761,9 @@ async def cmd_reset(ctx):
     try:
         await bot.wait_for("message", timeout=15.0, check=check)
         reset_cnt = await sheet_mgr.reset_all_counts()
-        await sync_to_website({"action": "RESET_ALL"})
-        await ctx.send(f"🔄 총 {reset_cnt}명의 문파원 참여 체크박스 및 웹사이트 출석부가 초기화되었습니다! 다음 주차 정산을 시작하세요.")
+        if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+            await sync_to_website({"action": "RESET_ALL"})
+        await ctx.send(f"🔄 총 {reset_cnt}명의 문파원 참여 내역 및 공식 웹 포털 출석부가 초기화되었습니다! 다음 주차 정산을 시작하세요.")
     except TimeoutError:
         await ctx.send("⏱️ 시간이 초과되어 초기화가 취소되었습니다.")
     except Exception as e:
@@ -777,17 +800,17 @@ async def cmd_help(ctx):
     """봇 사용법 및 명령어 안내"""
     embed = discord.Embed(
         title="📖 도깨비의 세계 [외길] 문파 분배 도우미 봇 안내",
-        description="4대 컨텐츠 스크린샷을 올리면 닉네임을 감지해 구글 시트 및 웹사이트에 포인트를 자동으로 체크합니다.",
+        description="4대 컨텐츠 스크린샷을 올리면 닉네임을 감지해 공식 웹 포털 출석부에 포인트를 자동으로 체크합니다.",
         color=discord.Color.gold()
     )
     embed.add_field(name="🌐 !사이트", value="외길 문파 공식 웹사이트 (출석부, 경매장, 상점) 링크 확인", inline=False)
     embed.add_field(name="🔄 !채널업데이트", value="새 채널을 만들지 않고, 이미 만들어진 채널의 안내 카드만 최신화합니다.", inline=False)
-    embed.add_field(name="➕ !문파원추가 [닉네임]", value="새로운 문파원을 구글 시트에 신규 등록합니다.", inline=False)
-    embed.add_field(name="🗑️ !문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 구글 시트에서 행 삭제합니다.", inline=False)
-    embed.add_field(name="✏️ !수동추가 [닉네임1 닉네임2...] [컨텐츠]", value="1명 또는 다수 일괄 수동 체크 (예: `!수동추가 상두불 신기` 또는 `!수동추가 상두불 상겨미 던롤 신기`)", inline=False)
-    embed.add_field(name="📸 스크린샷 자동 집계", value="스크린샷과 함께 컨텐츠명(요신/결계/미혹/신기)을 적어 올리면 전원 정상 수동 참가(+1.0P)로 자동 체크됩니다.", inline=False)
+    embed.add_field(name="➕ !문파원추가 [닉네임]", value="새로운 문파원을 공식 출석부에 신규 등록합니다.", inline=False)
+    embed.add_field(name="🗑️ !문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 공식 출석부에서 삭제합니다.", inline=False)
+    embed.add_field(name="✏️ !수동추가 [닉네임1 닉네임2...] [컨텐츠]", value="1명 또는 다수 일괄 수동 체크 (예: `!수동추가 상두불 신기` 또는 `!수동추가 상두불 상겨미 신기`)", inline=False)
+    embed.add_field(name="📸 스크린샷 자동 집계", value="스크린샷과 함께 컨텐츠명(신기/미혹/요신/결계)을 적어 올리면 전원 정상 수동 참가(+1.0P)로 자동 체크됩니다.", inline=False)
     embed.add_field(name="!현황", value="현재 문파원들의 주간 참여 순위를 확인합니다.", inline=False)
-    embed.add_field(name="!초기화", value="[관리자 전용] 주간 분배 정산 종료 후 모든 체크박스를 리셋합니다.", inline=False)
+    embed.add_field(name="!초기화", value="[관리자 전용] 주간 분배 정산 종료 후 주간 참여 내역을 리셋합니다.", inline=False)
     await ctx.send(embed=embed)
 
 @bot.event
