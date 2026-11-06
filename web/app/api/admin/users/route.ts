@@ -136,8 +136,6 @@ export async function POST(req: Request) {
 
     if (action === 'REJECT') {
       targetUser.status = 'REJECTED';
-      db.members = db.members.filter(n => n !== targetUser.nickname);
-      delete db.attendance[targetUser.nickname];
       await saveDb(db);
       return NextResponse.json({
         success: true,
@@ -161,8 +159,6 @@ export async function POST(req: Request) {
 
     if (action === 'DELETE') {
       db.users = db.users.filter(u => u.id !== userId);
-      db.members = db.members.filter(n => n !== targetUser.nickname);
-      delete db.attendance[targetUser.nickname];
       await saveDb(db);
       return NextResponse.json({
         success: true,

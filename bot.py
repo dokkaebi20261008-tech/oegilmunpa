@@ -31,6 +31,24 @@ scanner = NicknameScanner()
 
 SHEET_PUBLIC_URL = "https://docs.google.com/spreadsheets/d/1HKKUt_nW6H01moxJwmjsdjGnEwOrKHj9Cy-AjYFWUC4/edit?gid=0#gid=0"
 
+def _post_to_web_sync(payload: dict):
+    import requests
+    urls = [f"{config.WEB_SITE_URL}/api/attendance"]
+    if "localhost" not in config.WEB_SITE_URL:
+        urls.append("http://localhost:3000/api/attendance")
+    for url in urls:
+        for attempt in range(2):
+            try:
+                res = requests.post(url, json=payload, timeout=20)
+                if res.ok:
+                    break
+            except Exception as e:
+                if "localhost" not in url and attempt == 1:
+                    logger.warning(f"웹사이트 동기화 재시도 실패 ({url}): {e}")
+
+async def sync_to_website(payload: dict):
+    await asyncio.to_thread(_post_to_web_sync, payload)
+
 # 4대 컨텐츠 키워드 매핑
 CONTENT_KEYWORDS = {
     "요신": "요신 토벌령",
@@ -134,16 +152,7 @@ async def on_message(message: discord.Message):
                 updated, unknown = await sheet_mgr.add_participation(detected_names, detected_content)
 
                 # 4. 웹사이트 API로 출석 & 포인트(수동 1.0P / 분신 0.25P) 실시간 동기화
-                try:
-                    import requests
-                    await asyncio.to_thread(
-                        requests.post,
-                        f"{config.WEB_SITE_URL}/api/attendance",
-                        json={"names": detected_names, "content": detected_content, "type": part_type},
-                        timeout=5
-                    )
-                except Exception as web_err:
-                    logger.warning(f"웹사이트 API 전송 실패: {web_err}")
+                await sync_to_website({"names": detected_names, "content": detected_content, "type": part_type})
 
                 # 5. 결과 디스코드 임베드로 전송
                 title_text = f"⚔️ 도깨비의 세계 외길 문파 참여 집계 완료"
@@ -502,9 +511,10 @@ async def cmd_add_member(ctx, *, name: str = None):
 
         success = await sheet_mgr.add_new_member(name)
         if success:
+            await sync_to_website({"action": "ADD_MEMBER", "nickname": name})
             embed_success = discord.Embed(
                 title="🎉 신규 문파원 등록 완료!",
-                description=f"**'{name}'** 님이 구글 시트에 정상적으로 추가되었습니다.\n"
+                description=f"**'{name}'** 님이 구글 시트 및 공식 웹사이트 출석부에 정상적으로 추가되었습니다.\n"
                             f"이제 컨텐츠 스크린샷을 올리시면 자동으로 닉네임이 인식되어 체크(☑)됩니다.",
                 color=discord.Color.green()
             )
@@ -558,9 +568,10 @@ async def cmd_delete_member(ctx, *, name: str = None):
 
         success, msg = await sheet_mgr.delete_member(target_name)
         if success:
+            await sync_to_website({"action": "DELETE_MEMBER", "nickname": target_name})
             embed_success = discord.Embed(
                 title="🗑️ 문파원 삭제 완료",
-                description=f"**'{target_name}'** 문파원의 행이 구글 시트에서 성공적으로 삭제되었습니다.\n\n"
+                description=f"**'{target_name}'** 문파원의 행이 구글 시트 및 웹사이트 출석부에서 성공적으로 삭제되었습니다.\n\n"
                             f"• 봇의 자동 감지 명단 및 참여 통계에서 즉시 제외되었습니다.\n"
                             f"• 번호(No.) 및 등록 문파원 수가 자동으로 재정렬되었습니다.",
                 color=discord.Color.green()
@@ -674,16 +685,7 @@ async def cmd_manual_add(ctx, name: str = None, *, content: str = None):
         updated, unknown = await sheet_mgr.add_participation([target_name], detected_content)
 
         # 웹사이트 API로 출석 & 포인트(수동 1.0P / 분신 0.25P) 실시간 동기화
-        try:
-            import requests
-            await asyncio.to_thread(
-                requests.post,
-                f"{config.WEB_SITE_URL}/api/attendance",
-                json={"nickname": target_name, "content": detected_content, "type": part_type},
-                timeout=5
-            )
-        except Exception as web_err:
-            logger.warning(f"웹사이트 API 전송 실패: {web_err}")
+        await sync_to_website({"nickname": target_name, "content": detected_content, "type": part_type})
 
         if updated:
             embed_success = discord.Embed(
@@ -716,7 +718,8 @@ async def cmd_reset(ctx):
     try:
         await bot.wait_for("message", timeout=15.0, check=check)
         reset_cnt = await sheet_mgr.reset_all_counts()
-        await ctx.send(f"🔄 총 {reset_cnt}명의 문파원 참여 체크박스가 초기화되었습니다! 다음 주차 정산을 시작하세요.")
+        await sync_to_website({"action": "RESET_ALL"})
+        await ctx.send(f"🔄 총 {reset_cnt}명의 문파원 참여 체크박스 및 웹사이트 출석부가 초기화되었습니다! 다음 주차 정산을 시작하세요.")
     except TimeoutError:
         await ctx.send("⏱️ 시간이 초과되어 초기화가 취소되었습니다.")
     except Exception as e:

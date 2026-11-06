@@ -24,7 +24,14 @@ export interface DatabaseSchema {
   currentWeek: string;
 }
 
-const DEFAULT_MEMBERS = ["뱀설", "휴이랑"];
+const DEFAULT_MEMBERS = [
+  "뱀설", "상두불", "상겨미", "던롤", "로단", "행뚁", "악군학", "승기",
+  "휴이랑", "호랑이야", "쬬아", "옥절이", "빠따왕", "추서", "해암", "쓱삭이",
+  "꼬다야", "모던블루", "요령서", "믕치", "딱딱똥", "지골몬", "마표", "이병헌",
+  "우주여행", "월계", "강원도호랭이", "환이햄", "저급", "쪼로", "서리눈", "아아라",
+  "멍식2", "채권", "승환킴", "사찰", "다하네", "탑몬스터", "희옥이", "붕찬",
+  "정지태", "가시개미", "소사마귀", "어프로치", "츱", "냥냥쨉", "냥냥킥", "무당청명"
+];
 
 function getDbPath(): string {
   if (process.env.VERCEL) {
@@ -159,6 +166,15 @@ function migrateSchema(db: DatabaseSchema): boolean {
   if (!isSingleUnified) {
     db.shopItems = getOfficialShopItems(new Date().toISOString());
     migrated = true;
+  }
+
+  // 문파원 명단 중복 원천 방지
+  if (Array.isArray(db.members)) {
+    const uniqueMembers = Array.from(new Set(db.members.map(m => m.trim()).filter(Boolean)));
+    if (uniqueMembers.length !== db.members.length) {
+      db.members = uniqueMembers;
+      migrated = true;
+    }
   }
 
   return migrated;
