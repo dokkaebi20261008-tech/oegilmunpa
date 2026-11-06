@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Gavel, Clock, Trophy, Coins, Plus, AlertCircle, Calculator, ShieldAlert, Lock, Eye } from 'lucide-react';
 import { AuctionItem, AuctionDistribution } from '@/lib/types';
+import { useAuthUser } from '@/lib/clientAuth';
 
 export default function AuctionPage() {
   const [auctions, setAuctions] = useState<AuctionItem[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser, authChecking } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [nowMs, setNowMs] = useState<number>(Date.now());
 
@@ -24,27 +25,27 @@ export default function AuctionPage() {
   const [newMinIncrement, setNewMinIncrement] = useState(500);
   const [createLoading, setCreateLoading] = useState(false);
 
-  // 모의 계산기 (3만 금전 등)
-  const [calcGold, setCalcGold] = useState(30000);
+  // 누적 경매 낙찰 합산 금액 (자동 업데이트)
+  const [calcGold, setCalcGold] = useState(0);
+  const [customGoldInput, setCustomGoldInput] = useState(false);
   const [simDistribution, setSimDistribution] = useState<AuctionDistribution | null>(null);
 
   const fetchAuctions = () => {
     fetch('/api/auction', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        setAuctions(data.auctions || []);
+        const list: AuctionItem[] = data.auctions || [];
+        setAuctions(list);
+        const settledSum = list
+          .filter(a => a.status === 'ENDED')
+          .reduce((sum, a) => sum + (a.currentBid || 0), 0);
+        setCalcGold(prev => (customGoldInput ? prev : settledSum));
         setLoading(false);
       })
       .catch(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(d => {
-        if (d.authenticated) setCurrentUser(d.user);
-      });
-
     fetchAuctions();
     const interval = setInterval(fetchAuctions, 3000);
     const handleFocus = () => fetchAuctions();
@@ -55,7 +56,7 @@ export default function AuctionPage() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleFocus);
     };
-  }, []);
+  }, [customGoldInput]);
 
   // 1초마다 실시간 30분 카운트다운 타이머 갱신 및 만료 시 자동 동기화
   useEffect(() => {
@@ -79,23 +80,20 @@ export default function AuctionPage() {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  // 모의 계산 실행
+  // 누적 낙찰 합산 분배 계산 실행
   useEffect(() => {
     fetch('/api/attendance', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (!d.attendance) return;
         const totalPoints = d.totalGuildPoints || 0;
-        if (totalPoints <= 0) return;
-        const goldPerPoint = calcGold / totalPoints;
+        const goldPerPoint = totalPoints > 0 ? calcGold / totalPoints : 0;
         const participants: any[] = [];
         let distributedSum = 0;
         for (const m of d.attendance) {
-          if (m.totalPoints > 0) {
-            const share = Math.floor(m.totalPoints * goldPerPoint);
-            distributedSum += share;
-            participants.push({ nickname: m.nickname, points: m.totalPoints, share });
-          }
+          const share = totalPoints > 0 ? Math.floor(m.totalPoints * goldPerPoint) : 0;
+          distributedSum += share;
+          participants.push({ nickname: m.nickname, points: m.totalPoints, share });
         }
         participants.sort((a, b) => b.points - a.points);
         setSimDistribution({
@@ -103,10 +101,10 @@ export default function AuctionPage() {
           totalPoints,
           goldPerPoint: Math.round(goldPerPoint * 10) / 10,
           participants,
-          leftoverGold: calcGold - distributedSum
+          leftoverGold: totalPoints > 0 ? calcGold - distributedSum : calcGold
         });
       });
-  }, [calcGold]);
+  }, [calcGold, auctions]);
 
   const handleOpenBid = (auction: AuctionItem) => {
     setSelectedAuction(auction);
@@ -200,6 +198,11 @@ export default function AuctionPage() {
 
   const activeAuctions = auctions.filter(a => a.status === 'ACTIVE');
   const endedAuctions = auctions.filter(a => a.status === 'ENDED');
+  const totalSettledGold = endedAuctions.reduce((sum, a) => sum + (a.currentBid || 0), 0);
+
+  if (authChecking) {
+    return null;
+  }
 
   if (!currentUser) {
     return (
@@ -512,37 +515,36 @@ export default function AuctionPage() {
           </div>
         </div>
 
-        {/* Column 3: 실시간 포인트 분배 모의 계산기 */}
+        {/* Column 3: 누적 낙찰 합산 분배 현황 */}
         <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div className="space-y-3.5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2">
                 <Calculator className="w-4 h-4 text-indigo-400" />
-                <span>실시간 분배 모의 계산기</span>
+                <span>누적 낙찰 합산 분배 현황</span>
               </h2>
               <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/25 text-[11px] font-bold text-indigo-300">
-                예상 배당금
+                낙찰가 실시간 합산
               </span>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-300 font-semibold">예상 낙찰 금전 입력</label>
-                <div className="flex gap-1">
-                  {[10000, 20000, 30000, 50000].map(val => (
-                    <button
-                      key={val}
-                      onClick={() => setCalcGold(val)}
-                      className={`px-2 py-0.5 rounded text-[11px] font-bold transition-colors ${
-                        calcGold === val
-                          ? 'bg-amber-500 text-slate-950'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                      }`}
-                    >
-                      {val / 10000}만
-                    </button>
-                  ))}
-                </div>
+                <label className="text-xs text-slate-300 font-semibold">
+                  누적 낙찰 총액 ({endedAuctions.length}건 합산)
+                </label>
+                {customGoldInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomGoldInput(false);
+                      setCalcGold(totalSettledGold);
+                    }}
+                    className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-slate-950"
+                  >
+                    실제 낙찰 합산액({totalSettledGold.toLocaleString()}G) 동기화
+                  </button>
+                )}
               </div>
 
               <div className="relative">
@@ -550,10 +552,16 @@ export default function AuctionPage() {
                 <input
                   type="number"
                   value={calcGold}
-                  onChange={e => setCalcGold(parseInt(e.target.value, 10) || 0)}
+                  onChange={e => {
+                    setCustomGoldInput(true);
+                    setCalcGold(parseInt(e.target.value, 10) || 0);
+                  }}
                   className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm font-bold text-amber-300 focus:outline-none focus:border-indigo-500"
                 />
               </div>
+              <p className="text-[11px] text-slate-400">
+                경매 종료 시마다 낙찰 금액이 합산되어 위 분배 총액이 자동으로 업데이트됩니다.
+              </p>
             </div>
 
             {simDistribution && (
@@ -583,7 +591,7 @@ export default function AuctionPage() {
                       <tr>
                         <th className="py-2 px-3">문파원 (순위)</th>
                         <th className="py-2 px-2 text-center">점수</th>
-                        <th className="py-2 px-3 text-right">예상 분배금</th>
+                        <th className="py-2 px-3 text-right">누적 낙찰 분배금</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60">

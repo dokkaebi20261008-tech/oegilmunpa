@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, Swords, Gavel, ShoppingBag, User as UserIcon, LogOut, CheckCircle2, Menu, X, Users, Calculator } from 'lucide-react';
+import { getCachedUser, setCachedUser } from '@/lib/clientAuth';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(() => getCachedUser());
   const [pendingCount, setPendingCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -15,7 +16,8 @@ export default function Navbar() {
     fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        if (data.authenticated) {
+        if (data.authenticated && data.user) {
+          setCachedUser(data.user);
           setCurrentUser(data.user);
           if (data.user.role === 'ADMIN') {
             fetch('/api/admin/users', { cache: 'no-store' })
@@ -24,10 +26,11 @@ export default function Navbar() {
               .catch(() => {});
           }
         } else {
+          setCachedUser(null);
           setCurrentUser(null);
         }
       })
-      .catch(() => setCurrentUser(null));
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -44,6 +47,7 @@ export default function Navbar() {
   }, [pathname]);
 
   const handleLogout = async () => {
+    setCachedUser(null);
     await fetch('/api/auth/logout', { method: 'POST' });
     setCurrentUser(null);
     window.location.href = '/';

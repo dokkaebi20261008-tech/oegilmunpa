@@ -115,6 +115,18 @@ export async function POST(req: Request) {
 
     if (action === 'APPROVE') {
       targetUser.status = 'APPROVED';
+      if (!db.members.includes(targetUser.nickname)) {
+        db.members.push(targetUser.nickname);
+        db.attendance[targetUser.nickname] = {
+          nickname: targetUser.nickname,
+          yosin: { type: 'ABSENT', points: 0 },
+          gyeolgye: { type: 'ABSENT', points: 0 },
+          mihok: { type: 'ABSENT', points: 0 },
+          singi: { type: 'ABSENT', points: 0 },
+          totalPoints: 0,
+          rate: 0
+        };
+      }
       await saveDb(db);
       return NextResponse.json({
         success: true,
@@ -124,6 +136,8 @@ export async function POST(req: Request) {
 
     if (action === 'REJECT') {
       targetUser.status = 'REJECTED';
+      db.members = db.members.filter(n => n !== targetUser.nickname);
+      delete db.attendance[targetUser.nickname];
       await saveDb(db);
       return NextResponse.json({
         success: true,
@@ -147,6 +161,8 @@ export async function POST(req: Request) {
 
     if (action === 'DELETE') {
       db.users = db.users.filter(u => u.id !== userId);
+      db.members = db.members.filter(n => n !== targetUser.nickname);
+      delete db.attendance[targetUser.nickname];
       await saveDb(db);
       return NextResponse.json({
         success: true,

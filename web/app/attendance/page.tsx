@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, AlertCircle } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType } from '@/lib/types';
+import { useAuthUser } from '@/lib/clientAuth';
 
 export default function AttendancePage() {
   const [attendance, setAttendance] = useState<MemberAttendance[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser, authChecking } = useAuthUser();
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -28,12 +29,6 @@ export default function AttendancePage() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(d => {
-        if (d.authenticated) setCurrentUser(d.user);
-      });
-
     fetchAttendance();
     const interval = setInterval(fetchAttendance, 4000);
     const handleFocus = () => fetchAttendance();
@@ -117,6 +112,10 @@ export default function AttendancePage() {
     }
     return <span className="text-slate-600 text-xs">-</span>;
   };
+
+  if (authChecking) {
+    return null;
+  }
 
   if (!currentUser) {
     return (

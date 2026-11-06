@@ -24,14 +24,7 @@ export interface DatabaseSchema {
   currentWeek: string;
 }
 
-const DEFAULT_MEMBERS = [
-  "뱀설", "상두불", "상겨미", "던롤", "로단", "행뚁", "악군학", "승기",
-  "휴이랑", "호랑이야", "쬬아", "옥절이", "빠따왕", "추서", "해암", "쓱삭이",
-  "꼬다야", "모던블루", "요령서", "믕치", "딱딱똥", "지골몬", "마표", "이병헌",
-  "우주여행", "월계", "강원도호랭이", "환이햄", "저급", "쪼로", "서리눈", "아아라",
-  "멍식2", "채권", "승환킴", "사찰", "다하네", "탑몬스터", "희옥이", "붕찬",
-  "정지태", "가시개미", "소사마귀", "어프로치", "츱", "냥냥쨉", "냥냥킥", "무당청명"
-];
+const DEFAULT_MEMBERS = ["뱀설", "휴이랑"];
 
 function getDbPath(): string {
   if (process.env.VERCEL) {
@@ -60,32 +53,6 @@ function createInitialAttendance(members: string[]): Record<string, MemberAttend
       rate: 0,
     };
   }
-
-  if (att["뱀설"]) {
-    att["뱀설"].yosin = { type: 'MANUAL', points: 1.0 };
-    att["뱀설"].gyeolgye = { type: 'MANUAL', points: 1.0 };
-    att["뱀설"].mihok = { type: 'MANUAL', points: 1.0 };
-    att["뱀설"].singi = { type: 'MANUAL', points: 1.0 };
-    att["뱀설"].totalPoints = 4.0;
-    att["뱀설"].rate = 100;
-  }
-  if (att["상두불"]) {
-    att["상두불"].yosin = { type: 'MANUAL', points: 1.0 };
-    att["상두불"].gyeolgye = { type: 'CLONE', points: 0.25 };
-    att["상두불"].mihok = { type: 'MANUAL', points: 1.0 };
-    att["상두불"].singi = { type: 'ABSENT', points: 0 };
-    att["상두불"].totalPoints = 2.25;
-    att["상두불"].rate = 56;
-  }
-  if (att["해암"]) {
-    att["해암"].yosin = { type: 'CLONE', points: 0.25 };
-    att["해암"].gyeolgye = { type: 'CLONE', points: 0.25 };
-    att["해암"].mihok = { type: 'ABSENT', points: 0 };
-    att["해암"].singi = { type: 'ABSENT', points: 0 };
-    att["해암"].totalPoints = 0.5;
-    att["해암"].rate = 12.5;
-  }
-
   return att;
 }
 
@@ -103,7 +70,7 @@ function getOfficialShopItems(now: string): ShopItem[] {
       weeklyLimit: "문파 주간 한정: (0/10)",
       imageUrl: "/images/shop-weapon.png",
       icon: "box",
-      applicants: ["뱀설", "상두불", "해암"],
+      applicants: [],
       createdAt: now,
     }
   ];
@@ -123,45 +90,22 @@ function getInitialDb(): DatabaseSchema {
         role: "ADMIN",
         status: "APPROVED",
         createdAt: now,
-      }
-    ],
-    members: DEFAULT_MEMBERS,
-    attendance: createInitialAttendance(DEFAULT_MEMBERS),
-    auctions: [
-      {
-        id: "auc_1",
-        title: "전설 도안 선택 상자",
-        description: "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.",
-        imageUrl: "/images/shop-weapon.png",
-        startingBid: 20000,
-        minBidIncrement: 500,
-        currentBid: 20500,
-        highestBidderNickname: "뱀설",
-        highestBidderId: "usr_admin",
-        status: "ACTIVE",
-        bidsCount: 2,
-        endsAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-        createdAt: now,
-      }
-    ],
-    bids: [
-      {
-        id: "bid_1",
-        auctionId: "auc_1",
-        bidderNickname: "상두불",
-        bidderId: "usr_sangdubul",
-        amount: 20000,
-        createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
       },
       {
-        id: "bid_2",
-        auctionId: "auc_1",
-        bidderNickname: "뱀설",
-        bidderId: "usr_admin",
-        amount: 20500,
-        createdAt: new Date(Date.now() - 1800000).toISOString(),
+        id: "usr_1793965578955",
+        username: "codbwls0811",
+        passwordHash: "7e672e466728e3eeba05b6b80b0995e3cad289b1df5691a0f71f75c1e686c790",
+        plainPassword: "Ak161005!",
+        nickname: "휴이랑",
+        role: "MEMBER",
+        status: "APPROVED",
+        createdAt: "2026-11-06T11:46:18.955Z",
       }
     ],
+    members: [...DEFAULT_MEMBERS],
+    attendance: createInitialAttendance(DEFAULT_MEMBERS),
+    auctions: [],
+    bids: [],
     shopItems: getOfficialShopItems(now),
     purchases: [],
     ladderState: null,
@@ -174,16 +118,6 @@ function migrateSchema(db: DatabaseSchema): boolean {
   let migrated = false;
   if (!Array.isArray(db.users)) {
     db.users = [];
-    migrated = true;
-  }
-
-  const hadOldDefaults = db.users.some(
-    u => u.username === 'admin' || u.username === 'member1'
-  );
-  if (hadOldDefaults) {
-    db.users = db.users.filter(
-      u => u.username !== 'admin' && u.username !== 'member1'
-    );
     migrated = true;
   }
 
@@ -223,37 +157,8 @@ function migrateSchema(db: DatabaseSchema): boolean {
     db.shopItems?.length === 1 &&
     db.shopItems[0].name === "전설 도안 선택 상자";
   if (!isSingleUnified) {
-    const mergedApplicants = new Set<string>();
-    db.shopItems?.forEach(it => {
-      it.applicants?.forEach(nick => mergedApplicants.add(nick));
-    });
-    const unified = getOfficialShopItems(new Date().toISOString());
-    if (mergedApplicants.size > 0) {
-      unified[0].applicants = Array.from(mergedApplicants);
-    }
-    db.shopItems = unified;
+    db.shopItems = getOfficialShopItems(new Date().toISOString());
     migrated = true;
-  }
-
-  const firstAuction = db.auctions?.find(a => a.id === 'auc_1');
-  if (firstAuction) {
-    if (firstAuction.title !== "전설 도안 선택 상자") {
-      firstAuction.title = "전설 도안 선택 상자";
-      firstAuction.description = "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
-      firstAuction.imageUrl = "/images/shop-weapon.png";
-      firstAuction.startingBid = 20000;
-      firstAuction.minBidIncrement = 500;
-      firstAuction.currentBid = 20500;
-      firstAuction.bidsCount = 2;
-      migrated = true;
-    }
-    if (
-      firstAuction.status === 'ACTIVE' &&
-      new Date(firstAuction.endsAt).getTime() - Date.now() > 35 * 60 * 1000
-    ) {
-      firstAuction.endsAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-      migrated = true;
-    }
   }
 
   return migrated;
@@ -263,7 +168,7 @@ export async function getDb(): Promise<DatabaseSchema> {
   const gistId = process.env.GITHUB_DB_GIST_ID;
   const token = process.env.GITHUB_DB_TOKEN;
 
-  // 1. 클라우드 영구 DB (GitHub Secret Gist) 우선 조회 — 모든 Vercel 서버리스 인스턴스/재배포 간 100% 실시간 공유
+  // 1. 클라우드 영구 DB (GitHub Secret Gist) 우선 조회
   if (gistId && token) {
     if (memoryDbCache && Date.now() - lastFetchMs < 600) {
       return memoryDbCache;
@@ -302,7 +207,6 @@ export async function getDb(): Promise<DatabaseSchema> {
               }
               return parsed;
             } else {
-              // 최초 초기화 상태인 경우 초기 DB 기록
               const initial = getInitialDb();
               await saveDb(initial);
               return initial;
@@ -315,7 +219,7 @@ export async function getDb(): Promise<DatabaseSchema> {
     }
   }
 
-  // 2. 로컬 파일 폴백 (항상 최신 디스크 파일을 읽어 프로세스 간 불일치 방지)
+  // 2. 로컬 파일 폴백
   const filePath = getDbPath();
   try {
     if (fs.existsSync(filePath)) {
@@ -342,7 +246,6 @@ export async function saveDb(db: DatabaseSchema): Promise<void> {
   memoryDbCache = db;
   lastFetchMs = Date.now();
 
-  // 로컬 디스크 백업 저장
   const filePath = getDbPath();
   try {
     fs.writeFileSync(filePath, JSON.stringify(db, null, 2), 'utf-8');
@@ -350,7 +253,6 @@ export async function saveDb(db: DatabaseSchema): Promise<void> {
     console.error("Failed to write local DB file:", err);
   }
 
-  // 클라우드 영구 DB (GitHub Secret Gist) 즉시 동기화 저장
   const gistId = process.env.GITHUB_DB_GIST_ID;
   const token = process.env.GITHUB_DB_TOKEN;
   if (gistId && token) {
@@ -380,7 +282,6 @@ export async function saveDb(db: DatabaseSchema): Promise<void> {
   }
 }
 
-// 참여율 및 총 포인트 재계산 헬퍼
 export function recalculateMember(m: MemberAttendance): void {
   const pYosin = m.yosin?.points || 0;
   const pGyeol = m.gyeolgye?.points || 0;
@@ -390,7 +291,6 @@ export function recalculateMember(m: MemberAttendance): void {
   m.rate = Math.min(100, Math.round((m.totalPoints / 4.0) * 100));
 }
 
-// 경매 낙찰 금액 기반 포인트 비례 분배 계산기
 export function calculateAuctionDistribution(totalGold: number, attendanceRecord: Record<string, MemberAttendance>): AuctionDistribution {
   let totalPoints = 0;
   for (const name in attendanceRecord) {
@@ -438,7 +338,6 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
   };
 }
 
-// 30분 경매 타이머가 만료된 진행 중 경매를 자동으로 종료(ENDED) 처리하고 분배금을 정산
 export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promise<boolean> {
   let updated = false;
   const nowMs = Date.now();
@@ -458,7 +357,6 @@ export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promi
   return updated;
 }
 
-// 진행 중인 경매에서는 최고 입찰자 닉네임을 익명('익명 입찰자')으로 마스킹하고, 종료 시 실제 낙찰자 닉네임 공개
 export function maskAuctionForClient(auction: AuctionItem): AuctionItem {
   if (auction.status === 'ACTIVE') {
     return {

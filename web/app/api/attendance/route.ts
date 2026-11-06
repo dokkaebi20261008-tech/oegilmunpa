@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb, saveDb, recalculateMember } from '@/lib/db';
+import { getDb, saveDb, recalculateMember, checkAndFinalizeExpiredAuctions } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { ContentType, ParticipationType } from '@/lib/types';
 
@@ -16,6 +16,8 @@ export async function GET(req: Request) {
   }
 
   const db = await getDb();
+  await checkAndFinalizeExpiredAuctions(db);
+
   const list = Object.values(db.attendance);
 
   // 포인트 높은 순, 포인트 같으면 닉네임 가나다순
@@ -27,12 +29,19 @@ export async function GET(req: Request) {
   const totalGuildPoints = Math.round(list.reduce((sum, m) => sum + (m.totalPoints || 0), 0) * 100) / 100;
   const activeMembersCount = list.filter(m => m.totalPoints > 0).length;
 
+  // 완료된 경매(ENDED)들의 낙찰 금액 실시간 합산
+  const endedAuctions = (db.auctions || []).filter(a => a.status === 'ENDED');
+  const totalAuctionGold = endedAuctions.reduce((sum, a) => sum + (a.currentBid || 0), 0);
+  const endedAuctionsCount = endedAuctions.length;
+
   return NextResponse.json({
     success: true,
     currentWeek: db.currentWeek,
     totalMembers: list.length,
     activeMembersCount,
     totalGuildPoints,
+    totalAuctionGold,
+    endedAuctionsCount,
     attendance: list
   });
 }

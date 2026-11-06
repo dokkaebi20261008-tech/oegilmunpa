@@ -15,14 +15,12 @@ import {
   Clock
 } from 'lucide-react';
 import { ShopItem } from '@/lib/types';
+import { useAuthUser } from '@/lib/clientAuth';
 
 export default function ShopPage() {
   const [items, setItems] = useState<ShopItem[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser } = useAuthUser();
   const [loading, setLoading] = useState(true);
-
-  // 수동 닉네임 추가 입력 상태
-  const [addNickInputs, setAddNickInputs] = useState<Record<string, string>>({});
 
   // 상점 상품 -> 30분 경매 등록 모달 상태
   const [auctionModalItem, setAuctionModalItem] = useState<ShopItem | null>(null);
@@ -43,12 +41,6 @@ export default function ShopPage() {
   };
 
   useEffect(() => {
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(d => {
-        if (d.authenticated) setCurrentUser(d.user);
-      });
-
     fetchShopData();
     const interval = setInterval(fetchShopData, 3500);
     const handleFocus = () => fetchShopData();
@@ -72,28 +64,6 @@ export default function ShopPage() {
       const d = await res.json();
       if (d.success) {
         setItems(d.items);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // 특정 문파원 닉네임을 희망자에 추가
-  const handleAddApplicant = async (itemId: string, e: React.FormEvent) => {
-    e.preventDefault();
-    const nick = (addNickInputs[itemId] || '').trim();
-    if (!nick) return;
-
-    try {
-      const res = await fetch('/api/shop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ADD_APPLICANT', itemId, nickname: nick })
-      });
-      const d = await res.json();
-      if (d.success) {
-        setItems(d.items);
-        setAddNickInputs(prev => ({ ...prev, [itemId]: '' }));
       }
     } catch (err) {
       console.error(err);
@@ -476,7 +446,7 @@ export default function ShopPage() {
             >
               {(singleItem.applicants || []).length === 0 ? (
                 <span style={{ fontSize: '0.88rem', color: '#64748b' }}>
-                  아직 구매 희망 신청자가 없습니다. 아래 버튼으로 신청하거나 문파원 닉네임을 추가하세요.
+                  아직 구매 희망 신청자가 없습니다. 아래 버튼으로 희망 신청을 해주세요.
                 </span>
               ) : (
                 (singleItem.applicants || []).map(nick => {
@@ -522,8 +492,8 @@ export default function ShopPage() {
               )}
             </div>
 
-            {/* 내 캐릭터 원클릭 희망 신청 & 문파원 닉네임 직접 추가 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
+            {/* 내 캐릭터 원클릭 희망 신청 */}
+            <div>
               {(() => {
                 const myNick = currentUser?.nickname || '';
                 const isApplied = myNick ? (singleItem.applicants || []).includes(myNick) : false;
@@ -533,7 +503,7 @@ export default function ShopPage() {
                     onClick={() => handleToggleMyApplication(singleItem.id)}
                     style={{
                       width: '100%',
-                      padding: '0.75rem 1rem',
+                      padding: '0.8rem 1rem',
                       borderRadius: 10,
                       fontSize: '0.92rem',
                       fontWeight: 800,
@@ -564,35 +534,6 @@ export default function ShopPage() {
                   </button>
                 );
               })()}
-
-              <form onSubmit={e => handleAddApplicant(singleItem.id, e)} style={{ display: 'flex', gap: 8 }}>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="희망 문파원 닉네임 직접 입력..."
-                  value={addNickInputs[singleItem.id] || ''}
-                  onChange={e => setAddNickInputs(prev => ({ ...prev, [singleItem.id]: e.target.value }))}
-                  style={{
-                    padding: '0.65rem 0.9rem',
-                    fontSize: '0.88rem',
-                    flex: 1
-                  }}
-                />
-                <button
-                  type="submit"
-                  className="btn-secondary"
-                  style={{
-                    padding: '0 1.1rem',
-                    fontSize: '0.86rem',
-                    whiteSpace: 'nowrap',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4
-                  }}
-                >
-                  + 희망자 추가
-                </button>
-              </form>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuthUser } from '@/lib/clientAuth';
 import {
   UserCheck,
   UserX,
@@ -33,7 +34,7 @@ interface MemberUser {
 
 export default function AdminMembersPage() {
   const [users, setUsers] = useState<MemberUser[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [showPasswords, setShowPasswords] = useState<boolean>(true);
@@ -62,6 +63,7 @@ export default function AdminMembersPage() {
   };
 
   useEffect(() => {
+    fetchUsers();
     fetch('/api/auth/me', { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
@@ -70,8 +72,6 @@ export default function AdminMembersPage() {
           window.location.href = '/';
           return;
         }
-        setCurrentUser(d.user);
-        fetchUsers();
       });
 
     const interval = setInterval(fetchUsers, 2500);

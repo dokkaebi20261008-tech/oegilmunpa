@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { User, Trophy, Coins, CheckCircle, Shield, ArrowRight } from 'lucide-react';
 import { MemberAttendance } from '@/lib/types';
+import { useAuthUser } from '@/lib/clientAuth';
 
 export default function MyPage() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser, authChecking } = useAuthUser();
   const [myAttendance, setMyAttendance] = useState<MemberAttendance | null>(null);
   const [guildSummary, setGuildSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,6 @@ export default function MyPage() {
           window.location.href = '/login';
           return;
         }
-        setCurrentUser(d.user);
         setMyAttendance(d.myAttendance);
         setLoading(false);
       })
@@ -43,17 +43,19 @@ export default function MyPage() {
     };
   }, []);
 
-  if (loading) {
-    return <div className="text-center py-16 text-slate-400">내 정보 불러오는 중...</div>;
+  if (authChecking && !currentUser) {
+    return null;
   }
 
   if (!currentUser) return null;
 
   const totalPoints = myAttendance?.totalPoints || 0;
   const guildTotalPoints = guildSummary?.totalGuildPoints || 0;
+  const totalAuctionGold = guildSummary?.totalAuctionGold || 0;
+  const endedAuctionsCount = guildSummary?.endedAuctionsCount || 0;
   const myShareRate = guildTotalPoints > 0 ? (totalPoints / guildTotalPoints) * 100 : 0;
-  // 3만 금전 기준 내 예상 배당금
-  const myEstimatedGold = guildTotalPoints > 0 ? Math.floor((totalPoints / guildTotalPoints) * 30000) : 0;
+  // 누적 경매 낙찰 합산 금액 기준 내 배당금
+  const myEstimatedGold = guildTotalPoints > 0 ? Math.floor((totalPoints / guildTotalPoints) * totalAuctionGold) : 0;
 
   const renderBadge = (item?: { type: string; points: number }) => {
     if (!item || item.type === 'ABSENT') {
@@ -110,14 +112,14 @@ export default function MyPage() {
 
         <div className="bg-gradient-to-br from-amber-950/40 to-slate-900/80 border border-amber-900/40 rounded-2xl p-5 space-y-2">
           <div className="flex items-center justify-between text-amber-300 text-xs font-bold uppercase">
-            <span>경매 예상 배당금 (3만금전 기준)</span>
+            <span>누적 경매 낙찰 배당금 ({endedAuctionsCount}건 합산)</span>
             <Coins className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-3xl font-black text-amber-300">
             +{myEstimatedGold.toLocaleString()} 금전
           </div>
           <p className="text-[11px] text-slate-400">
-            경매 낙찰 시 내 포인트 비례 즉시 분배
+            누적 낙찰 총액({totalAuctionGold.toLocaleString()} 금전) 중 내 포인트 비례 분배금
           </p>
         </div>
       </div>

@@ -43,8 +43,8 @@ export async function POST(req: Request) {
 
     db.users.push(newUser);
 
-    // 출석부에 닉네임이 없으면 새로 추가
-    if (!db.members.includes(cleanNickname)) {
+    // 최초 관리자이거나 즉시 승인 상태인 경우에만 출석부에 추가 (일반 가입 대기자는 승인 시 추가)
+    if (newUser.status === 'APPROVED' && !db.members.includes(cleanNickname)) {
       db.members.push(cleanNickname);
       db.attendance[cleanNickname] = {
         nickname: cleanNickname,

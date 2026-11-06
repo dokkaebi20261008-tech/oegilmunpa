@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Lock, User, ArrowRight, AlertCircle, Check } from 'lucide-react';
+import { setCachedUser } from '@/lib/clientAuth';
 
 const SAVED_ID_KEY = 'oegil_saved_username';
 
@@ -56,6 +57,9 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+
+      // 로그인 성공 시 세션 캐시 즉시 저장 (메뉴 이동 딜레이 제거)
+      setCachedUser(data.user);
 
       // 로그인 성공 시 아이디 저장 체크 여부에 따라 저장/삭제
       try {

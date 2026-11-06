@@ -20,15 +20,18 @@ import {
   Users
 } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType } from '@/lib/types';
+import { useAuthUser } from '@/lib/clientAuth';
 
 export default function DistributionPage() {
   const [attendance, setAttendance] = useState<MemberAttendance[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { currentUser, authChecking } = useAuthUser();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // 1. 경매 및 배점 기준 상태
-  const [totalAuctionGold, setTotalAuctionGold] = useState<number>(30000);
+  // 1. 경매 및 배점 기준 상태 (3만 금전 고정이 아닌, 실제 경매 낙찰 누적 금액 실시간 합산 반영)
+  const [totalAuctionGold, setTotalAuctionGold] = useState<number>(0);
+  const [endedAuctionsCount, setEndedAuctionsCount] = useState<number>(0);
+  const [isCustomGold, setIsCustomGold] = useState<boolean>(false);
   const [manualWeight, setManualWeight] = useState<number>(1.0);
   const [cloneWeight, setCloneWeight] = useState<number>(0.25);
 
@@ -46,18 +49,18 @@ export default function DistributionPage() {
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);
+        if (typeof d.endedAuctionsCount === 'number') {
+          setEndedAuctionsCount(d.endedAuctionsCount);
+        }
+        if (typeof d.totalAuctionGold === 'number' && !isCustomGold) {
+          setTotalAuctionGold(d.totalAuctionGold);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(d => {
-        if (d.authenticated) setCurrentUser(d.user);
-      });
-
     fetchAttendance();
     const interval = setInterval(fetchAttendance, 3500);
     const handleFocus = () => fetchAttendance();
@@ -68,7 +71,7 @@ export default function DistributionPage() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleFocus);
     };
-  }, []);
+  }, [isCustomGold]);
 
   // 2. 실시간 정산 통계 계산 (가중치 및 총 낙찰금 기준)
   const stats = useMemo(() => {
@@ -268,6 +271,10 @@ export default function DistributionPage() {
     m.nickname.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (authChecking) {
+    return null;
+  }
+
   if (!currentUser) {
     return (
       <div className="max-w-2xl mx-auto py-12 px-4 text-center space-y-6 animate-fadeIn">
@@ -318,9 +325,20 @@ export default function DistributionPage() {
 
         {/* 총 경매 낙찰 금액 */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-slate-400 block">
-            총 경매 낙찰 금액 (금전)
-          </label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="text-xs font-semibold text-slate-400 block">
+              누적 경매 낙찰 합산 금액 (금전) — 경매 종료 시 자동 합산 업데이트 ({endedAuctionsCount}건 완료)
+            </label>
+            {isCustomGold && (
+              <button
+                type="button"
+                onClick={() => setIsCustomGold(false)}
+                className="text-[11px] font-bold text-amber-300 hover:underline"
+              >
+                실제 경매 낙찰 합산금으로 자동 동기화 복원
+              </button>
+            )}
+          </div>
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl select-none">
               💰
@@ -328,9 +346,12 @@ export default function DistributionPage() {
             <input
               type="number"
               value={totalAuctionGold}
-              onChange={e => setTotalAuctionGold(Math.max(0, Number(e.target.value) || 0))}
+              onChange={e => {
+                setIsCustomGold(true);
+                setTotalAuctionGold(Math.max(0, Number(e.target.value) || 0));
+              }}
               className="w-full bg-[#131929] border border-slate-700/80 rounded-xl pl-14 pr-4 py-3 text-amber-300 font-black text-xl sm:text-2xl focus:outline-none focus:border-amber-400 tracking-wide transition-colors"
-              placeholder="30000"
+              placeholder="0"
             />
           </div>
         </div>

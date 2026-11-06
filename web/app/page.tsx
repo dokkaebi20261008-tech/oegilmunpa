@@ -23,40 +23,21 @@ import {
   Gavel
 } from 'lucide-react';
 import { MemberAttendance } from '@/lib/types';
+import { useAuthUser } from '@/lib/clientAuth';
 
 export default function HomePage() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [authChecking, setAuthChecking] = useState(true);
+  const { currentUser, authChecking } = useAuthUser();
   const [data, setData] = useState<{
     totalMembers: number;
     activeMembersCount: number;
     totalGuildPoints: number;
+    totalAuctionGold: number;
+    endedAuctionsCount: number;
     attendance: MemberAttendance[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'PERFECT'>('ALL');
-
-  // 1. 로그인 여부 먼저 확인
-  useEffect(() => {
-    fetch('/api/auth/me', { cache: 'no-store' })
-      .then(res => res.json())
-      .then(d => {
-        if (d.authenticated && d.user) {
-          setCurrentUser(d.user);
-          loadDashboardData();
-        } else {
-          setCurrentUser(null);
-          setLoading(false);
-        }
-        setAuthChecking(false);
-      })
-      .catch(() => {
-        setCurrentUser(null);
-        setAuthChecking(false);
-        setLoading(false);
-      });
-  }, []);
 
   const loadDashboardData = () => {
     fetch('/api/attendance', { cache: 'no-store' })
@@ -73,7 +54,11 @@ export default function HomePage() {
 
   // 실시간 동기화 (로그인된 경우에만 주기적 폴링)
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+    loadDashboardData();
     const interval = setInterval(loadDashboardData, 4000);
     const handleFocus = () => loadDashboardData();
     window.addEventListener('focus', handleFocus);
@@ -238,7 +223,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">참여율 비례 분배</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              최종 낙찰금(예: 3만 금전)을 참여 포인트 비율대로 100% 자동 분배합니다.
+              경매를 통해 누적된 낙찰금을 참여 포인트 비율대로 100% 자동 분배합니다.
             </p>
           </div>
         </div>
@@ -249,8 +234,9 @@ export default function HomePage() {
   // ✅ [로그인된 정회원 화면] 회원가입 & 승인된 회원만 볼 수 있는 대시보드
   const totalRegistered = data?.totalMembers || 0;
   const totalPoints = data?.totalGuildPoints || 0;
-  const sampleAuctionGold = 30000;
-  const goldPerPoint = totalPoints > 0 ? Math.round(sampleAuctionGold / totalPoints) : 0;
+  const totalAuctionGold = data?.totalAuctionGold || 0;
+  const endedAuctionsCount = data?.endedAuctionsCount || 0;
+  const goldPerPoint = totalPoints > 0 && totalAuctionGold > 0 ? totalAuctionGold / totalPoints : 0;
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -349,18 +335,18 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 포인트 가치 (3만금전 기준) */}
+        {/* 누적 경매 낙찰금 & 1P 가치 */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-            <span>포인트 가치 (3만금전 기준)</span>
+            <span>누적 경매 낙찰 총액 ({endedAuctionsCount}건)</span>
             <Coins className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-3xl font-black text-emerald-400">{goldPerPoint.toLocaleString()}</span>
+            <span className="text-3xl font-black text-emerald-400">{totalAuctionGold.toLocaleString()}</span>
             <span className="text-xs text-slate-400">G</span>
           </div>
           <div className="mt-2 text-[11px] text-slate-500">
-            1포인트당 실시간 예상 배당금
+            1P당 분배금: <span className="text-emerald-400 font-semibold">{Math.round(goldPerPoint).toLocaleString()}G</span>
           </div>
         </div>
 
@@ -455,12 +441,12 @@ export default function HomePage() {
                 <th className="py-3 px-4 text-center">4. 신기 쟁탈전</th>
                 <th className="py-3 px-4 text-center">총 포인트</th>
                 <th className="py-3 px-4 text-center">참여율</th>
-                <th className="py-3 px-4 text-right">3만G 예상 분배</th>
+                <th className="py-3 px-4 text-right">누적 낙찰 분배금</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
               {filtered.map((m, index) => {
-                const estGold = goldPerPoint > 0 ? Math.floor(m.totalPoints * goldPerPoint) : 0;
+                const estGold = goldPerPoint > 0 && m.totalPoints > 0 ? Math.floor(m.totalPoints * goldPerPoint) : 0;
                 const isMe = currentUser?.nickname === m.nickname;
                 return (
                   <tr 
