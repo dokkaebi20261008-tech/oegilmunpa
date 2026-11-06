@@ -18,7 +18,8 @@ import {
   ArrowRight,
   Settings,
   X,
-  Trophy
+  Trophy,
+  Info
 } from 'lucide-react';
 import { ShopItem, TokenLedgerEntry, AuctionItem, isManagerRole, getRoleLabel } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
@@ -508,7 +509,7 @@ export default function ShopPage() {
             <div className="text-[11px] mt-1 whitespace-nowrap">
               {activeAuction
                 ? `🔥 종료까지 ${formatRemainingTime(activeAuction.endsAt)}`
-                : '19:30:00 개시 시 11,500 증표 차감'}
+                : `최소 시작 ${(singleItem?.minStartBid || 20000).toLocaleString()}G (호가 +${(singleItem?.bidStep || 500).toLocaleString()}G)`}
             </div>
           </div>
 
@@ -563,6 +564,17 @@ export default function ShopPage() {
                     {typeof singleItem.weeklyLimit === 'string'
                       ? singleItem.weeklyLimit
                       : `문파 주간 한정: (${10 - (singleItem.stock ?? 10)}/10)`}
+                  </span>
+                </div>
+                {/* 문파원 사전 확인용 경매 시작가 및 호가 배지 */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                  <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/35 text-amber-300 font-extrabold">
+                    <span>⚡ 경매 최소 시작 입찰가:</span>
+                    <strong className="text-white">{(singleItem.minStartBid || 20000).toLocaleString()} 금전</strong>
+                  </span>
+                  <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700/80 text-slate-300 font-semibold">
+                    <span>최소 호가 단위:</span>
+                    <strong className="text-emerald-400">+{(singleItem.bidStep || 500).toLocaleString()} 금전</strong>
                   </span>
                 </div>
               </div>
@@ -698,6 +710,24 @@ export default function ShopPage() {
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300">
                   총 {(singleItem.applicants || []).length}명 희망 신청
+                </span>
+              </div>
+            </div>
+
+            {/* 문파원 사전 안내: 경매 최소 시작 입찰가 & 호가 단위 */}
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center space-x-2">
+                <Info className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>
+                  희망 신청 시 수요일 19:30에 <strong>최소 시작 입찰가 {(singleItem.minStartBid || 20000).toLocaleString()} 금전</strong>으로 30분간 익명 경매가 열립니다.
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-bold shrink-0">
+                <span className="px-2 py-0.5 rounded bg-slate-900 border border-amber-500/30 text-amber-300">
+                  최소 호가: +{(singleItem.bidStep || 500).toLocaleString()} 금전
+                </span>
+                <span className="px-2 py-0.5 rounded bg-slate-900 border border-emerald-500/30 text-emerald-300">
+                  세금 10% 공제 후 창고 세이브
                 </span>
               </div>
             </div>

@@ -375,7 +375,7 @@ export default function AuctionPage() {
                 외길 문파 익명 경매·창고 & 금전 분배소
               </h1>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                매주 수요일 <strong className="text-amber-300">19:00:00 ~ 19:29:59 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30:00 익명 경매 자동 개시 (19:59:59 입찰 마감)</strong><br className="hidden sm:inline" />
+                매주 수요일 <strong className="text-amber-300">19:00:00 ~ 19:29:59 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30:00 익명 경매 자동 개시 (최소 시작가 20,000G / 호가 500G)</strong><br className="hidden sm:inline" />
                 <span className="sm:hidden"> • </span>20:00:00 종료 시 <strong className="text-amber-300">낙찰자·최종 낙찰금액 우선 공개</strong> 및 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
               </p>
             </div>
@@ -461,13 +461,21 @@ export default function AuctionPage() {
             {loading ? (
               <div className="text-center py-16 text-xs text-slate-400">경매 정보를 불러오는 중...</div>
             ) : liveOrWaitingAuctions.length === 0 ? (
-              <div className="bg-slate-950/50 border border-slate-800/80 rounded-xl p-8 text-center space-y-2.5 my-4">
+              <div className="bg-slate-950/50 border border-slate-800/80 rounded-xl p-8 text-center space-y-3 my-4">
                 <Gavel className="w-7 h-7 text-slate-600 mx-auto" />
                 <div className="text-sm font-bold text-slate-300">현재 대기 또는 진행 경매가 없습니다</div>
                 <p className="text-xs text-slate-400 leading-relaxed">
                   매주 수요일 <strong>19:00 ~ 19:30</strong> 상점 희망 신청 시<br />
                   <strong>19:30에 자동 시작</strong>되어 <strong>20:00에 종료</strong>됩니다.
                 </p>
+                <div className="pt-1 flex flex-wrap items-center justify-center gap-2 text-xs">
+                  <span className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold">
+                    최소 시작 입찰가: <strong className="text-white">20,000 금전</strong>
+                  </span>
+                  <span className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-semibold">
+                    최소 호가 단위: <strong className="text-emerald-400">+500 금전</strong>
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
