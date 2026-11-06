@@ -374,7 +374,7 @@ export default function AuctionPage() {
               <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
                 외길 문파 익명 경매·창고 & 금전 분배소
               </h1>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed break-keep">
                 매주 수요일 <strong className="text-amber-300">19:00:00 ~ 19:29:59 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30:00 익명 경매 자동 개시 (최소 시작가 20,000G / 호가 500G)</strong><br className="hidden sm:inline" />
                 <span className="sm:hidden"> • </span>20:00:00 종료 시 <strong className="text-amber-300">낙찰자·최종 낙찰금액 우선 공개</strong> 및 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
               </p>
@@ -434,7 +434,7 @@ export default function AuctionPage() {
 
           <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 flex flex-col justify-center space-y-1">
             <div className="font-bold text-amber-300">💡 낙찰 금액 & 세금 10% 공제 안내</div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+            <p className="text-[11px] text-slate-400 leading-relaxed break-keep">
               인게임 지정 분배 입력용 <strong className="text-amber-300">최종 낙찰 금액</strong>을 먼저 보여드리고,<br />
               <strong className="text-emerald-300">세금 10% 공제 후 창고 세이브 금액</strong>을 별도로 표시합니다.
             </p>
@@ -761,7 +761,7 @@ export default function AuctionPage() {
                   </span>
                 </div>
               )}
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-slate-400 leading-relaxed break-keep">
                 경매 종료 시 세금 10%를 제외한 90% 금액이<br />
                 문파 창고에 자동 합산되며 분배 시 차감됩니다.
               </p>

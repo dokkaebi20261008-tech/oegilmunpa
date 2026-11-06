@@ -214,7 +214,7 @@ export default function AttendancePage() {
             <CheckCircle2 className="w-7 h-7 text-emerald-400" />
             <span>상세 출석부 & 누적 포인트 관리소</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-slate-400 break-keep">
             주간 컨텐츠는 매주 <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>로 리셋하며, <strong className="text-amber-300">누적 점수</strong>는 금전 분배가 모두 완료된 뒤 초기화할 수 있습니다.
           </p>
         </div>

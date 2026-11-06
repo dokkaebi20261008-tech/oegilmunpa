@@ -402,7 +402,7 @@ export default function DistributionPage() {
               <h2 className="text-lg font-extrabold text-white">
                 문파 창고 세이브 금전 (세금 10% 공제 실수령) & 배점 기준
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5 break-keep">
                 인게임 지정 분배 시 낙찰가에서 세금 10%가 제외된 90% 금액(예: 3만G 낙찰 → 2만7천G)이 문파 창고에 세이브되며, 분배 시 차감됩니다.
               </p>
             </div>

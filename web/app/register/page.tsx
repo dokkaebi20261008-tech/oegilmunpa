@@ -44,13 +44,13 @@ export default function RegisterPage() {
           <Sparkles className="w-8 h-8" />
         </div>
         <h1 className="text-2xl font-black text-white">가입 신청 완료!</h1>
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className="text-sm text-slate-300 leading-relaxed break-keep">
           <strong className="text-amber-400">[{nickname}]</strong> 문파원님의 계정 등록 요청이 문파장에게 전달되었습니다.
         </p>
-        <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400 space-y-1">
-          <div>💡 <strong>승인제 안내:</strong></div>
-          <div>우리 문파는 허위 가입 방지를 위해 문파장이 직접 확인 후 승인합니다.</div>
-          <div>승인이 완료되면 설정하신 아이디로 바로 로그인하실 수 있습니다.</div>
+        <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-1.5 break-keep leading-relaxed text-left">
+          <div className="text-amber-300 font-bold">💡 문파장 가입 승인제 안내</div>
+          <div>• 우리 문파는 허위 가입 방지를 위해 문파장이 직접 확인 후 승인합니다.</div>
+          <div>• 문파장 승인 완료 즉시 등록하신 아이디로 바로 로그인하실 수 있습니다.</div>
         </div>
         <Link
           href="/login"
@@ -132,9 +132,9 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-start space-x-2.5 break-keep leading-relaxed">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span className="whitespace-pre-line">{error}</span>
           </div>
         )}
 

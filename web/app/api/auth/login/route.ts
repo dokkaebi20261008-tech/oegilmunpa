@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: false,
         status: 'PENDING',
-        message: '문파장의 가입 승인 대기 중입니다. 문파장 승인 후 로그인이 가능합니다.'
+        message: '문파장의 가입 승인 대기 중인 상태입니다.\n문파장 승인 완료 후 로그인하실 수 있습니다.'
       }, { status: 403 });
     }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: false,
         status: 'REJECTED',
-        message: '가입 승인이 거절된 계정입니다. 문파장에게 문의해주세요.'
+        message: '가입 승인이 거절된 계정입니다.\n상세 사유는 문파장에게 문의해주세요.'
       }, { status: 403 });
     }
 

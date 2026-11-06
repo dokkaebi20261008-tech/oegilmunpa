@@ -332,7 +332,7 @@ export default function ShopPage() {
             <ShoppingBag className="w-6 h-6 text-amber-400 shrink-0" />
             <span>외길 문파 상점·신청 & 용맹의 증표 관리소</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed break-keep">
             <strong className="text-amber-300">매주 수요일 19:00:00 ~ 19:29:59</strong> 구매 희망 신청 ➔ 희망자 신청 시 <strong className="text-emerald-300">19:30:00 문파 경매·창고 자동 개시</strong> (19:59:59 입찰 마감) ➔ <strong className="text-indigo-300">20:00:00 경매 자동 종료 및 낙찰자·낙찰금액 즉시 공개</strong>
           </p>
         </div>
@@ -369,7 +369,7 @@ export default function ShopPage() {
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs text-slate-300 space-y-1 leading-relaxed">
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs text-slate-300 space-y-1.5 leading-relaxed break-keep">
             <div>
               • 상점 상품 가격: <strong className="text-amber-300">11,500 용맹의 증표</strong>
             </div>
@@ -619,7 +619,7 @@ export default function ShopPage() {
                   <Clock className="w-4 h-4 animate-spin" />
                   <span>⏳ 수요일 오후 7시 30분 문파 경매장 자동 시작 대기 중</span>
                 </div>
-                <p className="text-xs text-slate-200">
+                <p className="text-xs text-slate-200 break-keep leading-relaxed">
                   구매 희망 신청자가 있어 <strong>수요일 오후 7시 30분에 문파 경매장에서 자동으로 익명 경매가 시작</strong>되며,{' '}
                   <strong>오후 8시에 자동 종료</strong>됩니다.
                 </p>
@@ -649,7 +649,7 @@ export default function ShopPage() {
                   <Gavel className="w-4 h-4" />
                   <span>🔥 현재 문파 경매장에서 익명 경매가 진행 중입니다! (오후 8시 자동 종료)</span>
                 </div>
-                <p className="text-xs text-slate-200">
+                <p className="text-xs text-slate-200 break-keep leading-relaxed">
                   문파 총재화에서 <strong>11,500 용맹의 증표가 자동 차감</strong>되었으며, 경매 종료 즉시 낙찰자 닉네임과 최종 낙찰금액이 안내됩니다.
                 </p>
               </div>
@@ -718,7 +718,7 @@ export default function ShopPage() {
             </div>
 
             {/* 문파원 사전 안내: 경매 최소 시작 입찰가 & 호가 단위 */}
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 break-keep">
               <div className="flex items-center space-x-2">
                 <Info className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
@@ -768,7 +768,7 @@ export default function ShopPage() {
 
               if (!kstSched.isShopOpen) {
                 return (
-                  <div className="w-full py-3 px-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-bold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                  <div className="w-full py-3 px-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-bold text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-between gap-2.5 break-keep">
                     <div className="flex items-center space-x-2 text-rose-300 text-xs sm:text-sm">
                       <Lock className="w-4 h-4 shrink-0" />
                       <span>

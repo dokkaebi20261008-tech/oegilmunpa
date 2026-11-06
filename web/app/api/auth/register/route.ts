@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         pendingApproval: true,
-        message: '회원가입 신청이 완료되었습니다! 문파장(관리자)의 승인 후 로그인하실 수 있습니다.',
+        message: '회원가입 신청이 정상적으로 완료되었습니다!\n문파장 승인 완료 후 바로 로그인하실 수 있습니다.',
         user: {
           nickname: newUser.nickname,
           status: newUser.status

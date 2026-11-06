@@ -186,21 +186,21 @@ export default function HomePage() {
                 <span>외길 문파 정회원 전용 이용 안내</span>
               </div>
 
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed break-keep">
                 <li className="flex items-start space-x-2">
-                  <span className="text-amber-400 font-bold">•</span>
+                  <span className="text-amber-400 font-bold mt-0.5">•</span>
                   <span>
-                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 → 문파 상점 희망 신청 → 1시간 자동 익명 경매 → 세금 10% 공제 후 문파 창고 금전 비례 분배까지 한곳에서 이루어집니다.
+                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 ➔ 상점 희망 신청 ➔ 1시간 자동 익명 경매 ➔ 세금 10% 공제 후 창고 금전 비례 분배까지 한곳에서 관리됩니다.
                   </span>
                 </li>
                 <li className="flex items-start space-x-2">
-                  <span className="text-indigo-400 font-bold">•</span>
+                  <span className="text-indigo-400 font-bold mt-0.5">•</span>
                   <span>
-                    <strong>열람 권한:</strong> 외부 유출 방지를 위해 <span className="text-amber-300 font-bold">회원가입 후 문파장 승인을 받은 정회원</span>만 로그인하여 확인하실 수 있습니다.
+                    <strong>열람 권한:</strong> 외부 유출 방지를 위해 <span className="text-amber-300 font-bold">회원가입 후 문파장의 승인을 완료한 정회원</span>만 로그인하여 확인하실 수 있습니다.
                   </span>
                 </li>
                 <li className="flex items-start space-x-2">
-                  <span className="text-emerald-400 font-bold">•</span>
+                  <span className="text-emerald-400 font-bold mt-0.5">•</span>
                   <span>
                     <strong>신규 가입:</strong> 게임 내 실제 캐릭터 닉네임으로 <strong>[회원가입]</strong>을 신청하시면 문파장 승인 즉시 이용 가능합니다.
                   </span>
@@ -225,9 +225,9 @@ export default function HomePage() {
                 </div>
 
                 {loginError && (
-                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{loginError}</span>
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start space-x-2.5 break-keep leading-relaxed">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="whitespace-pre-line">{loginError}</span>
                   </div>
                 )}
 
@@ -325,13 +325,13 @@ export default function HomePage() {
         </div>
 
         {/* 4-Step Core Flow Guide */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 break-keep">
           <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 space-y-2">
             <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-black text-sm">
               1
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">컨텐츠 참여율 집계</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 leading-relaxed break-keep">
               디스코드 인증으로 수동(1.0P)과 분신(0.25P) 점수가 실시간 누적됩니다.
             </p>
           </div>
@@ -341,7 +341,7 @@ export default function HomePage() {
               2
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">문파 상점·신청</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 leading-relaxed break-keep">
               문파 재화(용맹의 증표)로 전설 도안 상자 구매 희망 신청 시 30분 뒤 자동 경매가 열립니다.
             </p>
           </div>
@@ -351,7 +351,7 @@ export default function HomePage() {
               3
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">문파 경매·창고</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 leading-relaxed break-keep">
               최소 시작가 20,000 금전(호가 500 단위)으로 30분간 익명 경매 진행 후 낙찰자 공개 및 세금 10% 공제 후 창고에 세이브됩니다.
             </p>
           </div>
@@ -361,7 +361,7 @@ export default function HomePage() {
               4
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">창고 세이브 금전 분배</h3>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 leading-relaxed break-keep">
               문파 창고에 세이브된 금전(90%)을 누적 참여 포인트 비율대로 분배 및 차감합니다.
             </p>
           </div>
