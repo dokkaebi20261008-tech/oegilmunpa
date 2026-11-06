@@ -32,7 +32,7 @@ export default function Navbar() {
 
   useEffect(() => {
     syncData();
-    const interval = setInterval(syncData, 5000);
+    const interval = setInterval(syncData, 3000);
     const handleFocus = () => syncData();
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleFocus);
@@ -101,17 +101,17 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs lg:text-sm font-semibold whitespace-nowrap transition-colors ${
                     isActive
                       ? 'bg-indigo-600/20 text-amber-300 border border-indigo-500/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
                   <span>{link.label}</span>
                   {link.href === '/admin/members' && pendingCount > 0 && (
-                    <span className="ml-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
-                      {pendingCount}
+                    <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shadow-sm shadow-rose-500/50 animate-pulse">
+                      대기 {pendingCount}
                     </span>
                   )}
                 </Link>

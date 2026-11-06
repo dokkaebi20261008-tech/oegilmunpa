@@ -13,7 +13,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: '관리자 권한이 필요합니다.' }, { status: 403 });
     }
 
-    const db = getDb();
+    const db = await getDb();
     for (const name in db.attendance) {
       db.attendance[name] = {
         nickname: name,
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       };
     }
 
-    saveDb(db);
+    await saveDb(db);
 
     return NextResponse.json({
       success: true,

@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     }, { status: 401 });
   }
 
-  const db = getDb();
+  const db = await getDb();
   return NextResponse.json({
     success: true,
     items: db.shopItems || [],
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { action } = body;
-    const db = getDb();
+    const db = await getDb();
 
     // 1. 내 캐릭터(또는 지정 닉네임)로 상품 구매 희망 신청 / 취소 토글
     if (action === 'TOGGLE_APPLICANT') {
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       } else {
         item.applicants.push(targetName);
       }
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({
         success: true,
         applied: !exists,
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       if (!Array.isArray(item.applicants)) item.applicants = [];
       if (!item.applicants.includes(targetName)) {
         item.applicants.push(targetName);
-        saveDb(db);
+        await saveDb(db);
       }
       return NextResponse.json({
         success: true,
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
       }
       if (Array.isArray(item.applicants)) {
         item.applicants = item.applicants.filter(n => n !== nickname);
-        saveDb(db);
+        await saveDb(db);
       }
       return NextResponse.json({
         success: true,
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
       db.shopItems.forEach(item => {
         item.applicants = [];
       });
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({
         success: true,
         items: db.shopItems
@@ -159,7 +159,7 @@ export async function POST(req: Request) {
       }
 
       db.auctions.unshift(newAuction);
-      saveDb(db);
+      await saveDb(db);
 
       return NextResponse.json({
         success: true,

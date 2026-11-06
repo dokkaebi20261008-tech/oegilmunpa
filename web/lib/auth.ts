@@ -54,7 +54,7 @@ export async function getCurrentUser(req?: Request): Promise<SessionData | null>
   if (!session) return null;
   
   // DB에서 유효성 재확인
-  const db = getDb();
+  const db = await getDb();
   const user = db.users.find(u => u.id === session.userId);
   if (!user) return null;
 

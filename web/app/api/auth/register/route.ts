@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const cleanUsername = username.trim().toLowerCase();
     const cleanNickname = nickname.trim();
 
-    const db = getDb();
+    const db = await getDb();
 
     // 중복 검사
     if (db.users.some(u => u.username.toLowerCase() === cleanUsername)) {
@@ -57,7 +57,8 @@ export async function POST(req: Request) {
       };
     }
 
-    saveDb(db);
+    await saveDb(db);
+    console.log(`[REGISTER] New user registered: nickname=${newUser.nickname}, username=${newUser.username}, status=${newUser.status}`);
 
     if (newUser.status === 'PENDING') {
       return NextResponse.json({

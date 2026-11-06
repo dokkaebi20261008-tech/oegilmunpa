@@ -15,7 +15,10 @@ import {
   Copy,
   Check,
   KeyRound,
-  Search
+  Search,
+  UserPlus,
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 interface MemberUser {
@@ -36,6 +39,13 @@ export default function AdminMembersPage() {
   const [showPasswords, setShowPasswords] = useState<boolean>(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+
+  // 어드민 문파원 계정 직접 생성 모달 상태
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newNickname, setNewNickname] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [creatingUser, setCreatingUser] = useState(false);
 
   const fetchUsers = () => {
     fetch('/api/admin/users', { cache: 'no-store' })
@@ -64,7 +74,7 @@ export default function AdminMembersPage() {
         fetchUsers();
       });
 
-    const interval = setInterval(fetchUsers, 4000);
+    const interval = setInterval(fetchUsers, 2500);
     const handleFocus = () => fetchUsers();
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleFocus);
@@ -106,6 +116,43 @@ export default function AdminMembersPage() {
       alert(err.message);
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  const handleCreateApprovedUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNickname.trim() || !newUsername.trim() || !newPassword.trim()) {
+      alert('캐릭터 닉네임, 로그인 아이디, 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    setCreatingUser(true);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'CREATE_APPROVED_USER',
+          nickname: newNickname.trim(),
+          username: newUsername.trim(),
+          password: newPassword.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || '계정 생성 실패');
+        setCreatingUser(false);
+        return;
+      }
+      alert(data.message);
+      setIsCreateOpen(false);
+      setNewNickname('');
+      setNewUsername('');
+      setNewPassword('');
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setCreatingUser(false);
     }
   };
 
@@ -158,7 +205,7 @@ export default function AdminMembersPage() {
   const approvedUsers = filteredUsers.filter(u => u.status === 'APPROVED');
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-16">
+    <div className="max-w-6xl mx-auto space-y-6 pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
@@ -173,12 +220,28 @@ export default function AdminMembersPage() {
             <span>어드민 전용 회원정보 & 가입 승인 관리</span>
           </h1>
           <div className="mt-1.5 text-xs sm:text-sm text-slate-400 space-y-0.5">
-            <p>• 일반 문파원 화면에서는 서로의 아이디가 비공개되며 오직 캐릭터 닉네임(활동명)만 표시됩니다.</p>
+            <p>• 클라우드 영구 DB와 실시간 동기화되어 문파원이 회원가입을 신청하면 즉시 아래 대기자 목록과 상단 알림에 표시됩니다.</p>
             <p>• 문파장(어드민) 전용 메뉴인 이곳에서만 분실 안내를 위해 회원들의 아이디와 비밀번호를 확인·관리할 수 있습니다.</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setIsCreateOpen(true)}
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-md transition-all"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>+ 문파원 계정 직접 생성</span>
+          </button>
+          <button
+            type="button"
+            onClick={fetchUsers}
+            className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition-all"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
+            <span>새로고침</span>
+          </button>
           <button
             type="button"
             onClick={() => setShowPasswords(prev => !prev)}
@@ -228,14 +291,14 @@ export default function AdminMembersPage() {
             {pendingUsers.map(user => (
               <div
                 key={user.id}
-                className="bg-slate-950/90 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3"
+                className="bg-slate-950/90 border border-amber-500/40 rounded-xl p-4 flex flex-col justify-between space-y-3 shadow-lg"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                      승인 대기
+                    <span className="text-xs font-bold text-amber-300 px-2.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 animate-pulse">
+                      🔔 신규 승인 대기
                     </span>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-slate-400">
                       신청일: {new Date(user.createdAt).toLocaleString()}
                     </span>
                   </div>
@@ -262,7 +325,7 @@ export default function AdminMembersPage() {
                   <button
                     onClick={() => handleAction('APPROVE', user.id, user.nickname)}
                     disabled={actionLoadingId === user.id}
-                    className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
+                    className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center space-x-1.5 disabled:opacity-50"
                   >
                     <UserCheck className="w-4 h-4" />
                     <span>가입 승인</span>
@@ -270,7 +333,7 @@ export default function AdminMembersPage() {
                   <button
                     onClick={() => handleAction('REJECT', user.id, user.nickname)}
                     disabled={actionLoadingId === user.id}
-                    className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-rose-900/50 text-rose-400 hover:text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center justify-center space-x-1"
+                    className="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-rose-900/50 text-rose-400 hover:text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center justify-center space-x-1"
                   >
                     <UserX className="w-3.5 h-3.5" />
                     <span>거절</span>
@@ -389,6 +452,83 @@ export default function AdminMembersPage() {
           </table>
         </div>
       </div>
+
+      {/* 어드민 문파원 계정 직접 생성 모달 */}
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <form
+            onSubmit={handleCreateApprovedUser}
+            className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-extrabold text-white flex items-center space-x-2">
+                <UserPlus className="w-5 h-5 text-amber-400" />
+                <span>문파원 계정 직접 생성 (즉시 승인)</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-300">캐릭터 닉네임 (사이트 활동명)</label>
+              <input
+                type="text"
+                required
+                placeholder="예: 상두불"
+                value={newNickname}
+                onChange={e => setNewNickname(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-300">로그인 아이디</label>
+              <input
+                type="text"
+                required
+                placeholder="문파원이 로그인할 아이디 입력"
+                value={newUsername}
+                onChange={e => setNewUsername(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-amber-300 font-bold focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-300">초기 비밀번호</label>
+              <input
+                type="text"
+                required
+                placeholder="초기 비밀번호 입력"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-emerald-300 font-bold focus:outline-none focus:border-amber-400"
+              />
+            </div>
+
+            <div className="flex space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsCreateOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-semibold text-xs hover:bg-slate-700"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                disabled={creatingUser}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md"
+              >
+                {creatingUser ? '생성 중...' : '정회원 계정 생성'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

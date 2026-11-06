@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     const cleanUsername = username.trim().toLowerCase();
     const hashedInput = crypto.createHash('sha256').update(password).digest('hex');
-    const db = getDb();
+    const db = await getDb();
 
     const user = db.users.find(
       u =>

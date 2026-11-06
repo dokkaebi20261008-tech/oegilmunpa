@@ -17,9 +17,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ success: false, message: '올바른 입찰 금액을 입력해주세요.' }, { status: 400 });
     }
 
-    const db = getDb();
+    const db = await getDb();
     // 만료된 30분 경매 자동 종료 체크
-    checkAndFinalizeExpiredAuctions(db);
+    await checkAndFinalizeExpiredAuctions(db);
 
     const auction = db.auctions.find(a => a.id === params.id);
     if (!auction) {
@@ -58,7 +58,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     };
 
     db.bids.unshift(newBid);
-    saveDb(db);
+    await saveDb(db);
 
     // 진행 중 응답에서는 최고 입찰자 닉네임 익명 마스킹
     return NextResponse.json({

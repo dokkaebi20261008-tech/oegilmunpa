@@ -11,7 +11,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       return NextResponse.json({ success: false, message: '경매 마감 및 분배 정산은 관리자만 가능합니다.' }, { status: 403 });
     }
 
-    const db = getDb();
+    const db = await getDb();
     const auction = db.auctions.find(a => a.id === params.id);
     if (!auction) {
       return NextResponse.json({ success: false, message: '존재하지 않는 경매입니다.' }, { status: 404 });
@@ -30,7 +30,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     auction.status = 'ENDED';
     auction.distribution = distribution;
 
-    saveDb(db);
+    await saveDb(db);
 
     return NextResponse.json({
       success: true,

@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ authenticated: false, user: null, debugCookie: cookieHeader });
   }
 
-  const db = getDb();
+  const db = await getDb();
   const attendance = db.attendance[user.nickname] || null;
 
   return NextResponse.json({

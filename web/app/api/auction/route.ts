@@ -14,9 +14,9 @@ export async function GET(req: Request) {
     }, { status: 401 });
   }
 
-  const db = getDb();
+  const db = await getDb();
   // 30분 타이머 만료된 경매 자동 종료 및 분배 정산
-  checkAndFinalizeExpiredAuctions(db);
+  await checkAndFinalizeExpiredAuctions(db);
 
   // 활성 경매 우선 정렬 + 진행 중 경매 최고 입찰자 익명 마스킹 (종료 시 실제 닉네임 공개)
   const auctions = [...db.auctions]
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: '금액은 0보다 커야 합니다.' }, { status: 400 });
     }
 
-    const db = getDb();
+    const db = await getDb();
     const now = new Date();
     // 상품 1개당 경매 종료 타이머 기본 30분 (1,800초) 적용
     const durationMs =
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     };
 
     db.auctions.unshift(newAuction);
-    saveDb(db);
+    await saveDb(db);
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { User, MemberAttendance, AuctionItem, BidRecord, ShopItem, PurchaseRequest, ContentType, ParticipationType, AuctionDistribution, LadderState } from './types';
+import {
+  User,
+  MemberAttendance,
+  AuctionItem,
+  BidRecord,
+  ShopItem,
+  PurchaseRequest,
+  AuctionDistribution,
+  LadderState
+} from './types';
 
-interface DatabaseSchema {
+export interface DatabaseSchema {
   users: User[];
   members: string[];
   attendance: Record<string, MemberAttendance>;
@@ -25,7 +34,6 @@ const DEFAULT_MEMBERS = [
 ];
 
 function getDbPath(): string {
-  // Vercel serverless 환경에서는 /tmp만 쓰기 가능
   if (process.env.VERCEL) {
     return path.join('/tmp', 'oegil_db.json');
   }
@@ -37,6 +45,7 @@ function getDbPath(): string {
 }
 
 let memoryDbCache: DatabaseSchema | null = null;
+let lastFetchMs = 0;
 
 function createInitialAttendance(members: string[]): Record<string, MemberAttendance> {
   const att: Record<string, MemberAttendance> = {};
@@ -52,7 +61,6 @@ function createInitialAttendance(members: string[]): Record<string, MemberAttend
     };
   }
 
-  // 데모를 위한 현실적인 초기 참여 데이터 몇 개 부여 (요신 수동 1.0 / 결계 분신 0.25 등)
   if (att["뱀설"]) {
     att["뱀설"].yosin = { type: 'MANUAL', points: 1.0 };
     att["뱀설"].gyeolgye = { type: 'MANUAL', points: 1.0 };
@@ -162,129 +170,213 @@ function getInitialDb(): DatabaseSchema {
   };
 }
 
-export function getDb(): DatabaseSchema {
-  if (memoryDbCache) return memoryDbCache;
+function migrateSchema(db: DatabaseSchema): boolean {
+  let migrated = false;
+  if (!Array.isArray(db.users)) {
+    db.users = [];
+    migrated = true;
+  }
+
+  const hadOldDefaults = db.users.some(
+    u => u.username === 'admin' || u.username === 'member1'
+  );
+  if (hadOldDefaults) {
+    db.users = db.users.filter(
+      u => u.username !== 'admin' && u.username !== 'member1'
+    );
+    migrated = true;
+  }
+
+  const adminAcc = db.users.find(u => u.username === '뱀설');
+  if (!adminAcc) {
+    db.users.unshift({
+      id: "usr_admin",
+      username: "뱀설",
+      passwordHash: ADMIN_PASS_SHA256,
+      nickname: "뱀설",
+      role: "ADMIN",
+      status: "APPROVED",
+      createdAt: new Date().toISOString(),
+    });
+    migrated = true;
+  } else if (
+    adminAcc.passwordHash !== ADMIN_PASS_SHA256 ||
+    adminAcc.role !== "ADMIN" ||
+    adminAcc.status !== "APPROVED" ||
+    adminAcc.nickname !== "뱀설"
+  ) {
+    adminAcc.passwordHash = ADMIN_PASS_SHA256;
+    adminAcc.role = "ADMIN";
+    adminAcc.status = "APPROVED";
+    adminAcc.nickname = "뱀설";
+    migrated = true;
+  }
+
+  db.users.forEach(u => {
+    if (!u.status) {
+      u.status = 'APPROVED';
+      migrated = true;
+    }
+  });
+
+  const isSingleUnified =
+    db.shopItems?.length === 1 &&
+    db.shopItems[0].name === "전설 도안 선택 상자";
+  if (!isSingleUnified) {
+    const mergedApplicants = new Set<string>();
+    db.shopItems?.forEach(it => {
+      it.applicants?.forEach(nick => mergedApplicants.add(nick));
+    });
+    const unified = getOfficialShopItems(new Date().toISOString());
+    if (mergedApplicants.size > 0) {
+      unified[0].applicants = Array.from(mergedApplicants);
+    }
+    db.shopItems = unified;
+    migrated = true;
+  }
+
+  const firstAuction = db.auctions?.find(a => a.id === 'auc_1');
+  if (firstAuction) {
+    if (firstAuction.title !== "전설 도안 선택 상자") {
+      firstAuction.title = "전설 도안 선택 상자";
+      firstAuction.description = "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
+      firstAuction.imageUrl = "/images/shop-weapon.png";
+      firstAuction.startingBid = 20000;
+      firstAuction.minBidIncrement = 500;
+      firstAuction.currentBid = 20500;
+      firstAuction.bidsCount = 2;
+      migrated = true;
+    }
+    if (
+      firstAuction.status === 'ACTIVE' &&
+      new Date(firstAuction.endsAt).getTime() - Date.now() > 35 * 60 * 1000
+    ) {
+      firstAuction.endsAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+      migrated = true;
+    }
+  }
+
+  return migrated;
+}
+
+export async function getDb(): Promise<DatabaseSchema> {
+  const gistId = process.env.GITHUB_DB_GIST_ID;
+  const token = process.env.GITHUB_DB_TOKEN;
+
+  // 1. 클라우드 영구 DB (GitHub Secret Gist) 우선 조회 — 모든 Vercel 서버리스 인스턴스/재배포 간 100% 실시간 공유
+  if (gistId && token) {
+    if (memoryDbCache && Date.now() - lastFetchMs < 600) {
+      return memoryDbCache;
+    }
+    try {
+      const res = await fetch(`https://api.github.com/gists/${gistId}?t=${Date.now()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Cache-Control': 'no-cache',
+        },
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const gistData = await res.json();
+        const fileObj = gistData.files?.['oegil_db.json'];
+        if (fileObj) {
+          let rawContent = fileObj.content;
+          if (fileObj.truncated && fileObj.raw_url) {
+            const rawRes = await fetch(fileObj.raw_url, {
+              headers: { Authorization: `Bearer ${token}` },
+              cache: 'no-store',
+            });
+            if (rawRes.ok) {
+              rawContent = await rawRes.text();
+            }
+          }
+          if (rawContent) {
+            const parsed = JSON.parse(rawContent);
+            if (parsed && Array.isArray(parsed.users) && parsed.attendance) {
+              const migrated = migrateSchema(parsed);
+              memoryDbCache = parsed;
+              lastFetchMs = Date.now();
+              if (migrated) {
+                await saveDb(parsed);
+              }
+              return parsed;
+            } else {
+              // 최초 초기화 상태인 경우 초기 DB 기록
+              const initial = getInitialDb();
+              await saveDb(initial);
+              return initial;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read from Gist cloud DB, falling back to local file:', err);
+    }
+  }
+
+  // 2. 로컬 파일 폴백 (항상 최신 디스크 파일을 읽어 프로세스 간 불일치 방지)
   const filePath = getDbPath();
   try {
     if (fs.existsSync(filePath)) {
       const data = fs.readFileSync(filePath, 'utf-8');
-      memoryDbCache = JSON.parse(data);
-      let migrated = false;
-      if (memoryDbCache) {
-        if (!Array.isArray(memoryDbCache.users)) {
-          memoryDbCache.users = [];
-        }
-        // 구버전 admin / member1 기본 계정 제거 및 '뱀설' 단독 관리자 계정 적용
-        const hadOldDefaults = memoryDbCache.users.some(
-          u => u.username === 'admin' || u.username === 'member1'
-        );
-        if (hadOldDefaults) {
-          memoryDbCache.users = memoryDbCache.users.filter(
-            u => u.username !== 'admin' && u.username !== 'member1'
-          );
-          migrated = true;
-        }
-        const adminAcc = memoryDbCache.users.find(u => u.username === '뱀설');
-        if (!adminAcc) {
-          memoryDbCache.users.unshift({
-            id: "usr_admin",
-            username: "뱀설",
-            passwordHash: ADMIN_PASS_SHA256,
-            nickname: "뱀설",
-            role: "ADMIN",
-            status: "APPROVED",
-            createdAt: new Date().toISOString(),
-          });
-          migrated = true;
-        } else if (
-          adminAcc.passwordHash !== ADMIN_PASS_SHA256 ||
-          adminAcc.role !== "ADMIN" ||
-          adminAcc.status !== "APPROVED" ||
-          adminAcc.nickname !== "뱀설"
-        ) {
-          adminAcc.passwordHash = ADMIN_PASS_SHA256;
-          adminAcc.role = "ADMIN";
-          adminAcc.status = "APPROVED";
-          adminAcc.nickname = "뱀설";
-          migrated = true;
-        }
-
-        memoryDbCache.users.forEach(u => {
-          if (!u.status) {
-            u.status = 'APPROVED';
-            migrated = true;
-          }
-        });
-
-        // 상점 상품을 '전설 도안 선택 상자' (무기·방어구·장신구 통합) 1종으로 일원화 마이그레이션
-        const isSingleUnified =
-          memoryDbCache.shopItems?.length === 1 &&
-          memoryDbCache.shopItems[0].name === "전설 도안 선택 상자";
-        if (!isSingleUnified) {
-          const mergedApplicants = new Set<string>();
-          memoryDbCache.shopItems?.forEach(it => {
-            it.applicants?.forEach(nick => mergedApplicants.add(nick));
-          });
-          const unified = getOfficialShopItems(new Date().toISOString());
-          if (mergedApplicants.size > 0) {
-            unified[0].applicants = Array.from(mergedApplicants);
-          }
-          memoryDbCache.shopItems = unified;
-          migrated = true;
-        }
-
-        // 기존 샘플 경매가 있으면 '전설 도안 선택 상자' 및 30분 타이머로 동기화
-        const firstAuction = memoryDbCache.auctions?.find(a => a.id === 'auc_1');
-        if (firstAuction) {
-          if (firstAuction.title !== "전설 도안 선택 상자") {
-            firstAuction.title = "전설 도안 선택 상자";
-            firstAuction.description = "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
-            firstAuction.imageUrl = "/images/shop-weapon.png";
-            firstAuction.startingBid = 20000;
-            firstAuction.minBidIncrement = 500;
-            firstAuction.currentBid = 20500;
-            firstAuction.bidsCount = 2;
-            migrated = true;
-          }
-          // 기존 3일짜리 샘플 타이머를 30분 타이머로 교정
-          if (
-            firstAuction.status === 'ACTIVE' &&
-            new Date(firstAuction.endsAt).getTime() - Date.now() > 35 * 60 * 1000
-          ) {
-            firstAuction.endsAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-            migrated = true;
-          }
-        }
-
-        if (memoryDbCache.ladderState === undefined) {
-          memoryDbCache.ladderState = null;
-          migrated = true;
-        }
-        if (!Array.isArray(memoryDbCache.ladderHistory)) {
-          memoryDbCache.ladderHistory = [];
-          migrated = true;
-        }
-        if (migrated) {
-          saveDb(memoryDbCache);
-        }
+      const parsed: DatabaseSchema = JSON.parse(data);
+      const migrated = migrateSchema(parsed);
+      memoryDbCache = parsed;
+      lastFetchMs = Date.now();
+      if (migrated) {
+        await saveDb(parsed);
       }
-      return memoryDbCache!;
+      return parsed;
     }
   } catch (err) {
     console.error("Failed to read DB file, using initial DB:", err);
   }
+
   const initial = getInitialDb();
-  saveDb(initial);
+  await saveDb(initial);
   return initial;
 }
 
-export function saveDb(db: DatabaseSchema): void {
+export async function saveDb(db: DatabaseSchema): Promise<void> {
   memoryDbCache = db;
+  lastFetchMs = Date.now();
+
+  // 로컬 디스크 백업 저장
   const filePath = getDbPath();
   try {
     fs.writeFileSync(filePath, JSON.stringify(db, null, 2), 'utf-8');
   } catch (err) {
-    console.error("Failed to write DB file:", err);
+    console.error("Failed to write local DB file:", err);
+  }
+
+  // 클라우드 영구 DB (GitHub Secret Gist) 즉시 동기화 저장
+  const gistId = process.env.GITHUB_DB_GIST_ID;
+  const token = process.env.GITHUB_DB_TOKEN;
+  if (gistId && token) {
+    try {
+      const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          files: {
+            'oegil_db.json': {
+              content: JSON.stringify(db, null, 2),
+            },
+          },
+        }),
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        console.error('Gist DB PATCH error:', res.status, await res.text());
+      }
+    } catch (err) {
+      console.error('Failed to save to Gist cloud DB:', err);
+    }
   }
 }
 
@@ -295,7 +387,6 @@ export function recalculateMember(m: MemberAttendance): void {
   const pMihok = m.mihok?.points || 0;
   const pSingi = m.singi?.points || 0;
   m.totalPoints = Math.round((pYosin + pGyeol + pMihok + pSingi) * 100) / 100;
-  // 주 4회 올 수동 만점(4.0점) 기준 참여율 (%)
   m.rate = Math.min(100, Math.round((m.totalPoints / 4.0) * 100));
 }
 
@@ -324,7 +415,6 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
   for (const name in attendanceRecord) {
     const pts = attendanceRecord[name].totalPoints || 0;
     if (pts > 0) {
-      // 내 분배금 = (내 포인트 / 총 포인트) * 총 금전
       const share = Math.floor(pts * goldPerPoint);
       distributedSum += share;
       participants.push({
@@ -335,7 +425,6 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
     }
   }
 
-  // 포인트 높은 순으로 정렬
   participants.sort((a, b) => b.points - a.points);
 
   const leftoverGold = totalGold - distributedSum;
@@ -350,7 +439,7 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
 }
 
 // 30분 경매 타이머가 만료된 진행 중 경매를 자동으로 종료(ENDED) 처리하고 분배금을 정산
-export function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): boolean {
+export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promise<boolean> {
   let updated = false;
   const nowMs = Date.now();
   for (const auction of db.auctions) {
@@ -364,7 +453,7 @@ export function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): boolean {
     }
   }
   if (updated) {
-    saveDb(db);
+    await saveDb(db);
   }
   return updated;
 }

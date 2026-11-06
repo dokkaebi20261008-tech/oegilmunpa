@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     }, { status: 401 });
   }
 
-  const db = getDb();
+  const db = await getDb();
   const list = Object.values(db.attendance);
 
   // 포인트 높은 순, 포인트 같으면 닉네임 가나다순
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { action, nickname, names, content, type, manualWeight, cloneWeight } = body;
-    const db = getDb();
+    const db = await getDb();
     const now = new Date().toISOString();
 
     const mWeight = typeof manualWeight === 'number' ? manualWeight : 1.0;
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
           recalculateMember(m);
         }
       }
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({ success: true, message: '전원 올 수동 반영 완료', attendance: Object.values(db.attendance) });
     }
 
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
           recalculateMember(m);
         }
       }
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({ success: true, message: '전원 초기화 완료', attendance: Object.values(db.attendance) });
     }
 
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
         totalPoints: 0,
         rate: 0
       };
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({ success: true, message: `문파원 [${targetName}] 등록 완료`, attendance: Object.values(db.attendance) });
     }
 
@@ -120,7 +120,7 @@ export async function POST(req: Request) {
       }
       db.members = db.members.filter(n => n !== targetName);
       delete db.attendance[targetName];
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({ success: true, message: `문파원 [${targetName}] 삭제 완료`, attendance: Object.values(db.attendance) });
     }
 
@@ -194,7 +194,7 @@ export async function POST(req: Request) {
       updated.push(`${name} (${partType === 'ABSENT' ? '미참 0P' : partType === 'CLONE' ? `분신 ${cWeight}P` : `수동 ${mWeight}P`})`);
     }
 
-    saveDb(db);
+    await saveDb(db);
 
     return NextResponse.json({
       success: true,

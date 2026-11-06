@@ -15,8 +15,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const db = getDb();
-    // 어드민 전용 메뉴에서는 문파원들이 아이디/비밀번호 분실 시 안내할 수 있도록 username 및 plainPassword 제공
+    const db = await getDb();
     const adminViewUsers = db.users.map(u => ({
       id: u.id,
       username: u.username,
@@ -49,12 +48,66 @@ export async function POST(req: Request) {
       );
     }
 
-    const { action, userId, newPassword } = await req.json();
+    const body = await req.json();
+    const { action, userId, newPassword, username, password, nickname } = body;
+    const db = await getDb();
+
+    // 어드민이 문파원 계정을 직접 생성 (즉시 정회원 승인 상태)
+    if (action === 'CREATE_APPROVED_USER') {
+      const cleanUsername = String(username || '').trim().toLowerCase();
+      const cleanPass = String(password || '').trim();
+      const cleanNickname = String(nickname || '').trim();
+
+      if (!cleanUsername || !cleanPass || !cleanNickname) {
+        return NextResponse.json(
+          { success: false, message: '캐릭터 닉네임, 로그인 아이디, 비밀번호를 모두 입력해주세요.' },
+          { status: 400 }
+        );
+      }
+
+      if (db.users.some(u => u.username.toLowerCase() === cleanUsername)) {
+        return NextResponse.json({ success: false, message: '이미 존재하는 로그인 아이디입니다.' }, { status: 400 });
+      }
+      if (db.users.some(u => u.nickname.toLowerCase() === cleanNickname.toLowerCase())) {
+        return NextResponse.json({ success: false, message: '이미 등록된 캐릭터 닉네임입니다.' }, { status: 400 });
+      }
+
+      const newUser = {
+        id: `usr_${Date.now()}`,
+        username: cleanUsername,
+        passwordHash: crypto.createHash('sha256').update(cleanPass).digest('hex'),
+        plainPassword: cleanPass,
+        nickname: cleanNickname,
+        role: 'MEMBER' as const,
+        status: 'APPROVED' as const,
+        createdAt: new Date().toISOString()
+      };
+
+      db.users.push(newUser);
+      if (!db.members.includes(cleanNickname)) {
+        db.members.push(cleanNickname);
+        db.attendance[cleanNickname] = {
+          nickname: cleanNickname,
+          yosin: { type: 'ABSENT', points: 0 },
+          gyeolgye: { type: 'ABSENT', points: 0 },
+          mihok: { type: 'ABSENT', points: 0 },
+          singi: { type: 'ABSENT', points: 0 },
+          totalPoints: 0,
+          rate: 0
+        };
+      }
+
+      await saveDb(db);
+      return NextResponse.json({
+        success: true,
+        message: `'${cleanNickname}' 문파원 계정이 즉시 승인 상태로 생성되었습니다!`
+      });
+    }
+
     if (!action || !userId) {
       return NextResponse.json({ success: false, message: 'action과 userId를 입력해주세요.' }, { status: 400 });
     }
 
-    const db = getDb();
     const targetUser = db.users.find(u => u.id === userId);
     if (!targetUser) {
       return NextResponse.json({ success: false, message: '해당 회원을 찾을 수 없습니다.' }, { status: 404 });
@@ -62,7 +115,7 @@ export async function POST(req: Request) {
 
     if (action === 'APPROVE') {
       targetUser.status = 'APPROVED';
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({
         success: true,
         message: `'${targetUser.nickname}' 문파원의 가입이 정식 승인되었습니다!`
@@ -71,7 +124,7 @@ export async function POST(req: Request) {
 
     if (action === 'REJECT') {
       targetUser.status = 'REJECTED';
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({
         success: true,
         message: `'${targetUser.nickname}' 님의 가입 신청이 거절되었습니다.`
@@ -85,7 +138,7 @@ export async function POST(req: Request) {
       const cleanPass = String(newPassword).trim();
       targetUser.plainPassword = cleanPass;
       targetUser.passwordHash = crypto.createHash('sha256').update(cleanPass).digest('hex');
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({
         success: true,
         message: `'${targetUser.nickname}' 문파원의 비밀번호가 '${cleanPass}'(으)로 변경되었습니다.`
@@ -94,7 +147,7 @@ export async function POST(req: Request) {
 
     if (action === 'DELETE') {
       db.users = db.users.filter(u => u.id !== userId);
-      saveDb(db);
+      await saveDb(db);
       return NextResponse.json({
         success: true,
         message: `'${targetUser.nickname}' 계정이 삭제되었습니다.`
