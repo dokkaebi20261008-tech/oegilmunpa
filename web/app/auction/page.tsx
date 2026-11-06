@@ -180,6 +180,44 @@ export default function AuctionPage() {
   const activeAuctions = auctions.filter(a => a.status === 'ACTIVE');
   const endedAuctions = auctions.filter(a => a.status === 'ENDED');
 
+  if (!currentUser) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-4 text-center space-y-6 animate-fadeIn">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
+            <Gavel className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+              정회원 전용 경매장
+            </span>
+            <h2 className="text-2xl font-black text-white">문파 전리품 경매장</h2>
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+              본 경매장의 전리품 입찰 및 실시간 호가 참여는<br />
+              <strong>회원가입 후 관리자 승인을 받은 정회원</strong>만 이용하실 수 있습니다.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <a
+              href="/login"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md transition-all"
+            >
+              로그인 하기
+            </a>
+            <a
+              href="/register"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all"
+            >
+              회원가입 요청
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Page Header */}

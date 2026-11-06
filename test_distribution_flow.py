@@ -1,4 +1,5 @@
 import urllib.request
+import http.cookiejar
 import json
 import sys
 
@@ -7,39 +8,46 @@ if sys.platform == "win32":
 
 BASE_URL = "http://localhost:3000"
 
+cj = http.cookiejar.CookieJar()
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+
+def login():
+    login_data = json.dumps({"username": "admin", "password": "admin1234"}).encode('utf-8')
+    login_req = urllib.request.Request(f"{BASE_URL}/api/auth/login", data=login_data, headers={'Content-Type': 'application/json'})
+    with opener.open(login_req) as resp:
+        return json.loads(resp.read().decode('utf-8'))
+
 def post_json(endpoint, data):
     req = urllib.request.Request(
         f"{BASE_URL}{endpoint}",
         data=json.dumps(data).encode('utf-8'),
         headers={'Content-Type': 'application/json'}
     )
-    with urllib.request.urlopen(req) as resp:
+    with opener.open(req) as resp:
         return json.loads(resp.read().decode('utf-8'))
 
 def get_json(endpoint):
     req = urllib.request.Request(f"{BASE_URL}{endpoint}")
-    with urllib.request.urlopen(req) as resp:
+    with opener.open(req) as resp:
         return json.loads(resp.read().decode('utf-8'))
 
 def test_distribution():
+    login()
     print("=== [1] Testing Distribution Page Accessibility ===")
     req = urllib.request.Request(f"{BASE_URL}/distribution")
-    with urllib.request.urlopen(req) as resp:
+    with opener.open(req) as resp:
         assert resp.getcode() == 200
         print("Distribution page rendered 200 OK")
 
     print("\n=== [2] Testing Toggle Content Cell (수동 / 분신 / 미참) ===")
-    # 1. 뱀설 - 요신 분신 (0.25P)
     r1 = post_json('/api/attendance', {'nickname': '뱀설', 'content': '요신', 'type': 'CLONE'})
     assert r1.get('success') is True
     print("Set 뱀설 요신 to CLONE (0.25P): Success")
 
-    # 2. 뱀설 - 결계지 수동 (1.0P)
     r2 = post_json('/api/attendance', {'nickname': '뱀설', 'content': '결계', 'type': 'MANUAL'})
     assert r2.get('success') is True
     print("Set 뱀설 결계지 to MANUAL (1.0P): Success")
 
-    # 3. 뱀설 - 미혹 미참 (0P)
     r3 = post_json('/api/attendance', {'nickname': '뱀설', 'content': '미혹', 'type': 'ABSENT'})
     assert r3.get('success') is True
     print("Set 뱀설 미혹 to ABSENT (0P): Success")

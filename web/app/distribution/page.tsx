@@ -268,31 +268,46 @@ export default function DistributionPage() {
     m.nickname.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (!currentUser) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-4 text-center space-y-6 animate-fadeIn">
+        <div className="bg-[#0d111e]/90 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
+            <Lock className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+              정회원 전용 시스템
+            </span>
+            <h2 className="text-2xl font-black text-white">문파원 참여 & 배분 정산소</h2>
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
+              본 시스템의 상세 참여 점수, 가중치 설정, 실시간 금전 배분액 목록은<br />
+              <strong>회원가입 후 관리자 승인을 받은 정회원</strong>만 열람하실 수 있습니다.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              href="/login"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-md transition-all"
+            >
+              로그인 하기
+            </Link>
+            <Link
+              href="/register"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all"
+            >
+              회원가입 요청
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* 🔒 비로그인 사용자 안내 배너 */}
-      {!currentUser && (
-        <div className="bg-gradient-to-r from-amber-500/15 via-indigo-500/15 to-purple-500/15 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shrink-0">
-              <Lock className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">문파원 전용 정산 & 분배 시스템 안내</h3>
-              <p className="text-xs text-slate-300 mt-0.5">
-                로그인하시면 본인의 주간 참여율 및 실시간 예상 배분금을 확인하고 경매에 참여하실 수 있습니다.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/login"
-            className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition-colors shrink-0"
-          >
-            <span>로그인 하기</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      )}
 
       {/* 1. 경매 및 배점 기준 카드 (Image 2 Top) */}
       <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur">

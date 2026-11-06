@@ -49,12 +49,14 @@ export default function Navbar() {
     window.location.href = '/';
   };
 
-  const navLinks = [
+  const navLinks = currentUser ? [
     { href: '/', label: '출석 대시보드', icon: Swords },
     { href: '/distribution', label: '참여·분배 현황', icon: Calculator },
     { href: '/attendance', label: '상세 출석부', icon: CheckCircle2 },
     { href: '/auction', label: '문파 경매장', icon: Gavel },
     { href: '/shop', label: '문파 상점', icon: ShoppingBag },
+  ] : [
+    { href: '/', label: '문파 포털 안내', icon: Shield },
   ];
 
   if (currentUser?.role === 'ADMIN') {

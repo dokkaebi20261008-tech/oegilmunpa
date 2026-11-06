@@ -4,7 +4,16 @@ import { getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const user = await getCurrentUser(req);
+  if (!user) {
+    return NextResponse.json({
+      success: false,
+      authenticated: false,
+      message: '로그인이 필요한 서비스입니다.'
+    }, { status: 401 });
+  }
+
   const db = getDb();
   // 활성 경매 우선 정렬
   const auctions = [...db.auctions].sort((a, b) => {

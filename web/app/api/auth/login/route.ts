@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
     res.cookies.set('oegil_session', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: Boolean(process.env.VERCEL),
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 30,
