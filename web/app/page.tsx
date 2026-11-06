@@ -202,7 +202,7 @@ export default function HomePage() {
                 <li className="flex items-start space-x-2">
                   <span className="text-emerald-400 font-bold">•</span>
                   <span>
-                    <strong>신규 가입:</strong> 게임 내 실제 캐릭터 닉네임으로 <strong>[회원가입 요청]</strong>을 신청하시면 문파장 승인 즉시 이용 가능합니다.
+                    <strong>신규 가입:</strong> 게임 내 실제 캐릭터 닉네임으로 <strong>[회원가입]</strong>을 신청하시면 문파장 승인 즉시 이용 가능합니다.
                   </span>
                 </li>
               </ul>
@@ -279,18 +279,18 @@ export default function HomePage() {
                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
                   <LogIn className="w-4 h-4" />
-                  <span>{loginLoading ? '로그인 중...' : '문파 포털 로그인'}</span>
+                  <span>{loginLoading ? '로그인 중...' : '로그인'}</span>
                 </button>
 
-                {/* 하단 회원가입 요청 문구 */}
-                <div className="pt-2 border-t border-slate-800/80 text-center text-xs text-slate-400 flex items-center justify-center space-x-1.5">
+                {/* 하단 회원가입 문구 */}
+                <div className="pt-2 border-t border-slate-800/80 text-center text-xs text-slate-400 flex items-center justify-center space-x-1">
                   <span>아직 사이트 계정이 없으신가요?</span>
                   <Link
                     href="/register"
                     className="text-amber-300 hover:text-amber-200 font-extrabold underline underline-offset-4 inline-flex items-center space-x-1 transition-colors"
                   >
                     <UserPlus className="w-3.5 h-3.5 text-amber-400" />
-                    <span>회원가입 요청</span>
+                    <span>[회원가입]</span>
                   </Link>
                 </div>
               </form>

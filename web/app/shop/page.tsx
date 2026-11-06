@@ -304,7 +304,7 @@ export default function ShopPage() {
               href="/register"
               className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition-all"
             >
-              회원가입 요청
+              회원가입
             </Link>
           </div>
         </div>
