@@ -2,22 +2,19 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-  Coins, 
-  Calculator, 
-  Shield, 
-  Trash2, 
-  Plus, 
-  Copy, 
-  Check, 
-  Search, 
-  RotateCcw, 
-  CheckCircle2, 
-  Sparkles,
+import {
+  Coins,
+  Calculator,
+  Shield,
+  Trash2,
+  Plus,
+  Copy,
+  Check,
+  Search,
+  RotateCcw,
   Lock,
-  ArrowRight,
-  TrendingUp,
-  Users
+  Vault,
+  Flame
 } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
@@ -28,22 +25,23 @@ export default function DistributionPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
-  // 1. 경매 및 배점 기준 상태 (3만 금전 고정이 아닌, 실제 경매 낙찰 누적 금액 실시간 합산 반영)
+  // 문파 창고 세이브 금전 (낙찰가에서 세금 10% 공제 후 적립된 실수령 잔액)
+  const [treasuryGold, setTreasuryGold] = useState<number>(0);
+  const [guildTokens, setGuildTokens] = useState<number>(0);
   const [totalAuctionGold, setTotalAuctionGold] = useState<number>(0);
   const [endedAuctionsCount, setEndedAuctionsCount] = useState<number>(0);
   const [isCustomGold, setIsCustomGold] = useState<boolean>(false);
   const [manualWeight, setManualWeight] = useState<number>(1.0);
   const [cloneWeight, setCloneWeight] = useState<number>(0.25);
 
-  // 복사 피드백 토글
   const [copied, setCopied] = useState(false);
+  const [distributing, setDistributing] = useState(false);
 
   // 신규 문파원 추가 모달
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 데이터 로드
   const fetchAttendance = () => {
     fetch('/api/attendance', { cache: 'no-store' })
       .then(res => res.json())
@@ -52,8 +50,11 @@ export default function DistributionPage() {
         if (typeof d.endedAuctionsCount === 'number') {
           setEndedAuctionsCount(d.endedAuctionsCount);
         }
-        if (typeof d.totalAuctionGold === 'number' && !isCustomGold) {
-          setTotalAuctionGold(d.totalAuctionGold);
+        const savedGold = d.treasuryGold ?? d.totalAuctionGold ?? 0;
+        setTreasuryGold(savedGold);
+        setGuildTokens(d.guildTokens ?? 0);
+        if (!isCustomGold) {
+          setTotalAuctionGold(savedGold);
         }
         setLoading(false);
       })
@@ -73,19 +74,20 @@ export default function DistributionPage() {
     };
   }, [isCustomGold]);
 
-  // 2. 실시간 정산 통계 계산 (가중치 및 총 낙찰금 기준)
+  // 실시간 정산 통계 계산 (이월 누적 점수 + 이번 주 가중치 점수 합산 기준)
   const stats = useMemo(() => {
     const totalRegistered = attendance.length;
     let activeParticipants = 0;
     let totalPoints = 0;
 
     const listWithCalculations = attendance.map(m => {
-      // 실시간 가중치 기반 동적 점수 재산출
       const pSingi = m.singi?.type === 'MANUAL' ? manualWeight : 0;
       const pMihok = m.mihok?.type === 'MANUAL' ? manualWeight : 0;
       const pYosin = m.yosin?.type === 'MANUAL' ? manualWeight : m.yosin?.type === 'CLONE' ? cloneWeight : 0;
       const pGyeol = m.gyeolgye?.type === 'MANUAL' ? manualWeight : m.gyeolgye?.type === 'CLONE' ? cloneWeight : 0;
-      const pts = Math.round((pSingi + pMihok + pYosin + pGyeol) * 100) / 100;
+      const weeklyPts = Math.round((pSingi + pMihok + pYosin + pGyeol) * 100) / 100;
+      const carriedPts = Math.round((m.carriedPoints || 0) * 100) / 100;
+      const pts = Math.round((carriedPts + weeklyPts) * 100) / 100;
 
       if (pts > 0) {
         activeParticipants += 1;
@@ -94,7 +96,9 @@ export default function DistributionPage() {
 
       return {
         ...m,
-        computedPoints: pts,
+        weeklyComputedPoints: weeklyPts,
+        carriedComputedPoints: carriedPts,
+        computedPoints: pts
       };
     });
 
@@ -107,7 +111,7 @@ export default function DistributionPage() {
       distributedSum += share;
       return {
         ...m,
-        share,
+        share
       };
     });
 
@@ -120,21 +124,23 @@ export default function DistributionPage() {
       goldPerPoint: Math.round(goldPerPoint),
       distributedSum,
       errorGold,
-      members: finalMembers,
+      members: finalMembers
     };
   }, [attendance, totalAuctionGold, manualWeight, cloneWeight]);
 
   // 문파원 참여 유형 토글 클릭 (수동 / 분신 / 미참)
   const handleToggleContent = async (nickname: string, content: ContentType, type: ParticipationType) => {
-    // 낙관적 UI 업데이트
-    setAttendance(prev => prev.map(m => {
-      if (m.nickname !== nickname) return m;
-      const updated = { ...m };
-      const field = content === '신기' ? 'singi' : content === '미혹' ? 'mihok' : content === '요신' ? 'yosin' : 'gyeolgye';
-      const pts = type === 'MANUAL' ? manualWeight : type === 'CLONE' ? cloneWeight : 0;
-      updated[field] = { type, points: pts };
-      return updated;
-    }));
+    setAttendance(prev =>
+      prev.map(m => {
+        if (m.nickname !== nickname) return m;
+        const updated = { ...m };
+        const field =
+          content === '신기' ? 'singi' : content === '미혹' ? 'mihok' : content === '요신' ? 'yosin' : 'gyeolgye';
+        const pts = type === 'MANUAL' ? manualWeight : type === 'CLONE' ? cloneWeight : 0;
+        updated[field] = { type, points: pts };
+        return updated;
+      })
+    );
 
     try {
       await fetch('/api/attendance', {
@@ -145,8 +151,8 @@ export default function DistributionPage() {
           content,
           type,
           manualWeight,
-          cloneWeight,
-        }),
+          cloneWeight
+        })
       });
       fetchAttendance();
     } catch (err) {
@@ -154,43 +160,97 @@ export default function DistributionPage() {
     }
   };
 
-  // 전원 올 수동(4점) 일괄 반영
+  // 1. 전원 올 수동(4점) 일괄 반영
   const handleSetAllManual = async () => {
-    if (!confirm('⚡ 모든 등록 문파원의 4개 컨텐츠를 [올 수동 (만점)]으로 일괄 반영하시겠습니까?')) return;
+    if (!confirm('⚡ 모든 등록 문파원의 이번 주 4개 컨텐츠를 [올 수동 (+4.0P)]으로 일괄 반영하시겠습니까?')) return;
+    const res = await fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'SET_ALL_MANUAL',
+        manualWeight,
+        cloneWeight
+      })
+    });
+    const data = await res.json();
+    if (data.success) fetchAttendance();
+  };
+
+  // 2. 주간 컨텐츠만 미참으로 초기화 (누적 점수는 초기화되지 않고 이월 유지!)
+  const handleResetWeeklyContentOnly = async () => {
+    if (
+      !confirm(
+        '🔄 일주일이 지나 이번 주 4대 컨텐츠(요신·결계·미혹·신기) 참여 상태만 전부 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 총 점수는 절대 초기화되지 않고 그대로 보존(이월)됩니다!'
+      )
+    ) {
+      return;
+    }
+    const res = await fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'RESET_WEEKLY_CONTENT' })
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) fetchAttendance();
+  };
+
+  // 3. 누적 점수 전체 0P 초기화 (문파 창고 세이브 금전이 모두 분배되어 0 금전일 때만 가능!)
+  const handleResetAllCumulativePoints = async () => {
+    if (treasuryGold > 0) {
+      alert(
+        `⚠️ 현재 문파 창고에 아직 분배되지 않은 세이브 금전(${treasuryGold.toLocaleString()} 금전)이 남아있습니다!\n\n점수 초기화는 창고 금전이 모두 분배(창고 잔액 0 금전)된 후에만 실행할 수 있습니다. 먼저 [문파 창고 금전 분배 완료]를 진행해주세요.`
+      );
+      return;
+    }
+    if (
+      !confirm(
+        '🗑️ 문파 창고 금전 분배가 모두 완료되었습니다.\n전 문파원의 누적 점수와 컨텐츠 참여 내역을 모두 [0P]로 초기화하시겠습니까?'
+      )
+    ) {
+      return;
+    }
+    const res = await fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'RESET_ALL_POINTS' })
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) fetchAttendance();
+  };
+
+  // 4. 문파 창고 세이브 금전 분배 실행 (분배 시 창고 금전 차감)
+  const handleDistributeTreasuryGold = async () => {
+    if (treasuryGold <= 0) {
+      alert('현재 문파 창고에 세이브된 분배 대기 금전이 없습니다. (창고 잔액: 0 금전)');
+      return;
+    }
+    if (
+      !confirm(
+        `💰 문파 창고 세이브 금전 [${treasuryGold.toLocaleString()} 금전]을 문파원 누적 점수 비례로 분배 완료 처리(창고 잔액에서 차감)하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+    setDistributing(true);
     try {
       const res = await fetch('/api/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'SET_ALL_MANUAL',
-          manualWeight,
-          cloneWeight,
-        }),
+          action: 'DISTRIBUTE_TREASURY_GOLD',
+          amount: treasuryGold
+        })
       });
-      const data = await res.json();
-      if (data.success) {
+      const d = await res.json();
+      alert(d.message);
+      if (d.success) {
+        setIsCustomGold(false);
         fetchAttendance();
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // 전원 초기화(0점) 일괄 반영
-  const handleResetAll = async () => {
-    if (!confirm('⚠️ 경고: 모든 문파원의 컨텐츠 참여를 [미참 (0점)]으로 초기화하시겠습니까?')) return;
-    try {
-      const res = await fetch('/api/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'RESET_ALL' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        fetchAttendance();
-      }
-    } catch (err) {
-      console.error(err);
+    } finally {
+      setDistributing(false);
     }
   };
 
@@ -204,7 +264,7 @@ export default function DistributionPage() {
       const res = await fetch('/api/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'ADD_MEMBER', nickname: name }),
+        body: JSON.stringify({ action: 'ADD_MEMBER', nickname: name })
       });
       const d = await res.json();
       if (!d.success) {
@@ -224,19 +284,13 @@ export default function DistributionPage() {
   // 문파원 삭제
   const handleDeleteMember = async (nickname: string) => {
     if (!confirm(`정말로 [${nickname}] 문파원을 현황 목록에서 삭제하시겠습니까?`)) return;
-    try {
-      const res = await fetch('/api/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'DELETE_MEMBER', nickname }),
-      });
-      const d = await res.json();
-      if (d.success) {
-        fetchAttendance();
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    const res = await fetch('/api/attendance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'DELETE_MEMBER', nickname })
+    });
+    const d = await res.json();
+    if (d.success) fetchAttendance();
   };
 
   // 디스코드 / 게임 공지 텍스트 복사
@@ -245,9 +299,9 @@ export default function DistributionPage() {
       .filter(m => m.computedPoints > 0)
       .sort((a, b) => b.computedPoints - a.computedPoints);
 
-    let text = `📜 [외길 문파 주간 컨텐츠 정산 및 분배 안내]\n`;
+    let text = `📜 [외길 문파 창고 세이브 금전 정산 및 분배 안내]\n`;
     text += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    text += `💰 총 경매 낙찰금: ${totalAuctionGold.toLocaleString()} 금전\n`;
+    text += `💰 문파 창고 세이브 분배금 (세금 10% 공제 후): ${totalAuctionGold.toLocaleString()} 금전\n`;
     text += `👥 총 참여 인원: ${stats.totalRegistered}명 중 ${stats.activeParticipants}명 유효 참여\n`;
     text += `⭐ 총 누적 점수: ${stats.totalPoints.toFixed(2)} pt\n`;
     text += `🪙 1점당 분배 가치: ${stats.goldPerPoint.toLocaleString()} 금전\n`;
@@ -259,7 +313,7 @@ export default function DistributionPage() {
     });
 
     if (stats.errorGold > 0) {
-      text += `\n* 절사 잔여금: ${stats.errorGold.toLocaleString()} 금전 (문파 금고 적립)`;
+      text += `\n* 절사 잔여금: ${stats.errorGold.toLocaleString()} 금전`;
     }
 
     navigator.clipboard.writeText(text);
@@ -282,7 +336,6 @@ export default function DistributionPage() {
           <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
             <Lock className="w-8 h-8" />
           </div>
-
           <div className="space-y-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
               정회원 전용 시스템
@@ -293,7 +346,6 @@ export default function DistributionPage() {
               <strong>회원가입 후 관리자 승인을 받은 정회원</strong>만 열람하실 수 있습니다.
             </p>
           </div>
-
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <Link
               href="/login"
@@ -315,109 +367,134 @@ export default function DistributionPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      {/* 1. 문파 창고 세이브 금전 & 배점 기준 카드 */}
+      <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="flex items-center space-x-2.5">
+            <Vault className="w-6 h-6 text-emerald-400" />
+            <div>
+              <h2 className="text-lg font-extrabold text-white">
+                문파 창고 세이브 금전 (세금 10% 공제 후 실수령) & 배점 기준
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                인게임 지정 분배 시 낙찰가에서 세금 10%가 제외된 90% 금액(예: 3만G 낙찰 → 2만7천G)이 문파 창고에 세이브되며, 분배 시 차감됩니다.
+              </p>
+            </div>
+          </div>
 
-      {/* 1. 경매 및 배점 기준 카드 (Image 2 Top) */}
-      <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur">
-        <div className="flex items-center space-x-2.5 mb-5">
-          <Coins className="w-5 h-5 text-amber-400" />
-          <h2 className="text-lg font-extrabold text-white">경매 및 배점 기준</h2>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 flex items-center space-x-1.5">
+              <Flame className="w-3.5 h-3.5" />
+              <span>용맹의 증표: {guildTokens.toLocaleString()}개</span>
+            </span>
+          </div>
         </div>
 
-        {/* 총 경매 낙찰 금액 */}
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <label className="text-xs font-semibold text-slate-400 block">
-              누적 경매 낙찰 합산 금액 (금전) — 경매 종료 시 자동 합산 업데이트 ({endedAuctionsCount}건 완료)
-            </label>
-            {isCustomGold && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+          <div className="lg:col-span-7 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="text-xs font-semibold text-slate-300 block">
+                현재 문파 창고 세이브 금전 (실제 분배 대상 잔액 • 완료 경매 {endedAuctionsCount}건)
+              </label>
+              {isCustomGold && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomGold(false);
+                    setTotalAuctionGold(treasuryGold);
+                  }}
+                  className="text-[11px] font-bold text-amber-300 hover:underline"
+                >
+                  실제 문파 창고 세이브 잔액({treasuryGold.toLocaleString()}G)으로 복원
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl select-none">💰</div>
+              <input
+                type="number"
+                value={totalAuctionGold}
+                onChange={e => {
+                  setIsCustomGold(true);
+                  setTotalAuctionGold(Math.max(0, Number(e.target.value) || 0));
+                }}
+                className="w-full bg-[#131929] border border-slate-700/80 rounded-xl pl-14 pr-4 py-3 text-emerald-400 font-black text-xl sm:text-2xl focus:outline-none focus:border-emerald-400 tracking-wide transition-colors"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 flex flex-col gap-2">
+            {currentUser?.role === 'ADMIN' && (
               <button
                 type="button"
-                onClick={() => setIsCustomGold(false)}
-                className="text-[11px] font-bold text-amber-300 hover:underline"
+                disabled={distributing || treasuryGold <= 0}
+                onClick={handleDistributeTreasuryGold}
+                className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-black text-xs sm:text-sm shadow-lg transition-all"
               >
-                실제 경매 낙찰 합산금으로 자동 동기화 복원
+                {distributing
+                  ? '분배 차감 처리 중...'
+                  : treasuryGold > 0
+                  ? `💰 문파 창고 세이브 금전 (${treasuryGold.toLocaleString()}G) 분배 완료 및 창고 차감`
+                  : '현재 문파 창고 세이브 금전 0 금전 (분배 완료 상태)'}
               </button>
             )}
-          </div>
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl select-none">
-              💰
-            </div>
-            <input
-              type="number"
-              value={totalAuctionGold}
-              onChange={e => {
-                setIsCustomGold(true);
-                setTotalAuctionGold(Math.max(0, Number(e.target.value) || 0));
-              }}
-              className="w-full bg-[#131929] border border-slate-700/80 rounded-xl pl-14 pr-4 py-3 text-amber-300 font-black text-xl sm:text-2xl focus:outline-none focus:border-amber-400 tracking-wide transition-colors"
-              placeholder="0"
-            />
+            <p className="text-[11px] text-slate-400 text-center">
+              * 분배 완료 시 창고 세이브 금전이 0G로 차감되며, 이후 [누적 점수 0P 초기화]를 실행할 수 있습니다.
+            </p>
           </div>
         </div>
 
         {/* 배점 가중치 */}
-        <div className="mt-5 pt-5 border-t border-slate-800/80">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-300">배점 가중치</span>
-            <span className="text-xs font-semibold text-purple-400">수동 참여 vs 분신</span>
-          </div>
-
+        <div className="pt-4 border-t border-slate-800/80">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* 수동 참여 배점 */}
-            <div className="bg-[#131929] border border-slate-800 rounded-xl p-3.5">
-              <span className="text-xs text-slate-400 block mb-1.5 font-medium">수동 참여 배점</span>
-              <div className="flex items-center justify-between">
+            <div className="bg-[#131929] border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-medium">수동 참여 배점 (기본 1.0P)</span>
+              <div className="flex items-center space-x-1">
                 <input
                   type="number"
                   step="0.1"
                   value={manualWeight}
                   onChange={e => setManualWeight(Math.max(0, Number(e.target.value) || 0))}
-                  className="bg-transparent text-white font-bold text-lg w-28 focus:outline-none"
+                  className="bg-transparent text-white font-bold text-base w-16 text-right focus:outline-none"
                 />
-                <span className="text-slate-400 text-sm font-semibold">점</span>
+                <span className="text-slate-400 text-xs font-semibold">점</span>
               </div>
             </div>
 
-            {/* 분신 등록 배점 */}
-            <div className="bg-[#131929] border border-slate-800 rounded-xl p-3.5">
-              <span className="text-xs text-slate-400 block mb-1.5 font-medium">분신 등록 배점</span>
-              <div className="flex items-center justify-between">
+            <div className="bg-[#131929] border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-medium">분신 등록 배점 (기본 0.25P)</span>
+              <div className="flex items-center space-x-1">
                 <input
                   type="number"
                   step="0.05"
                   value={cloneWeight}
                   onChange={e => setCloneWeight(Math.max(0, Number(e.target.value) || 0))}
-                  className="bg-transparent text-amber-400 font-bold text-lg w-28 focus:outline-none"
+                  className="bg-transparent text-amber-400 font-bold text-base w-16 text-right focus:outline-none"
                 />
-                <span className="text-slate-400 text-sm font-semibold">점</span>
+                <span className="text-slate-400 text-xs font-semibold">점</span>
               </div>
             </div>
           </div>
-
-          <p className="text-[11px] text-slate-500 mt-3">
-            * 신기·미혹은 수동만 지원 / 요신·결계지는 수동 및 분신 선택 가능
-          </p>
         </div>
       </div>
 
-      {/* 2. 정산 요약 대시보드 (Image 2 Bottom) */}
+      {/* 2. 정산 요약 대시보드 */}
       <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2.5">
             <Calculator className="w-5 h-5 text-purple-400" />
-            <h2 className="text-lg font-extrabold text-white">정산 요약 대시보드</h2>
+            <h2 className="text-lg font-extrabold text-white">창고 세이브 금전 정산 요약</h2>
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-950/70 text-purple-300 border border-purple-800/70">
             <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
-            실시간 자동 계산 중
+            누적 점수 비례 실시간 계산
           </span>
         </div>
 
-        {/* 4대 스탯 카드 그리드 */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-[#131929]/90 border border-slate-800/80 rounded-xl p-4">
-            <div className="text-xs font-semibold text-slate-400">총 등록 인원</div>
+            <div className="text-xs font-semibold text-slate-400">총 등록 문파원</div>
             <div className="text-2xl sm:text-3xl font-black text-white mt-1.5 flex items-baseline gap-1">
               <span>{stats.totalRegistered}</span>
               <span className="text-xs font-bold text-slate-400">명</span>
@@ -425,7 +502,7 @@ export default function DistributionPage() {
           </div>
 
           <div className="bg-[#131929]/90 border border-slate-800/80 rounded-xl p-4">
-            <div className="text-xs font-semibold text-slate-400">유효 참여 인원</div>
+            <div className="text-xs font-semibold text-slate-400">누적 점수 보유 인원</div>
             <div className="text-2xl sm:text-3xl font-black text-cyan-400 mt-1.5 flex items-baseline gap-1">
               <span>{stats.activeParticipants}</span>
               <span className="text-xs font-bold text-slate-400">명</span>
@@ -433,7 +510,7 @@ export default function DistributionPage() {
           </div>
 
           <div className="bg-[#131929]/90 border border-slate-800/80 rounded-xl p-4">
-            <div className="text-xs font-semibold text-slate-400">총 누적 점수</div>
+            <div className="text-xs font-semibold text-slate-400">문파 총 누적 점수</div>
             <div className="text-2xl sm:text-3xl font-black text-purple-400 mt-1.5 flex items-baseline gap-1">
               <span>{stats.totalPoints.toFixed(2)}</span>
               <span className="text-xs font-bold text-slate-400">점</span>
@@ -441,7 +518,7 @@ export default function DistributionPage() {
           </div>
 
           <div className="bg-[#131929]/90 border border-slate-800/80 rounded-xl p-4">
-            <div className="text-xs font-semibold text-slate-400">1점당 분배 가치</div>
+            <div className="text-xs font-semibold text-slate-400">1점당 창고 배당금</div>
             <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1.5 flex items-baseline gap-1">
               <span>{stats.goldPerPoint.toLocaleString()}</span>
               <span className="text-xs font-bold text-slate-400">금전</span>
@@ -449,43 +526,43 @@ export default function DistributionPage() {
           </div>
         </div>
 
-        {/* 하단 요약 및 공지 복사 버튼 */}
         <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="text-xs sm:text-sm text-slate-300 font-medium">
-            총 분배 완료액:{' '}
+            배분 합계:{' '}
             <span className="font-extrabold text-amber-300">{stats.distributedSum.toLocaleString()}</span>
             {' / '}
             <span className="font-bold text-slate-200">{totalAuctionGold.toLocaleString()} 금전</span>
-            {' '}
-            <span className="text-emerald-400 font-bold ml-1">
-              (오차 {stats.errorGold.toLocaleString()})
-            </span>
+            <span className="text-emerald-400 font-bold ml-2">(자투리 {stats.errorGold.toLocaleString()}G)</span>
           </div>
 
           <button
             onClick={handleCopyNotice}
-            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:brightness-110 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-900/30 transition-all"
+            className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-lg transition-all"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? '클립보드 복사 완료!' : '디스코드/게임 공지 복사'}</span>
+            <span>{copied ? '클립보드 복사 완료!' : '디스코드/게임 정산 공지 복사'}</span>
           </button>
         </div>
       </div>
 
-      {/* 3. 문파원 참여 현황 목록 (Image 1) */}
+      {/* 3. 문파원 참여 현황 목록 및 주간 컨텐츠 리셋 / 누적 점수 리셋 분리 */}
       <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl overflow-hidden shadow-xl backdrop-blur">
-        {/* 헤더 바 */}
         <div className="p-4 sm:p-5 border-b border-slate-800/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center space-x-2">
-            <Shield className="w-5 h-5 text-amber-400" />
-            <h2 className="text-base sm:text-lg font-extrabold text-white">문파원 참여 현황 목록</h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700">
-              {stats.totalRegistered}명
-            </span>
+          <div>
+            <div className="flex items-center space-x-2">
+              <Shield className="w-5 h-5 text-amber-400" />
+              <h2 className="text-base sm:text-lg font-extrabold text-white">문파원 참여 및 누적 점수 목록</h2>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800/80 text-slate-300 border border-slate-700">
+                {stats.totalRegistered}명
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              • <strong>주간 컨텐츠 미참 초기화</strong>: 일주일 뒤 컨텐츠 체크만 미참으로 리셋하며 <strong>누적 점수는 그대로 유지(이월)</strong>됩니다.<br />
+              • <strong>누적 점수 0P 초기화</strong>: 문파 창고 세이브 금전이 모두 분배(0G)된 후에만 실행할 수 있습니다.
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* 검색창 */}
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -493,23 +570,42 @@ export default function DistributionPage() {
                 placeholder="문파원 닉네임 검색..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-lg bg-[#131929] border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 w-36 sm:w-48"
+                className="pl-8 pr-3 py-1.5 rounded-lg bg-[#131929] border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 w-36 sm:w-44"
               />
             </div>
 
-            {/* 일괄 액션 버튼 */}
             <button
               onClick={handleSetAllManual}
               className="px-3 py-1.5 rounded-lg bg-[#192238] hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors"
             >
-              전원 올 수동(4점)
+              전원 올 수동(+4P)
             </button>
+
             <button
-              onClick={handleResetAll}
-              className="px-3 py-1.5 rounded-lg bg-[#192238] hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-colors"
+              onClick={handleResetWeeklyContentOnly}
+              className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 text-xs font-extrabold transition-colors"
+              title="4대 주간 컨텐츠만 미참으로 리셋하고 누적 점수는 그대로 유지합니다"
             >
-              전원 초기화(0점)
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>주간 컨텐츠만 미참 초기화 (점수 유지)</span>
             </button>
+
+            <button
+              onClick={handleResetAllCumulativePoints}
+              className={`inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg text-xs font-extrabold border transition-colors ${
+                treasuryGold === 0
+                  ? 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/40'
+                  : 'bg-slate-900 text-slate-500 border-slate-800 cursor-not-allowed'
+              }`}
+              title={
+                treasuryGold === 0
+                  ? '금전 분배가 완료되었으므로 누적 점수를 0P로 초기화할 수 있습니다'
+                  : '창고 금전을 먼저 모두 분배해야 점수를 초기화할 수 있습니다'
+              }
+            >
+              <span>누적 점수 0P 초기화 {treasuryGold > 0 ? '(분배 후 가능)' : ''}</span>
+            </button>
+
             <button
               onClick={() => setIsAddMemberOpen(true)}
               className="inline-flex items-center space-x-1 px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-sm transition-colors"
@@ -526,54 +622,41 @@ export default function DistributionPage() {
             <thead className="bg-[#090d18] text-xs text-slate-400 border-b border-slate-800/90 font-bold">
               <tr>
                 <th className="py-3 px-4 min-w-[120px]">문파원</th>
-                <th className="py-3 px-3 text-center min-w-[140px]">
-                  <div className="inline-flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40">
-                      1. 신기
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-normal">구슬 운반</span>
-                  </div>
+                <th className="py-3 px-3 text-center min-w-[130px]">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40">
+                    1. 신기
+                  </span>
                 </th>
-                <th className="py-3 px-3 text-center min-w-[140px]">
-                  <div className="inline-flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-pink-600/30 text-pink-300 border border-pink-500/40">
-                      2. 미혹
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-normal">보스/버프</span>
-                  </div>
+                <th className="py-3 px-3 text-center min-w-[130px]">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-pink-600/30 text-pink-300 border border-pink-500/40">
+                    2. 미혹
+                  </span>
                 </th>
-                <th className="py-3 px-3 text-center min-w-[170px]">
-                  <div className="inline-flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-600/30 text-purple-300 border border-purple-500/40">
-                      3. 요신
-                    </span>
-                    <span className="text-[10px] text-amber-300 font-normal">분신 가능</span>
-                  </div>
+                <th className="py-3 px-3 text-center min-w-[165px]">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-600/30 text-purple-300 border border-purple-500/40">
+                    3. 요신 (분신가능)
+                  </span>
                 </th>
-                <th className="py-3 px-3 text-center min-w-[170px]">
-                  <div className="inline-flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-600/30 text-emerald-300 border border-emerald-500/40">
-                      4. 결계지
-                    </span>
-                    <span className="text-[10px] text-amber-300 font-normal">분신 가능</span>
-                  </div>
+                <th className="py-3 px-3 text-center min-w-[165px]">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-600/30 text-emerald-300 border border-emerald-500/40">
+                    4. 결계지 (분신가능)
+                  </span>
                 </th>
-                <th className="py-3 px-3 text-center min-w-[90px]">참여 점수</th>
-                <th className="py-3 px-3 text-right min-w-[120px]">최종 배분액</th>
+                <th className="py-3 px-3 text-center min-w-[120px]">누적 점수 (이월+주간)</th>
+                <th className="py-3 px-3 text-right min-w-[120px]">창고 금전 배분액</th>
                 <th className="py-3 px-3 text-center w-12">삭제</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 bg-[#0d111e]/50">
-              {filteredMembers.map((m) => {
+              {filteredMembers.map(m => {
                 const isMe = currentUser?.nickname === m.nickname;
                 return (
-                  <tr 
-                    key={m.nickname} 
+                  <tr
+                    key={m.nickname}
                     className={`transition-colors hover:bg-slate-800/30 ${
                       isMe ? 'bg-indigo-950/30 border-l-2 border-indigo-400' : ''
                     }`}
                   >
-                    {/* 문파원 닉네임 */}
                     <td className="py-3 px-4 font-bold text-slate-200">
                       <div className="flex items-center space-x-2">
                         <span>{m.nickname}</span>
@@ -585,7 +668,7 @@ export default function DistributionPage() {
                       </div>
                     </td>
 
-                    {/* 1. 신기 (구슬 운반): 수동 / 미참 */}
+                    {/* 1. 신기 */}
                     <td className="py-3 px-3 text-center">
                       <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
                         <button
@@ -611,7 +694,7 @@ export default function DistributionPage() {
                       </div>
                     </td>
 
-                    {/* 2. 미혹 (보스/버프): 수동 / 미참 */}
+                    {/* 2. 미혹 */}
                     <td className="py-3 px-3 text-center">
                       <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
                         <button
@@ -637,7 +720,7 @@ export default function DistributionPage() {
                       </div>
                     </td>
 
-                    {/* 3. 요신 (분신 가능): 수동 / 분신 / 미참 */}
+                    {/* 3. 요신 */}
                     <td className="py-3 px-3 text-center">
                       <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
                         <button
@@ -673,7 +756,7 @@ export default function DistributionPage() {
                       </div>
                     </td>
 
-                    {/* 4. 결계지 (분신 가능): 수동 / 분신 / 미참 */}
+                    {/* 4. 결계지 */}
                     <td className="py-3 px-3 text-center">
                       <div className="inline-flex items-center bg-[#131929] p-0.5 rounded-lg border border-slate-800">
                         <button
@@ -709,11 +792,18 @@ export default function DistributionPage() {
                       </div>
                     </td>
 
-                    {/* 참여 점수 */}
+                    {/* 누적 점수 */}
                     <td className="py-3 px-3 text-center">
-                      <span className="inline-block px-2.5 py-1 rounded-md text-xs font-extrabold bg-purple-950/70 text-purple-300 border border-purple-800/70">
-                        {m.computedPoints.toFixed(2)} pt
-                      </span>
+                      <div className="inline-flex flex-col items-center">
+                        <span className="px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-purple-950/70 text-purple-300 border border-purple-800/70">
+                          {m.computedPoints.toFixed(2)} pt
+                        </span>
+                        {m.carriedComputedPoints > 0 && (
+                          <span className="text-[10px] text-slate-400 mt-0.5">
+                            (이월 {m.carriedComputedPoints} + 주간 {m.weeklyComputedPoints})
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* 최종 배분액 */}
@@ -749,10 +839,6 @@ export default function DistributionPage() {
               <Plus className="w-5 h-5 text-amber-400" />
               <span>신규 문파원 추가</span>
             </h3>
-            <p className="text-xs text-slate-400 mb-4">
-              참여 현황 목록에 등록할 문파원의 게임 닉네임을 입력하세요.
-            </p>
-
             <form onSubmit={handleAddMember} className="space-y-4">
               <div>
                 <label className="text-xs text-slate-300 font-semibold block mb-1">
@@ -761,25 +847,23 @@ export default function DistributionPage() {
                 <input
                   type="text"
                   required
-                  placeholder="예: 바람의검귀"
                   value={newMemberName}
                   onChange={e => setNewMemberName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm text-white"
                 />
               </div>
-
               <div className="flex items-center space-x-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsAddMemberOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs"
                 >
                   취소
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs transition-colors shadow-md disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs"
                 >
                   {isSubmitting ? '추가 중...' : '등록하기'}
                 </button>

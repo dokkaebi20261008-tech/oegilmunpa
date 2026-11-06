@@ -27,8 +27,10 @@ export interface MemberAttendance {
   gyeolgye: ContentParticipation;  // 결계지 방어 (수동 1.0 / 분신 0.25)
   mihok: ContentParticipation;     // 미혹의 정원 (수동 1.0)
   singi: ContentParticipation;     // 신기 쟁탈전 (수동 1.0)
-  totalPoints: number;            // 주간 총 포인트 (최대 4.0)
-  rate: number;                   // 참여율 (%)
+  carriedPoints?: number;          // 주간 컨텐츠 초기화 시 이월된 누적 점수
+  weeklyPoints?: number;           // 이번 주 4대 컨텐츠 점수 (최대 4.0)
+  totalPoints: number;             // 총 누적 점수 (carriedPoints + weeklyPoints)
+  rate: number;                    // 이번 주 컨텐츠 참여율 (%)
 }
 
 export interface AuctionDistributionParticipant {
@@ -42,7 +44,7 @@ export interface AuctionDistribution {
   totalPoints: number;
   goldPerPoint: number;
   participants: AuctionDistributionParticipant[];
-  leftoverGold: number; // 잔여 금전 (문파 금고 적립)
+  leftoverGold: number; // 잔여 금전 (문파 창고 잔류)
 }
 
 export interface BidRecord {
@@ -64,7 +66,14 @@ export interface AuctionItem {
   currentBid: number;           // 현재 최고 입찰가
   highestBidderNickname?: string;
   highestBidderId?: string;
-  status: 'ACTIVE' | 'ENDED' | 'CANCELLED';
+  status: 'SCHEDULED' | 'ACTIVE' | 'ENDED' | 'CANCELLED';
+  scheduledStartAt?: string;    // 구매 희망 신청 후 30분 뒤 익명 경매 자동 시작 시각
+  applicants?: string[];        // 구매 희망 신청 문파원 목록
+  grossBid?: number;            // 낙찰 금액 (세전)
+  taxAmount?: number;           // 인게임 거래 세금 10%
+  netSavedGold?: number;        // 문파 창고 세이브 금전 (세후 90%)
+  tokenDeducted?: boolean;      // 용맹의 증표 차감 완료 여부
+  goldSaved?: boolean;          // 문파 창고 금전 세이브 완료 여부
   bidsCount: number;
   endsAt: string;
   createdAt: string;
@@ -77,19 +86,44 @@ export interface ShopItem {
   description: string;
   category: string;
   price: number;
-  currency: '금전' | '문파재화' | '문파주화' | '용맹의증표';
+  currency: '용맹의 증표' | '금전' | '문파재화' | '문파주화' | '용맹의증표';
   stock: number;
   maxStock?: number;
   weeklyLimit?: string;
   imageUrl?: string;
   icon: string;
-  applicants: string[]; // 이 상품을 희망 신청한 문파원 닉네임 목록
+  applicants: string[];         // 이 상품을 희망 신청한 문파원 닉네임 목록
+  dailyLockedDate?: string;     // 30분 대기 완료되어 당일 추가 희망 신청 불가 처리된 날짜 (YYYY-MM-DD)
+  activeAuctionId?: string;     // 현재 대기 중(SCHEDULED) 또는 진행 중(ACTIVE)인 경매 ID
+  createdAt: string;
+}
+
+export interface TokenLedgerEntry {
+  id: string;
+  type: 'ADMIN_UPDATE' | 'AUCTION_DEDUCT';
+  delta: number;
+  balanceAfter: number;
+  description: string;
+  actorNickname: string;
+  createdAt: string;
+}
+
+export interface GoldLedgerEntry {
+  id: string;
+  type: 'AUCTION_SAVED' | 'DISTRIBUTED' | 'ADMIN_ADJUST';
+  grossAmount?: number;
+  taxAmount?: number;
+  delta: number;
+  balanceAfter: number;
+  description: string;
+  actorNickname: string;
+  distribution?: AuctionDistribution;
   createdAt: string;
 }
 
 export interface LadderRung {
-  col: number; // col과 col+1을 연결하는 가로줄 (0 <= col < numCols - 1)
-  row: number; // 위에서부터의 단계 (1 <= row <= totalSteps)
+  col: number;
+  row: number;
 }
 
 export interface LadderItemOption {
@@ -105,14 +139,14 @@ export interface LadderState {
   executedBy: string;
   numCols: number;
   totalSteps: number;
-  startLabels: string[];              // 상단 출발 번호 (예: ["1번 추첨줄", "2번 추첨줄", "3번 추첨줄"])
-  bottomItems: LadderItemOption[];    // 하단 배치된 상품 목록
-  rungs: LadderRung[];                // 사다리 가로줄 목록
-  chosenStartCol: number;             // 선택된 출발 열 (0-based)
-  winningBottomCol: number;           // 사다리를 타고 도착한 하단 열 (0-based)
-  path: { col: number; row: number }[]; // 사다리 이동 경로 좌표
-  winnerItem: LadderItemOption;       // 최종 당첨된 상품
-  linkedAuctionId?: string;           // 이 사다리 결과로 생성된 경매 ID (있을 경우)
+  startLabels: string[];
+  bottomItems: LadderItemOption[];
+  rungs: LadderRung[];
+  chosenStartCol: number;
+  winningBottomCol: number;
+  path: { col: number; row: number }[];
+  winnerItem: LadderItemOption;
+  linkedAuctionId?: string;
 }
 
 export interface PurchaseRequest {

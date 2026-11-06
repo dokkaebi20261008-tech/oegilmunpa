@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getDb, saveDb, checkAndFinalizeExpiredAuctions, maskAuctionForClient } from '@/lib/db';
+import {
+  getDb,
+  saveDb,
+  checkAndFinalizeExpiredAuctions,
+  activateScheduledAuction,
+  maskAuctionForClient
+} from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -15,21 +21,32 @@ export async function GET(req: Request) {
   }
 
   const db = await getDb();
-  // 30분 타이머 만료된 경매 자동 종료 및 분배 정산
+  // 30분 대기(SCHEDULED) -> 30분 본 경매(ACTIVE) -> 종료(ENDED) 및 10% 세금 공제 창고 세이브 자동 처리
   await checkAndFinalizeExpiredAuctions(db);
 
-  // 활성 경매 우선 정렬 + 진행 중 경매 최고 입찰자 익명 마스킹 (종료 시 실제 닉네임 공개)
+  const statusOrder: Record<string, number> = {
+    ACTIVE: 0,
+    SCHEDULED: 1,
+    ENDED: 2,
+    CANCELLED: 3
+  };
+
   const auctions = [...db.auctions]
     .sort((a, b) => {
-      if (a.status === 'ACTIVE' && b.status !== 'ACTIVE') return -1;
-      if (a.status !== 'ACTIVE' && b.status === 'ACTIVE') return 1;
+      const oa = statusOrder[a.status] ?? 9;
+      const ob = statusOrder[b.status] ?? 9;
+      if (oa !== ob) return oa - ob;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     })
     .map(maskAuctionForClient);
 
   return NextResponse.json({
     success: true,
-    auctions
+    auctions,
+    treasuryGold: db.treasuryGold || 0,
+    goldLedger: db.goldLedger || [],
+    guildTokens: db.guildTokens || 0,
+    tokenLedger: db.tokenLedger || []
   });
 }
 
@@ -40,7 +57,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: '정회원 로그인 후 경매 등록이 가능합니다.' }, { status: 401 });
     }
 
-    const { title, description, imageUrl, startingBid, minBidIncrement, durationSeconds } = await req.json();
+    const { title, description, imageUrl, startingBid, minBidIncrement, mode } = await req.json();
 
     if (!title || !startingBid || !minBidIncrement) {
       return NextResponse.json({ success: false, message: '물품명, 최소 시작 입찰가, 최소 호가 단위를 입력해주세요.' }, { status: 400 });
@@ -54,31 +71,39 @@ export async function POST(req: Request) {
     }
 
     const db = await getDb();
-    const now = new Date();
-    // 상품 1개당 경매 종료 타이머 기본 30분 (1,800초) 적용
-    const durationMs =
-      typeof durationSeconds === 'number' && durationSeconds > 0
-        ? durationSeconds * 1000
-        : 30 * 60 * 1000;
-    const endsAt = new Date(now.getTime() + durationMs).toISOString();
-
+    const nowMs = Date.now();
     const resolvedImage = imageUrl || '/images/shop-weapon.png';
 
+    // mode === 'SCHEDULED' 이면 30분 대기 후 30분 경매 (총 1시간), 기본은 즉시 30분 경매 개시
+    const isScheduled = mode === 'SCHEDULED';
+    const scheduledStartAt = isScheduled
+      ? new Date(nowMs + 30 * 60 * 1000).toISOString()
+      : new Date(nowMs).toISOString();
+    const endsAt = isScheduled
+      ? new Date(nowMs + 60 * 60 * 1000).toISOString()
+      : new Date(nowMs + 30 * 60 * 1000).toISOString();
+
     const newAuction = {
-      id: `auc_${Date.now()}`,
+      id: `auc_${nowMs}`,
       title: title.trim(),
       description: description
         ? description.trim()
-        : `시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 30분 타이머 종료 시 최고 입찰자 닉네임이 공개됩니다.`,
+        : `시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 30분 타이머 종료 시 최고 입찰자 닉네임 공개 및 세금 10% 공제 후 문파 창고 세이브`,
       imageUrl: resolvedImage,
       startingBid: sBid,
       minBidIncrement: mInc,
       currentBid: sBid,
-      status: 'ACTIVE' as const,
+      status: isScheduled ? ('SCHEDULED' as const) : ('ACTIVE' as const),
+      scheduledStartAt,
+      applicants: [user.nickname],
       bidsCount: 0,
       endsAt,
-      createdAt: now.toISOString()
+      createdAt: new Date(nowMs).toISOString()
     };
+
+    if (!isScheduled) {
+      activateScheduledAuction(db, newAuction);
+    }
 
     db.auctions.unshift(newAuction);
     await saveDb(db);

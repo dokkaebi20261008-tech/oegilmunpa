@@ -8,7 +8,9 @@ import {
   ShopItem,
   PurchaseRequest,
   AuctionDistribution,
-  LadderState
+  LadderState,
+  TokenLedgerEntry,
+  GoldLedgerEntry
 } from './types';
 
 export interface DatabaseSchema {
@@ -19,12 +21,16 @@ export interface DatabaseSchema {
   bids: BidRecord[];
   shopItems: ShopItem[];
   purchases: PurchaseRequest[];
+  guildTokens: number;             // 문파 보유 재화: 용맹의 증표
+  tokenLedger: TokenLedgerEntry[]; // 용맹의 증표 업데이트 및 차감 공개 내역
+  treasuryGold: number;            // 문파 창고 세이브 금전 (낙찰가 10% 세금 공제 후 적립, 분배 시 차감)
+  goldLedger: GoldLedgerEntry[];   // 문파 창고 금전 세이브 및 분배 내역
   ladderState?: LadderState | null;
   ladderHistory?: LadderState[];
   currentWeek: string;
 }
 
-const DEFAULT_MEMBERS = [
+export const DEFAULT_MEMBERS = [
   "뱀설", "상두불", "상겨미", "던롤", "로단", "행뚁", "악군학", "승기",
   "휴이랑", "호랑이야", "쬬아", "옥절이", "빠따왕", "추서", "해암", "쓱삭이",
   "꼬다야", "모던블루", "요령서", "믕치", "딱딱똥", "지골몬", "마표", "이병헌",
@@ -32,6 +38,11 @@ const DEFAULT_MEMBERS = [
   "멍식2", "채권", "승환킴", "사찰", "다하네", "탑몬스터", "희옥이", "붕찬",
   "정지태", "가시개미", "소사마귀", "어프로치", "츱", "냥냥쨉", "냥냥킥", "무당청명"
 ];
+
+export function getKSTDateStr(date: Date = new Date()): string {
+  const kstMs = date.getTime() + 9 * 60 * 60 * 1000;
+  return new Date(kstMs).toISOString().slice(0, 10);
+}
 
 function getDbPath(): string {
   if (process.env.VERCEL) {
@@ -56,6 +67,8 @@ function createInitialAttendance(members: string[]): Record<string, MemberAttend
       gyeolgye: { type: 'ABSENT', points: 0 },
       mihok: { type: 'ABSENT', points: 0 },
       singi: { type: 'ABSENT', points: 0 },
+      carriedPoints: 0,
+      weeklyPoints: 0,
       totalPoints: 0,
       rate: 0,
     };
@@ -68,10 +81,10 @@ function getOfficialShopItems(now: string): ShopItem[] {
     {
       id: "shop_1",
       name: "전설 도안 선택 상자",
-      description: "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 주화)",
+      description: "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)",
       category: "무기·방어구·장신구 통합",
       price: 11500,
-      currency: "문파주화",
+      currency: "용맹의 증표",
       stock: 10,
       maxStock: 10,
       weeklyLimit: "문파 주간 한정: (0/10)",
@@ -115,6 +128,10 @@ function getInitialDb(): DatabaseSchema {
     bids: [],
     shopItems: getOfficialShopItems(now),
     purchases: [],
+    guildTokens: 0,
+    tokenLedger: [],
+    treasuryGold: 0,
+    goldLedger: [],
     ladderState: null,
     ladderHistory: [],
     currentWeek: "2026-W45"
@@ -165,6 +182,27 @@ function migrateSchema(db: DatabaseSchema): boolean {
     db.shopItems[0].name === "전설 도안 선택 상자";
   if (!isSingleUnified) {
     db.shopItems = getOfficialShopItems(new Date().toISOString());
+    migrated = true;
+  } else if (db.shopItems[0].currency !== "용맹의 증표") {
+    db.shopItems[0].currency = "용맹의 증표";
+    db.shopItems[0].description = "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 용맹의 증표)";
+    migrated = true;
+  }
+
+  if (typeof db.guildTokens !== 'number') {
+    db.guildTokens = 0;
+    migrated = true;
+  }
+  if (!Array.isArray(db.tokenLedger)) {
+    db.tokenLedger = [];
+    migrated = true;
+  }
+  if (typeof db.treasuryGold !== 'number') {
+    db.treasuryGold = 0;
+    migrated = true;
+  }
+  if (!Array.isArray(db.goldLedger)) {
+    db.goldLedger = [];
     migrated = true;
   }
 
@@ -303,8 +341,12 @@ export function recalculateMember(m: MemberAttendance): void {
   const pGyeol = m.gyeolgye?.points || 0;
   const pMihok = m.mihok?.points || 0;
   const pSingi = m.singi?.points || 0;
-  m.totalPoints = Math.round((pYosin + pGyeol + pMihok + pSingi) * 100) / 100;
-  m.rate = Math.min(100, Math.round((m.totalPoints / 4.0) * 100));
+  const weeklyPts = Math.round((pYosin + pGyeol + pMihok + pSingi) * 100) / 100;
+  const carriedPts = Math.round((m.carriedPoints || 0) * 100) / 100;
+  m.weeklyPoints = weeklyPts;
+  m.carriedPoints = carriedPts;
+  m.totalPoints = Math.round((carriedPts + weeklyPts) * 100) / 100;
+  m.rate = Math.min(100, Math.round((weeklyPts / 4.0) * 100));
 }
 
 export function calculateAuctionDistribution(totalGold: number, attendanceRecord: Record<string, MemberAttendance>): AuctionDistribution {
@@ -354,19 +396,135 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
   };
 }
 
+/**
+ * 30분 구매 희망 대기(SCHEDULED) 완료 시 -> 당일 추가 신청 잠금 + 용맹의 증표 차감 + 30분 익명 경매(ACTIVE) 자동 시작
+ */
+export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionItem): void {
+  const nowIso = new Date().toISOString();
+  const startBaseMs = auction.scheduledStartAt
+    ? Math.min(Date.now(), new Date(auction.scheduledStartAt).getTime())
+    : Date.now();
+
+  auction.status = 'ACTIVE';
+  auction.endsAt = new Date(startBaseMs + 30 * 60 * 1000).toISOString();
+
+  const shopItem = db.shopItems?.[0];
+  if (shopItem) {
+    // 30분 대기 종료 순간 당일 희망 신청 불가능 처리
+    shopItem.dailyLockedDate = getKSTDateStr();
+
+    // 문파 총재화(용맹의 증표) - 상품 재화(11,500) 자동 차감 및 공개 내역 기록
+    if (!auction.tokenDeducted) {
+      const cost = shopItem.price || 11500;
+      db.guildTokens = (db.guildTokens || 0) - cost;
+      auction.tokenDeducted = true;
+
+      if (shopItem.stock > 0) {
+        shopItem.stock -= 1;
+        const used = (shopItem.maxStock || 10) - shopItem.stock;
+        shopItem.weeklyLimit = `문파 주간 한정: (${used}/${shopItem.maxStock || 10})`;
+      }
+
+      const appList =
+        auction.applicants && auction.applicants.length > 0
+          ? auction.applicants.join(', ')
+          : shopItem.applicants && shopItem.applicants.length > 0
+          ? shopItem.applicants.join(', ')
+          : '문파원';
+
+      db.tokenLedger.unshift({
+        id: `tok_${Date.now()}`,
+        type: 'AUCTION_DEDUCT',
+        delta: -cost,
+        balanceAfter: db.guildTokens,
+        description: `[${shopItem.name}] 경매 개시로 상품 재화 차감 (구매 희망 신청: ${appList})`,
+        actorNickname: appList,
+        createdAt: nowIso
+      });
+    }
+  }
+}
+
+/**
+ * 30분 익명 경매(ACTIVE) 종료 시 -> 최고 입찰자 닉네임 공개 + 낙찰가 세금 10% 공제 후 90% 문파 창고 세이브
+ */
+export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem): void {
+  const nowIso = new Date().toISOString();
+  auction.status = 'ENDED';
+
+  // 입찰자가 없었지만 구매 희망 신청자가 있었던 경우 첫 희망자를 기본 입찰(시작가) 낙찰자로 지정할지,
+  // 혹은 입찰 기록이 있을 때만 창고 금전에 세이브
+  const hasWinner =
+    (auction.bidsCount > 0 && auction.currentBid > 0) ||
+    (auction.applicants && auction.applicants.length > 0 && auction.currentBid > 0);
+
+  if (auction.bidsCount === 0 && auction.applicants && auction.applicants.length === 1 && !auction.highestBidderNickname) {
+    auction.highestBidderNickname = auction.applicants[0];
+  }
+
+  if (hasWinner && auction.highestBidderNickname && !auction.goldSaved) {
+    const grossBid = auction.currentBid;
+    const taxAmount = Math.floor(grossBid * 0.1);
+    const netSavedGold = grossBid - taxAmount; // 90% 문파 창고 세이브 금전
+
+    auction.grossBid = grossBid;
+    auction.taxAmount = taxAmount;
+    auction.netSavedGold = netSavedGold;
+    auction.goldSaved = true;
+
+    db.treasuryGold = (db.treasuryGold || 0) + netSavedGold;
+    auction.distribution = calculateAuctionDistribution(netSavedGold, db.attendance);
+
+    db.goldLedger.unshift({
+      id: `gold_${Date.now()}`,
+      type: 'AUCTION_SAVED',
+      grossAmount: grossBid,
+      taxAmount,
+      delta: netSavedGold,
+      balanceAfter: db.treasuryGold,
+      description: `[${auction.title}] 낙찰자 '${auction.highestBidderNickname}' 지정 분배 정산 (낙찰가 ${grossBid.toLocaleString()}G - 세금 10% ${taxAmount.toLocaleString()}G = 창고 +${netSavedGold.toLocaleString()}G 세이브)`,
+      actorNickname: auction.highestBidderNickname,
+      createdAt: nowIso
+    });
+  } else if (!auction.distribution) {
+    const netSaved = Math.floor((auction.currentBid || 0) * 0.9);
+    auction.grossBid = auction.currentBid || 0;
+    auction.taxAmount = (auction.currentBid || 0) - netSaved;
+    auction.netSavedGold = 0;
+    auction.distribution = calculateAuctionDistribution(0, db.attendance);
+  }
+
+  const shopItem = db.shopItems?.[0];
+  if (shopItem && shopItem.activeAuctionId === auction.id) {
+    shopItem.activeAuctionId = undefined;
+    shopItem.applicants = [];
+  }
+}
+
 export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promise<boolean> {
   let updated = false;
   const nowMs = Date.now();
+
   for (const auction of db.auctions) {
+    // 1단계: 구매 희망 신청 후 30분 대기(SCHEDULED) 타이머 만료 -> 익명 경매(ACTIVE, 30분) 자동 시작
+    if (auction.status === 'SCHEDULED' && auction.scheduledStartAt) {
+      const startMs = new Date(auction.scheduledStartAt).getTime();
+      if (!isNaN(startMs) && startMs <= nowMs) {
+        activateScheduledAuction(db, auction);
+        updated = true;
+      }
+    }
+
+    // 2단계: 익명 경매(ACTIVE) 30분 타이머 만료 -> 경매 종료(ENDED), 낙찰자 공개 & 세금 10% 공제 후 창고 금전 세이브
     if (auction.status === 'ACTIVE' && auction.endsAt) {
       const endsAtMs = new Date(auction.endsAt).getTime();
       if (!isNaN(endsAtMs) && endsAtMs <= nowMs) {
-        auction.status = 'ENDED';
-        auction.distribution = calculateAuctionDistribution(auction.currentBid, db.attendance);
+        finalizeSingleAuction(db, auction);
         updated = true;
       }
     }
   }
+
   if (updated) {
     await saveDb(db);
   }
@@ -374,7 +532,7 @@ export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promi
 }
 
 export function maskAuctionForClient(auction: AuctionItem): AuctionItem {
-  if (auction.status === 'ACTIVE') {
+  if (auction.status === 'ACTIVE' || auction.status === 'SCHEDULED') {
     return {
       ...auction,
       highestBidderNickname: auction.bidsCount > 0 ? '익명 입찰자' : undefined,

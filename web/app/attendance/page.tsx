@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, AlertCircle } from 'lucide-react';
+import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 export default function AttendancePage() {
   const [attendance, setAttendance] = useState<MemberAttendance[]>([]);
+  const [treasuryGold, setTreasuryGold] = useState<number>(0);
+  const [guildTokens, setGuildTokens] = useState<number>(0);
   const { currentUser, authChecking } = useAuthUser();
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -23,6 +25,8 @@ export default function AttendancePage() {
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);
+        if (typeof d.treasuryGold === 'number') setTreasuryGold(d.treasuryGold);
+        if (typeof d.guildTokens === 'number') setGuildTokens(d.guildTokens);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -72,19 +76,63 @@ export default function AttendancePage() {
     }
   };
 
-  const handleWeeklyReset = async () => {
-    if (!confirm('⚠️ 경고: 주간 정산이 완료되어 모든 문파원의 출석 체크박스와 포인트를 0으로 초기화하시겠습니까?')) {
+  // 1) 주간 컨텐츠만 미참으로 초기화 (누적 점수는 유지)
+  const handleWeeklyContentReset = async () => {
+    if (
+      !confirm(
+        '🔄 [주간 컨텐츠만 미참 초기화 (점수 유지)]\n\n일주일 컨텐츠 주기가 지나 4대 컨텐츠(요신·결계·미혹·신기) 참여 상태만 모두 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 점수는 0으로 초기화되지 않고 그대로 보존(이월)됩니다.'
+      )
+    ) {
       return;
     }
 
     try {
-      const res = await fetch('/api/attendance/reset', { method: 'POST' });
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RESET_WEEKLY_CONTENT' })
+      });
       const data = await res.json();
       if (!data.success) {
         alert(data.message || '초기화 실패');
         return;
       }
-      alert('🔄 모든 문파원의 출석과 포인트가 0으로 초기화되었습니다.');
+      alert(data.message);
+      fetchAttendance();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // 2) 누적 점수 0P 초기화 (문파 창고 금전이 모두 분배된 후에만 가능)
+  const handleResetAllPoints = async () => {
+    if (treasuryGold > 0) {
+      alert(
+        `⚠️ 현재 문파 창고에 미분배 세이브 금전(${treasuryGold.toLocaleString()} 금전)이 남아 있습니다.\n\n점수 초기화는 문파 창고 금전이 모두 분배(0 금전)된 후에만 가능합니다. 먼저 [참여·분배 현황] 또는 [문파 경매장]에서 금전 분배 완료 처리를 진행해 주세요.`
+      );
+      return;
+    }
+
+    if (
+      !confirm(
+        '⚠️ [누적 점수 0P 완전 초기화]\n\n금전 분배가 모두 완료되었습니까?\n확인 시 모든 문파원의 이월 점수 및 주간 출석 점수가 0P로 완전 초기화됩니다.'
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'RESET_ALL_POINTS' })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || '점수 초기화 실패');
+        return;
+      }
+      alert(data.message);
       fetchAttendance();
     } catch (err: any) {
       alert(err.message);
@@ -110,7 +158,7 @@ export default function AttendancePage() {
         </span>
       );
     }
-    return <span className="text-slate-600 text-xs">-</span>;
+    return <span className="text-slate-600 text-xs">미참</span>;
   };
 
   if (authChecking) {
@@ -158,18 +206,18 @@ export default function AttendancePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
             <CheckCircle2 className="w-7 h-7 text-emerald-400" />
-            <span>상세 출석부 & 포인트 관리소</span>
+            <span>상세 출석부 & 누적 포인트 관리소</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            4대 주간 컨텐츠별 참여 유형(수동 1P / 분신 0.25P)을 실시간으로 확인하고 관리합니다.
+            주간 컨텐츠는 매주 <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>로 리셋하며, <strong className="text-amber-300">누적 점수</strong>는 금전 분배가 모두 완료된 뒤 초기화할 수 있습니다.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
           <a
             href="/distribution"
             className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:brightness-110 text-white font-bold text-xs shadow-md transition-all"
@@ -183,34 +231,67 @@ export default function AttendancePage() {
                   setSelectedMember(attendance[0]?.nickname || '');
                   setIsCheckModalOpen(true);
                 }}
-                className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
               >
                 <UserCheck className="w-4 h-4" />
                 <span>수동 출석 체크</span>
               </button>
               <button
-                onClick={handleWeeklyReset}
-                className="inline-flex items-center space-x-2 px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors"
+                onClick={handleWeeklyContentReset}
+                className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-bold text-xs transition-colors"
+                title="4대 주간 컨텐츠만 미참으로 초기화하고 누적 점수는 유지합니다"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>주간 컨텐츠만 미참 초기화 (점수 유지)</span>
+              </button>
+              <button
+                onClick={handleResetAllPoints}
+                className={`inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl font-bold text-xs border transition-colors ${
+                  treasuryGold > 0
+                    ? 'bg-slate-900 text-slate-500 border-slate-800 cursor-not-allowed'
+                    : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border-rose-500/30'
+                }`}
+                title={
+                  treasuryGold > 0
+                    ? `문파 창고 세이브 금전(${treasuryGold.toLocaleString()}G)을 모두 분배해야 점수 초기화가 가능합니다`
+                    : '금전 분배 완료 후 모든 누적 점수를 0P로 초기화합니다'
+                }
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>주간 초기화</span>
+                <span>누적 점수 0P 초기화 {treasuryGold > 0 ? '(미분배 금전 있음)' : '(분배 완료 시)'}</span>
               </button>
             </>
           )}
         </div>
       </div>
 
-      {/* Discord Bot Sync Info Banner */}
-      <div className="bg-slate-900/80 border border-indigo-950 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3">
+      {/* Discord Bot & Treasury Summary Banner */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-slate-900/80 border border-indigo-950 rounded-2xl p-4 sm:p-5 flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-white">디스코드 봇 실시간 연동 안내</h3>
+            <h3 className="text-sm font-bold text-white">디스코드 봇 실시간 연동 및 주간/누적 안내</h3>
             <div className="text-xs text-slate-400 space-y-0.5">
-              <p>• <strong>수동 참여(+1.0P):</strong> 스크린샷과 함께 <code className="text-emerald-300 bg-slate-950 px-1.5 py-0.5 rounded">요신</code> 입력 시 자동 반영</p>
-              <p>• <strong>분신 등록(+0.25P):</strong> 스크린샷과 함께 <code className="text-sky-300 bg-slate-950 px-1.5 py-0.5 rounded">요신 분신</code> 입력 시 자동 반영</p>
+              <p>• <strong>스크린샷 업로드(+1.0P):</strong> 디스코드에 참여 스크린샷 업로드 시 항상 <strong className="text-emerald-300">수동 참가(+1.0P)</strong>로 자동 반영됩니다.</p>
+              <p>• <strong>다수 인원 수동 추가:</strong> <code className="text-amber-300 bg-slate-950 px-1.5 py-0.5 rounded">!수동추가 닉1 닉2 닉3 신기</code> 처럼 2명 이상 한 번에 명령어 입력 가능</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-emerald-300 flex items-center space-x-1.5">
+              <Coins className="w-4 h-4 text-emerald-400" />
+              <span>문파 창고 세이브 금전 (세금 10% 공제)</span>
+            </div>
+            <div className="text-xl font-black text-emerald-400">
+              {treasuryGold.toLocaleString()} 금전
+            </div>
+            <div className="text-[11px] text-slate-400 flex items-center space-x-2">
+              <Award className="w-3.5 h-3.5 text-amber-400" />
+              <span>문파 용맹의 증표: <strong className="text-amber-300">{guildTokens.toLocaleString()}개</strong></span>
             </div>
           </div>
         </div>
@@ -245,8 +326,10 @@ export default function AttendancePage() {
                 <th className="py-3 px-4 text-center">2. 결계지 방어</th>
                 <th className="py-3 px-4 text-center">3. 미혹의 정원</th>
                 <th className="py-3 px-4 text-center">4. 신기 쟁탈전</th>
-                <th className="py-3 px-4 text-center">주간 포인트</th>
-                <th className="py-3 px-4 text-center">참여율</th>
+                <th className="py-3 px-4 text-center">이월 점수</th>
+                <th className="py-3 px-4 text-center">이번주 점수</th>
+                <th className="py-3 px-4 text-center">총 누적 포인트</th>
+                <th className="py-3 px-4 text-center">주간 참여율</th>
                 {currentUser?.role === 'ADMIN' && (
                   <th className="py-3 px-4 text-center w-24">관리</th>
                 )}
@@ -255,42 +338,60 @@ export default function AttendancePage() {
             <tbody className="divide-y divide-slate-800/60">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={11} className="py-12 text-center text-slate-400">
                     로딩 중...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={11} className="py-12 text-center text-slate-400">
                     검색된 문파원이 없습니다.
                   </td>
                 </tr>
               ) : (
-                filtered.map((member, index) => (
-                  <tr key={member.nickname} className="hover:bg-slate-800/40">
-                    <td className="py-3 px-4 text-center text-xs text-slate-500">{index + 1}</td>
-                    <td className="py-3 px-4 font-bold text-white">{member.nickname}</td>
-                    <td className="py-3 px-4 text-center">{renderBadge(member.yosin)}</td>
-                    <td className="py-3 px-4 text-center">{renderBadge(member.gyeolgye)}</td>
-                    <td className="py-3 px-4 text-center">{renderBadge(member.mihok)}</td>
-                    <td className="py-3 px-4 text-center">{renderBadge(member.singi)}</td>
-                    <td className="py-3 px-4 text-center font-black text-amber-300">{member.totalPoints}P</td>
-                    <td className="py-3 px-4 text-center text-xs font-semibold text-slate-400">{member.rate}%</td>
-                    {currentUser?.role === 'ADMIN' && (
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() => {
-                            setSelectedMember(member.nickname);
-                            setIsCheckModalOpen(true);
-                          }}
-                          className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-semibold"
-                        >
-                          체크
-                        </button>
+                filtered.map((member, index) => {
+                  const weeklyPts =
+                    member.weeklyPoints !== undefined
+                      ? member.weeklyPoints
+                      : (member.yosin?.points || 0) +
+                        (member.gyeolgye?.points || 0) +
+                        (member.mihok?.points || 0) +
+                        (member.singi?.points || 0);
+                  const carriedPts = member.carriedPoints || 0;
+                  return (
+                    <tr key={member.nickname} className="hover:bg-slate-800/40">
+                      <td className="py-3 px-4 text-center text-xs text-slate-500">{index + 1}</td>
+                      <td className="py-3 px-4 font-bold text-white">{member.nickname}</td>
+                      <td className="py-3 px-4 text-center">{renderBadge(member.yosin)}</td>
+                      <td className="py-3 px-4 text-center">{renderBadge(member.gyeolgye)}</td>
+                      <td className="py-3 px-4 text-center">{renderBadge(member.mihok)}</td>
+                      <td className="py-3 px-4 text-center">{renderBadge(member.singi)}</td>
+                      <td className="py-3 px-4 text-center text-xs font-semibold text-slate-400">
+                        {carriedPts > 0 ? `${carriedPts}P` : '-'}
                       </td>
-                    )}
-                  </tr>
-                ))
+                      <td className="py-3 px-4 text-center text-xs font-bold text-sky-300">
+                        {weeklyPts}P
+                      </td>
+                      <td className="py-3 px-4 text-center font-black text-amber-300">
+                        {member.totalPoints}P
+                      </td>
+                      <td className="py-3 px-4 text-center text-xs font-semibold text-slate-400">{member.rate}%</td>
+                      {currentUser?.role === 'ADMIN' && (
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => {
+                              setSelectedMember(member.nickname);
+                              setIsCheckModalOpen(true);
+                            }}
+                            className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-semibold"
+                          >
+                            체크
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -327,7 +428,7 @@ export default function AttendancePage() {
               >
                 {attendance.map(m => (
                   <option key={m.nickname} value={m.nickname}>
-                    {m.nickname} (현재 {m.totalPoints}P)
+                    {m.nickname} (현재 누적 {m.totalPoints}P)
                   </option>
                 ))}
               </select>
@@ -349,28 +450,39 @@ export default function AttendancePage() {
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-300">참여 형태 및 포인트</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedType('MANUAL')}
-                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                  className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all ${
                     selectedType === 'MANUAL'
                       ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-md'
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
                   }`}
                 >
-                  ⚔️ 직접 수동 참가 (+1.0P)
+                  ⚔️ 수동 (+1.0P)
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedType('CLONE')}
-                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all ${
+                  className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all ${
                     selectedType === 'CLONE'
                       ? 'bg-sky-500/20 border-sky-500 text-sky-300 shadow-md'
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
                   }`}
                 >
-                  👤 분신 등록 참가 (+0.25P)
+                  👤 분신 (+0.25P)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedType('ABSENT')}
+                  className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all ${
+                    selectedType === 'ABSENT'
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-md'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                  }`}
+                >
+                  ❌ 미참 (0P)
                 </button>
               </div>
             </div>

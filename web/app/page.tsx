@@ -7,20 +7,17 @@ import {
   Trophy, 
   Users, 
   Coins, 
-  Sparkles, 
   Search, 
   CheckCircle, 
   ArrowRight, 
   ShieldCheck, 
   Lock, 
-  UserCheck, 
-  KeyRound, 
-  Clock, 
-  Shield, 
   LogIn, 
   UserPlus,
   Calculator,
-  Gavel
+  Gavel,
+  Award,
+  ShoppingBag
 } from 'lucide-react';
 import { MemberAttendance } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
@@ -32,6 +29,8 @@ export default function HomePage() {
     activeMembersCount: number;
     totalGuildPoints: number;
     totalAuctionGold: number;
+    treasuryGold: number;
+    guildTokens: number;
     endedAuctionsCount: number;
     attendance: MemberAttendance[];
   } | null>(null);
@@ -146,7 +145,7 @@ export default function HomePage() {
                 <li className="flex items-start space-x-2">
                   <span className="text-amber-400 font-bold">•</span>
                   <span>
-                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 → 문파 상점 아이템 구매 → 최소 입찰가 경매 진행 → 참여도 비례 금전 분배까지 한곳에서 이루어집니다.
+                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 → 문파 상점 희망 신청 → 1시간 자동 익명 경매 → 세금 10% 공제 후 문파 창고 금전 비례 분배까지 한곳에서 이루어집니다.
                   </span>
                 </li>
                 <li className="flex items-start space-x-2">
@@ -201,9 +200,9 @@ export default function HomePage() {
             <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center font-black text-sm">
               2
             </div>
-            <h3 className="font-extrabold text-white text-sm pt-1">문파 상점 구매</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">문파 상점 구매 희망</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              문파 재화 및 금전으로 상점의 비약과 전리품 아이템을 구매합니다.
+              문파 재화(용맹의 증표)로 전설 도안 상자 구매 희망 신청 시 30분 뒤 자동 경매가 열립니다.
             </p>
           </div>
 
@@ -211,9 +210,9 @@ export default function HomePage() {
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-sm">
               3
             </div>
-            <h3 className="font-extrabold text-white text-sm pt-1">최소 입찰가 경매</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">30분 익명 경매</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              최소 시작가와 호가 단위를 설정하여 실시간 경매 입찰을 진행합니다.
+              30분간 익명 경매 진행 후 낙찰자가 공개되며, 인게임 지정 분배 시 세금 10% 공제 후 창고에 세이브됩니다.
             </p>
           </div>
 
@@ -221,9 +220,9 @@ export default function HomePage() {
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-black text-sm">
               4
             </div>
-            <h3 className="font-extrabold text-white text-sm pt-1">참여율 비례 분배</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">창고 세이브 금전 분배</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              경매를 통해 누적된 낙찰금을 참여 포인트 비율대로 100% 자동 분배합니다.
+              문파 창고에 세이브된 금전(90%)을 누적 참여 포인트 비율대로 분배 및 차감합니다.
             </p>
           </div>
         </div>
@@ -234,9 +233,10 @@ export default function HomePage() {
   // ✅ [로그인된 정회원 화면] 회원가입 & 승인된 회원만 볼 수 있는 대시보드
   const totalRegistered = data?.totalMembers || 0;
   const totalPoints = data?.totalGuildPoints || 0;
-  const totalAuctionGold = data?.totalAuctionGold || 0;
+  const treasuryGold = data?.treasuryGold !== undefined ? data.treasuryGold : (data?.totalAuctionGold || 0);
+  const guildTokens = data?.guildTokens || 0;
   const endedAuctionsCount = data?.endedAuctionsCount || 0;
-  const goldPerPoint = totalPoints > 0 && totalAuctionGold > 0 ? totalAuctionGold / totalPoints : 0;
+  const goldPerPoint = totalPoints > 0 && treasuryGold > 0 ? treasuryGold / totalPoints : 0;
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -272,18 +272,17 @@ export default function HomePage() {
             </h1>
             <div className="mt-3 space-y-1 text-xs sm:text-sm text-slate-300 leading-relaxed">
               <p>• 디스코드 인증 시 수동(1.0P) 및 분신(0.25P) 참여 점수가 실시간 자동 누적됩니다.</p>
-              <p>• 상점 아이템 구매 및 최소 입찰가 경매 종료 시, 낙찰금이 포인트 비율로 100% 자동 분배됩니다.</p>
+              <p>• 상점 희망 신청 후 1시간 자동 경매가 종료되면 인게임 지정 분배 시 <strong>세금 10% 공제 후 90% 금전이 문파 창고에 세이브</strong>되어 포인트 비율로 분배됩니다.</p>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-3 shrink-0">
             <Link
-              href="/distribution"
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-sm shadow-lg shadow-purple-900/30 transition-all"
+              href="/shop"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-amber-300 font-bold text-sm border border-amber-500/30 transition-all"
             >
-              <Calculator className="w-4 h-4 text-amber-300" />
-              <span>참여 & 분배 현황 정산소</span>
-              <ArrowRight className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 text-amber-400" />
+              <span>문파 상점 (용맹의 증표)</span>
             </Link>
             <Link
               href="/auction"
@@ -293,11 +292,12 @@ export default function HomePage() {
               <span>문파 경매장</span>
             </Link>
             <Link
-              href="/attendance"
-              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white font-semibold text-sm border border-slate-700 transition-colors"
+              href="/distribution"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-sm shadow-lg shadow-purple-900/30 transition-all"
             >
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
-              <span>상세 출석부</span>
+              <Calculator className="w-4 h-4 text-amber-300" />
+              <span>참여 & 분배 정산소</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
@@ -316,14 +316,14 @@ export default function HomePage() {
             <span className="text-xs text-slate-400">명</span>
           </div>
           <div className="mt-2 text-[11px] text-slate-500">
-            이번 주 참여: <span className="text-indigo-400 font-semibold">{data?.activeMembersCount || 0}명</span>
+            누적 참여자: <span className="text-indigo-400 font-semibold">{data?.activeMembersCount || 0}명</span>
           </div>
         </div>
 
-        {/* 문파 총 참여 포인트 */}
+        {/* 문파 총 누적 포인트 */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-            <span>문파 총 참여 포인트</span>
+            <span>문파 총 누적 포인트</span>
             <Trophy className="w-4 h-4 text-amber-400" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
@@ -331,43 +331,37 @@ export default function HomePage() {
             <span className="text-xs text-slate-400">P</span>
           </div>
           <div className="mt-2 text-[11px] text-slate-500">
-            주 4회 올수동 기준 만점 4.0P
+            주간 미참 초기화 시에도 누적 점수 유지
           </div>
         </div>
 
-        {/* 누적 경매 낙찰금 & 1P 가치 */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-            <span>누적 경매 낙찰 총액 ({endedAuctionsCount}건)</span>
+        {/* 문파 창고 세이브 금전 (세금 10% 공제) */}
+        <div className="bg-slate-900/60 border border-emerald-500/30 rounded-2xl p-5 hover:border-emerald-500/50 transition-colors">
+          <div className="flex items-center justify-between text-emerald-300 text-xs font-semibold">
+            <span>문파 창고 세이브 금전 (세금 10% 공제)</span>
             <Coins className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
-            <span className="text-3xl font-black text-emerald-400">{totalAuctionGold.toLocaleString()}</span>
+            <span className="text-3xl font-black text-emerald-400">{treasuryGold.toLocaleString()}</span>
             <span className="text-xs text-slate-400">G</span>
           </div>
-          <div className="mt-2 text-[11px] text-slate-500">
-            1P당 분배금: <span className="text-emerald-400 font-semibold">{Math.round(goldPerPoint).toLocaleString()}G</span>
+          <div className="mt-2 text-[11px] text-slate-400">
+            1P당 분배금: <span className="text-emerald-400 font-semibold">{Math.round(goldPerPoint).toLocaleString()}G</span> (낙찰 {endedAuctionsCount}건)
           </div>
         </div>
 
-        {/* 참여 배점 규칙 */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-            <span>참여 배점 규칙</span>
-            <ShieldCheck className="w-4 h-4 text-sky-400" />
+        {/* 문파 재화 (용맹의 증표) */}
+        <div className="bg-slate-900/60 border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-colors">
+          <div className="flex items-center justify-between text-amber-300 text-xs font-semibold">
+            <span>문파 재화 (용맹의 증표)</span>
+            <Award className="w-4 h-4 text-amber-400" />
           </div>
-          <div className="mt-2 text-xs font-bold text-slate-200 space-y-1">
-            <div className="flex justify-between">
-              <span className="text-slate-400 font-normal">수동 참가:</span>
-              <span className="text-emerald-400">+1.0P</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400 font-normal">분신 등록:</span>
-              <span className="text-sky-400">+0.25P</span>
-            </div>
+          <div className="mt-2 flex items-baseline space-x-2">
+            <span className="text-3xl font-black text-amber-300">{guildTokens.toLocaleString()}</span>
+            <span className="text-xs text-slate-400">개</span>
           </div>
-          <div className="mt-1 text-[10px] text-slate-500">
-            요신 / 결계지 분신 등록 지원
+          <div className="mt-2 text-[11px] text-slate-400">
+            상점 경매 시작 시 <span className="text-rose-400 font-semibold">-11,500개</span> 자동 차감
           </div>
         </div>
       </div>
@@ -378,10 +372,10 @@ export default function HomePage() {
           <div>
             <h2 className="text-lg font-extrabold text-white flex items-center space-x-2">
               <Swords className="w-5 h-5 text-indigo-400" />
-              <span>주간 4대 컨텐츠 출석 및 포인트 현황표</span>
+              <span>주간 4대 컨텐츠 출석 및 누적 포인트 현황표</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              디스코드 봇 인식 및 관리자 입력 내역이 실시간으로 동기화됩니다.
+              디스코드 봇 인식 및 관리자 입력 내역이 실시간으로 동기화되며, 창고 세이브 금전 기준 예상 배당금이 계산됩니다.
             </p>
           </div>
 
@@ -410,7 +404,7 @@ export default function HomePage() {
                   filter === 'PERFECT' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                올수동 만점 (4P)
+                4P 이상
               </button>
             </div>
 
@@ -439,9 +433,9 @@ export default function HomePage() {
                 <th className="py-3 px-4 text-center">2. 결계지 방어</th>
                 <th className="py-3 px-4 text-center">3. 미혹의 정원</th>
                 <th className="py-3 px-4 text-center">4. 신기 쟁탈전</th>
-                <th className="py-3 px-4 text-center">총 포인트</th>
-                <th className="py-3 px-4 text-center">참여율</th>
-                <th className="py-3 px-4 text-right">누적 낙찰 분배금</th>
+                <th className="py-3 px-4 text-center">총 누적 포인트</th>
+                <th className="py-3 px-4 text-center">주간 참여율</th>
+                <th className="py-3 px-4 text-right">창고 금전 예상 배당금</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -480,6 +474,11 @@ export default function HomePage() {
                     <td className="py-3 px-4 text-center">{renderBadge(m.singi)}</td>
                     <td className="py-3 px-4 text-center">
                       <span className="font-extrabold text-amber-300 text-sm">{m.totalPoints}P</span>
+                      {(m.carriedPoints || 0) > 0 && (
+                        <span className="block text-[10px] text-slate-400">
+                          (이월 {m.carriedPoints}P)
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center space-x-2">
