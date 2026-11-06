@@ -372,7 +372,7 @@ export default function AuctionPage() {
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
-                외길 문파 익명 경매장 & 문파 창고 금전 분배소
+                외길 문파 익명 경매·창고 & 금전 분배소
               </h1>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                 매주 수요일 <strong className="text-amber-300">19:00:00 ~ 19:29:59 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30:00 익명 경매 자동 개시 (19:59:59 입찰 마감)</strong><br className="hidden sm:inline" />
@@ -386,7 +386,7 @@ export default function AuctionPage() {
               href="/shop"
               className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs whitespace-nowrap transition-all"
             >
-              <span>📦 문파 상점</span>
+              <span>📦 문파 상점·신청</span>
             </Link>
             {canManage && (
               <button

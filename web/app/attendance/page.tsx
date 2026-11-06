@@ -110,7 +110,7 @@ export default function AttendancePage() {
   const handleResetAllPoints = async () => {
     if (treasuryGold > 0) {
       alert(
-        `⚠️ 현재 문파 창고에 미분배 세이브 금전(${treasuryGold.toLocaleString()} 금전)이 남아 있습니다.\n\n점수 초기화는 문파 창고 금전이 모두 분배(0 금전)된 후에만 가능합니다. 먼저 [참여·분배 현황] 또는 [문파 경매장]에서 금전 분배 완료 처리를 진행해 주세요.`
+        `⚠️ 현재 문파 창고에 미분배 세이브 금전(${treasuryGold.toLocaleString()} 금전)이 남아 있습니다.\n\n점수 초기화는 문파 창고 금전이 모두 분배(0 금전)된 후에만 가능합니다. 먼저 [참여·분배 현황] 또는 [문파 경매·창고]에서 금전 분배 완료 처리를 진행해 주세요.`
       );
       return;
     }

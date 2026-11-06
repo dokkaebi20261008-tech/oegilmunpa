@@ -329,20 +329,20 @@ export default function ShopPage() {
           </div>
           <h1 className="text-xl sm:text-2xl font-extrabold text-white flex items-center space-x-2.5">
             <ShoppingBag className="w-6 h-6 text-amber-400 shrink-0" />
-            <span>외길 문파 상점 & 용맹의 증표 관리소</span>
+            <span>외길 문파 상점·신청 & 용맹의 증표 관리소</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            <strong className="text-amber-300">매주 수요일 19:00:00 ~ 19:29:59</strong> 구매 희망 신청 ➔ 희망자 신청 시 <strong className="text-emerald-300">19:30:00 문파 경매장 자동 개시</strong> (19:59:59 입찰 마감) ➔ <strong className="text-indigo-300">20:00:00 경매 자동 종료 및 낙찰자·낙찰금액 즉시 공개</strong>
+            <strong className="text-amber-300">매주 수요일 19:00:00 ~ 19:29:59</strong> 구매 희망 신청 ➔ 희망자 신청 시 <strong className="text-emerald-300">19:30:00 문파 경매·창고 자동 개시</strong> (19:59:59 입찰 마감) ➔ <strong className="text-indigo-300">20:00:00 경매 자동 종료 및 낙찰자·낙찰금액 즉시 공개</strong>
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/auction"
-            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all"
+            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition-all whitespace-nowrap"
           >
             <Gavel className="w-4 h-4" />
-            <span>문파 경매장 바로가기</span>
+            <span>문파 경매·창고 바로가기</span>
           </Link>
         </div>
       </div>

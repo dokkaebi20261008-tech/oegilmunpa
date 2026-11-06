@@ -17,10 +17,13 @@ import {
   Calculator,
   Gavel,
   Award,
-  ShoppingBag
+  ShoppingBag,
+  User,
+  KeyRound,
+  AlertCircle
 } from 'lucide-react';
 import { MemberAttendance, getRoleLabel } from '@/lib/types';
-import { useAuthUser } from '@/lib/clientAuth';
+import { useAuthUser, setCachedUser } from '@/lib/clientAuth';
 
 export default function HomePage() {
   const { currentUser, authChecking } = useAuthUser();
@@ -37,6 +40,58 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'PERFECT'>('ALL');
+
+  // 메인 대문 직관적 바로 로그인 폼 상태
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [rememberId, setRememberId] = useState(true);
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('oegil_saved_username');
+      if (saved) {
+        setLoginUsername(saved);
+        setRememberId(true);
+      }
+    } catch (e) {}
+  }, []);
+
+  const handleDirectLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: loginUsername.trim(), password: loginPassword.trim() }),
+      });
+      const resData = await res.json();
+      if (!resData.success) {
+        setLoginError(resData.message || '아이디 또는 비밀번호가 일치하지 않습니다.');
+        setLoginLoading(false);
+        return;
+      }
+
+      setCachedUser(resData.user);
+
+      try {
+        if (rememberId && loginUsername.trim()) {
+          localStorage.setItem('oegil_saved_username', loginUsername.trim());
+        } else {
+          localStorage.removeItem('oegil_saved_username');
+        }
+      } catch (e) {}
+
+      window.location.reload();
+    } catch (err: any) {
+      setLoginError(err.message || '네트워크 오류가 발생했습니다.');
+      setLoginLoading(false);
+    }
+  };
 
   const loadDashboardData = () => {
     fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' })
@@ -96,16 +151,6 @@ export default function HomePage() {
     return <span className="text-slate-600 text-xs">-</span>;
   };
 
-  // 인증 확인 중 로딩 화면
-  if (authChecking) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 space-y-4">
-        <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-        <p className="text-sm text-slate-400 font-medium">외길 문파 시스템 접속 확인 중...</p>
-      </div>
-    );
-  }
-
   // 🔒 [비로그인 상태] 게이트웨이 화면 - 회원가입/로그인 전까지는 내부 현황을 볼 수 없음
   if (!currentUser) {
     return (
@@ -163,23 +208,92 @@ export default function HomePage() {
               </ul>
             </div>
 
-            {/* Primary Action Buttons */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
-              <Link
-                href="/login"
-                className="w-full sm:w-1/2 py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+            {/* Direct Instant Login Form & Signup Link */}
+            <div className="pt-2 max-w-md mx-auto w-full">
+              <form
+                onSubmit={handleDirectLogin}
+                className="bg-slate-900/95 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-3.5 text-left"
               >
-                <LogIn className="w-4 h-4" />
-                <span>로그인 하기</span>
-              </Link>
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                  <div className="flex items-center space-x-2 text-white font-extrabold text-sm sm:text-base">
+                    <KeyRound className="w-4 h-4 text-amber-400" />
+                    <span>문파원 바로 로그인</span>
+                  </div>
+                  <span className="text-[11px] text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    즉시 접속
+                  </span>
+                </div>
 
-              <Link
-                href="/register"
-                className="w-full sm:w-1/2 py-3.5 px-6 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 hover:border-slate-600 shadow-md hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
-              >
-                <UserPlus className="w-4 h-4 text-amber-400" />
-                <span>회원가입 요청</span>
-              </Link>
+                {loginError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">아이디</label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="로그인 아이디 입력"
+                      value={loginUsername}
+                      onChange={e => setLoginUsername(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">비밀번호</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      required
+                      placeholder="비밀번호 입력"
+                      value={loginPassword}
+                      onChange={e => setLoginPassword(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-0.5">
+                  <label className="flex items-center space-x-2 text-slate-400 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={rememberId}
+                      onChange={e => setRememberId(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-amber-500"
+                    />
+                    <span>아이디 저장</span>
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{loginLoading ? '로그인 중...' : '문파 포털 로그인'}</span>
+                </button>
+
+                {/* 하단 회원가입 요청 문구 */}
+                <div className="pt-2 border-t border-slate-800/80 text-center text-xs text-slate-400 flex items-center justify-center space-x-1.5">
+                  <span>아직 사이트 계정이 없으신가요?</span>
+                  <Link
+                    href="/register"
+                    className="text-amber-300 hover:text-amber-200 font-extrabold underline underline-offset-4 inline-flex items-center space-x-1 transition-colors"
+                  >
+                    <UserPlus className="w-3.5 h-3.5 text-amber-400" />
+                    <span>회원가입 요청</span>
+                  </Link>
+                </div>
+              </form>
             </div>
 
             {/* 디스코드 & 카카오톡 오픈톡 바로가기 */}
@@ -226,7 +340,7 @@ export default function HomePage() {
             <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center font-black text-sm">
               2
             </div>
-            <h3 className="font-extrabold text-white text-sm pt-1">문파 상점 구매 희망</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">문파 상점·신청</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               문파 재화(용맹의 증표)로 전설 도안 상자 구매 희망 신청 시 30분 뒤 자동 경매가 열립니다.
             </p>
@@ -236,7 +350,7 @@ export default function HomePage() {
             <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black text-sm">
               3
             </div>
-            <h3 className="font-extrabold text-white text-sm pt-1">30분 익명 경매</h3>
+            <h3 className="font-extrabold text-white text-sm pt-1">문파 경매·창고</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
               30분간 익명 경매 진행 후 낙찰자가 공개되며, 인게임 지정 분배 시 세금 10% 공제 후 창고에 세이브됩니다.
             </p>
@@ -307,21 +421,21 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-2.5 sm:gap-3">
               <Link
                 href="/shop"
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-amber-300 font-bold text-xs sm:text-sm border border-amber-500/30 transition-all shadow-md"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-amber-300 font-bold text-xs sm:text-sm border border-amber-500/30 transition-all shadow-md whitespace-nowrap shrink-0"
               >
                 <ShoppingBag className="w-4 h-4 text-amber-400" />
-                <span>문파 상점 (용맹의 증표)</span>
+                <span>문파 상점·신청</span>
               </Link>
               <Link
                 href="/auction"
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs sm:text-sm hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs sm:text-sm hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 transition-all whitespace-nowrap shrink-0"
               >
                 <Gavel className="w-4 h-4" />
-                <span>문파 경매장</span>
+                <span>문파 경매·창고</span>
               </Link>
               <Link
                 href="/distribution"
-                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-900/30 transition-all"
+                className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-900/30 transition-all whitespace-nowrap shrink-0"
               >
                 <Calculator className="w-4 h-4 text-amber-300" />
                 <span>참여 & 분배 정산소</span>

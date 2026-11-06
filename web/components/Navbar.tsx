@@ -65,8 +65,8 @@ export default function Navbar() {
     { href: '/', label: '출석 대시보드', icon: Swords },
     { href: '/distribution', label: '참여·분배 현황', icon: Calculator },
     { href: '/attendance', label: '상세 출석부', icon: CheckCircle2 },
-    { href: '/auction', label: '문파 경매장', icon: Gavel },
-    { href: '/shop', label: '문파 상점', icon: ShoppingBag },
+    { href: '/auction', label: '문파 경매·창고', icon: Gavel },
+    { href: '/shop', label: '문파 상점·신청', icon: ShoppingBag },
   ] : [
     { href: '/', label: '문파 포털 안내', icon: Shield },
   ];
