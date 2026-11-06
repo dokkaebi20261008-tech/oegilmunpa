@@ -116,22 +116,22 @@
       "yosin": {
         "type": "MANUAL",
         "points": 1,
-        "updatedAt": "2026-11-06T10:06:18.383Z"
+        "updatedAt": "2026-11-06T10:19:53.076Z"
       },
       "gyeolgye": {
         "type": "MANUAL",
         "points": 1,
-        "updatedAt": "2026-11-06T10:06:18.395Z"
+        "updatedAt": "2026-11-06T10:19:53.083Z"
       },
       "mihok": {
         "type": "MANUAL",
         "points": 1,
-        "updatedAt": "2026-11-06T10:06:18.402Z"
+        "updatedAt": "2026-11-06T10:19:53.089Z"
       },
       "singi": {
         "type": "MANUAL",
         "points": 1,
-        "updatedAt": "2026-11-06T10:06:18.411Z"
+        "updatedAt": "2026-11-06T10:19:53.094Z"
       },
       "totalPoints": 4,
       "rate": 100
@@ -141,22 +141,22 @@
       "yosin": {
         "type": "MANUAL",
         "points": 1,
-        "updatedAt": "2026-11-06T10:06:18.420Z"
+        "updatedAt": "2026-11-06T10:19:53.102Z"
       },
       "gyeolgye": {
         "type": "CLONE",
         "points": 0.25,
-        "updatedAt": "2026-11-06T10:06:18.429Z"
+        "updatedAt": "2026-11-06T10:19:53.107Z"
       },
       "mihok": {
         "type": "MANUAL",
         "points": 1,
-        "updatedAt": "2026-11-06T10:06:18.436Z"
+        "updatedAt": "2026-11-06T10:19:53.113Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 2.25,
       "rate": 56
@@ -166,22 +166,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -191,22 +191,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -216,22 +216,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -241,22 +241,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -266,22 +266,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -291,22 +291,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -316,22 +316,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -341,22 +341,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -366,22 +366,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -391,22 +391,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -416,22 +416,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -441,22 +441,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -466,22 +466,22 @@
       "yosin": {
         "type": "CLONE",
         "points": 0.25,
-        "updatedAt": "2026-11-06T10:06:18.446Z"
+        "updatedAt": "2026-11-06T10:19:53.120Z"
       },
       "gyeolgye": {
         "type": "CLONE",
         "points": 0.25,
-        "updatedAt": "2026-11-06T10:06:18.455Z"
+        "updatedAt": "2026-11-06T10:19:53.125Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0.5,
       "rate": 13
@@ -491,22 +491,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -516,22 +516,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -541,22 +541,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -566,22 +566,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -591,22 +591,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -616,22 +616,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -641,22 +641,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -666,22 +666,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -691,22 +691,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -716,22 +716,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -741,22 +741,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -766,22 +766,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -791,22 +791,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -816,22 +816,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -841,22 +841,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -866,22 +866,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -891,22 +891,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -916,22 +916,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -941,22 +941,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -966,22 +966,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -991,22 +991,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1016,22 +1016,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1041,22 +1041,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1066,22 +1066,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1091,22 +1091,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1116,22 +1116,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1141,22 +1141,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1166,22 +1166,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1191,22 +1191,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1216,22 +1216,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1241,22 +1241,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1266,22 +1266,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1291,22 +1291,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1316,22 +1316,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1341,22 +1341,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1366,22 +1366,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1391,22 +1391,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1416,22 +1416,22 @@
       "yosin": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "mihok": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "singi": {
         "type": "ABSENT",
         "points": 0,
-        "updatedAt": "2026-11-06T10:06:18.365Z"
+        "updatedAt": "2026-11-06T10:19:53.061Z"
       },
       "totalPoints": 0,
       "rate": 0

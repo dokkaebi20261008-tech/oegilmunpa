@@ -127,22 +127,24 @@ export default function HomePage() {
     return (
       <div className="max-w-4xl mx-auto py-8 sm:py-14 space-y-10 animate-fadeIn">
         {/* Hero Gatekeeper Card */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900 via-[#0d1322] to-slate-950 border border-slate-800 p-8 sm:p-12 shadow-2xl text-center">
-          {/* Background decorative glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900 via-[#0d1322] to-slate-950 border border-slate-800 shadow-2xl text-center">
+          {/* Official Oegil Guild Banner */}
+          <div className="relative w-full overflow-hidden border-b border-slate-800/80">
+            <img
+              src="/images/oegil-banner.jpg"
+              alt="외길 문파 공식 배너 - 한 길만 걷는 우리, 지금도, 앞으로도"
+              className="w-full h-auto max-h-[340px] object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0d1322] via-transparent to-transparent opacity-80 pointer-events-none"></div>
+          </div>
 
-          <div className="relative z-10 space-y-6">
-            {/* Guild Shield Icon */}
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr from-amber-600 via-indigo-600 to-indigo-500 shadow-xl shadow-indigo-600/30 border border-indigo-400/30 mb-2">
-              <Shield className="w-10 h-10 text-white" />
-            </div>
-
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold tracking-wide">
+          <div className="relative z-10 p-6 sm:p-10 space-y-6 -mt-4 sm:-mt-6">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold tracking-wide shadow-lg backdrop-blur">
               <Lock className="w-3.5 h-3.5" />
               <span>정회원 전용 포털 (보안 접속)</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
               외길 문파 통합 포털<br />
               <span className="bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 bg-clip-text text-transparent">
                 참여율 · 상점 · 경매 · 분배 시스템
@@ -253,30 +255,42 @@ export default function HomePage() {
   return (
     <div className="space-y-8 animate-fadeIn">
       {/* Logged-in Welcome Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/80 to-slate-900 border border-slate-800 p-6 sm:p-8 shadow-xl">
-        <div className="relative z-10 max-w-3xl">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>정회원 인증 완료</span>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-900 via-[#0d1322] to-slate-900 border border-slate-800 shadow-2xl">
+        {/* Official Oegil Guild Artwork Banner */}
+        <div className="relative w-full overflow-hidden border-b border-slate-800/80">
+          <img
+            src="/images/oegil-banner.jpg"
+            alt="외길 문파 공식 배너 - 한 길만 걷는 우리, 지금도, 앞으로도"
+            className="w-full h-auto max-h-[320px] object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1322] via-transparent to-transparent opacity-75 pointer-events-none"></div>
+        </div>
+
+        <div className="relative z-10 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>정회원 인증 완료</span>
+              </div>
+              <span className="text-xs text-slate-400">
+                접속자: <strong className="text-white">{currentUser.nickname}</strong> ({currentUser.role === 'ADMIN' ? '문파장' : '정회원'})
+              </span>
             </div>
-            <span className="text-xs text-slate-400">
-              접속자: <strong className="text-white">{currentUser.nickname}</strong> ({currentUser.role === 'ADMIN' ? '문파장' : '정회원'})
-            </span>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
+              주간 4대 컨텐츠 참여도 기반<br />
+              <span className="bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">
+                공정하고 투명한 금전 분배 포털
+              </span>
+            </h1>
+            <div className="mt-3 space-y-1 text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p>• 디스코드 인증 시 수동(1.0P) 및 분신(0.25P) 참여 점수가 실시간 자동 누적됩니다.</p>
+              <p>• 상점 아이템 구매 및 최소 입찰가 경매 종료 시, 낙찰금이 포인트 비율로 100% 자동 분배됩니다.</p>
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-snug">
-            주간 4대 컨텐츠 참여도 기반<br />
-            <span className="bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">
-              공정하고 투명한 금전 분배 포털
-            </span>
-          </h1>
-          <div className="mt-3 space-y-1 text-xs sm:text-sm text-slate-300 leading-relaxed">
-            <p>• 디스코드 인증 시 수동(1.0P) 및 분신(0.25P) 참여 점수가 실시간 자동 누적됩니다.</p>
-            <p>• 상점 아이템 구매 및 최소 입찰가 경매 종료 시, 낙찰금이 포인트 비율로 100% 자동 분배됩니다.</p>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 shrink-0">
             <Link
               href="/distribution"
               className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white font-bold text-sm shadow-lg shadow-purple-900/30 transition-all"
@@ -300,10 +314,6 @@ export default function HomePage() {
               <span>상세 출석부</span>
             </Link>
           </div>
-        </div>
-
-        <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 opacity-20 hover:opacity-30 transition-opacity pointer-events-none">
-          <Trophy className="w-64 h-64 text-amber-400" />
         </div>
       </div>
 

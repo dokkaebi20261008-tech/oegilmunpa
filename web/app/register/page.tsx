@@ -64,9 +64,13 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-md mx-auto my-12 bg-slate-900/80 border border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-amber-600 flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/20">
-          <Sparkles className="w-7 h-7 text-white" />
+      <div className="text-center space-y-3">
+        <div className="overflow-hidden rounded-2xl border border-slate-700/80 shadow-lg mb-2">
+          <img
+            src="/images/oegil-banner.jpg"
+            alt="외길 문파 공식 배너"
+            className="w-full h-36 object-cover object-center"
+          />
         </div>
         <h1 className="text-2xl font-black text-white tracking-tight">외길 문파 정회원 가입</h1>
         <div className="text-xs text-slate-400 space-y-0.5 leading-relaxed">

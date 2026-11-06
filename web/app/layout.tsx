@@ -3,8 +3,18 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://oegilmunpa.vercel.app'),
   title: '외길 문파 - 출석 & 경매 분배 시스템',
   description: '도깨비의 세계 외길 문파 주간 4대 컨텐츠 출석 및 경매 금전 분배 공식 사이트',
+  icons: {
+    icon: '/images/oegil-logo.jpg',
+    apple: '/images/oegil-logo.jpg',
+  },
+  openGraph: {
+    title: '외길 문파 - 통합 참여율 · 상점 · 경매 · 분배 포털',
+    description: '한 길만 걷는 우리, 지금도, 앞으로도 - 외길 문파 공식 포털',
+    images: ['/images/oegil-banner.jpg'],
+  },
 };
 
 export default function RootLayout({

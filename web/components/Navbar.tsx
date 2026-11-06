@@ -73,9 +73,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
+            <img
+              src="/images/oegil-logo.jpg"
+              alt="외길 문파 로고"
+              className="w-10 h-10 rounded-xl object-cover border border-amber-500/40 shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform"
+            />
             <div>
               <div className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent flex items-center gap-2">
                 <span>외길 문파</span>
