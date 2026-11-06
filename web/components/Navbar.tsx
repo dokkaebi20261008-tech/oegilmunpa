@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Shield, Swords, Gavel, ShoppingBag, User as UserIcon, LogOut, CheckCircle2, Menu, X, Users } from 'lucide-react';
+import { Shield, Swords, Gavel, ShoppingBag, User as UserIcon, LogOut, CheckCircle2, Menu, X, Users, Calculator } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -51,6 +51,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: '출석 대시보드', icon: Swords },
+    { href: '/distribution', label: '참여·분배 현황', icon: Calculator },
     { href: '/attendance', label: '상세 출석부', icon: CheckCircle2 },
     { href: '/auction', label: '문파 경매장', icon: Gavel },
     { href: '/shop', label: '문파 상점', icon: ShoppingBag },

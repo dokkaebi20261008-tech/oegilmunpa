@@ -115,19 +115,23 @@
       "nickname": "뱀설",
       "yosin": {
         "type": "MANUAL",
-        "points": 1
+        "points": 1,
+        "updatedAt": "2026-11-06T09:56:34.579Z"
       },
       "gyeolgye": {
         "type": "MANUAL",
-        "points": 1
+        "points": 1,
+        "updatedAt": "2026-11-06T09:56:34.596Z"
       },
       "mihok": {
         "type": "MANUAL",
-        "points": 1
+        "points": 1,
+        "updatedAt": "2026-11-06T09:56:34.616Z"
       },
       "singi": {
         "type": "MANUAL",
-        "points": 1
+        "points": 1,
+        "updatedAt": "2026-11-06T09:56:34.634Z"
       },
       "totalPoints": 4,
       "rate": 100
@@ -136,19 +140,23 @@
       "nickname": "상두불",
       "yosin": {
         "type": "MANUAL",
-        "points": 1
+        "points": 1,
+        "updatedAt": "2026-11-06T09:56:34.654Z"
       },
       "gyeolgye": {
         "type": "CLONE",
-        "points": 0.25
+        "points": 0.25,
+        "updatedAt": "2026-11-06T09:56:34.672Z"
       },
       "mihok": {
         "type": "MANUAL",
-        "points": 1
+        "points": 1,
+        "updatedAt": "2026-11-06T09:56:34.690Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 2.25,
       "rate": 56
@@ -157,19 +165,23 @@
       "nickname": "상겨미",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -178,19 +190,23 @@
       "nickname": "던롤",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -199,19 +215,23 @@
       "nickname": "로단",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -220,19 +240,23 @@
       "nickname": "행뚁",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -241,19 +265,23 @@
       "nickname": "악군학",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -262,19 +290,23 @@
       "nickname": "승기",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -283,19 +315,23 @@
       "nickname": "휴이랑",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -304,19 +340,23 @@
       "nickname": "호랑이야",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -325,19 +365,23 @@
       "nickname": "쬬아",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -346,19 +390,23 @@
       "nickname": "옥절이",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -367,19 +415,23 @@
       "nickname": "빠따왕",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -388,19 +440,23 @@
       "nickname": "추서",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -409,40 +465,48 @@
       "nickname": "해암",
       "yosin": {
         "type": "CLONE",
-        "points": 0.25
+        "points": 0.25,
+        "updatedAt": "2026-11-06T09:56:34.706Z"
       },
       "gyeolgye": {
         "type": "CLONE",
-        "points": 0.25
+        "points": 0.25,
+        "updatedAt": "2026-11-06T09:56:34.724Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0.5,
-      "rate": 12.5
+      "rate": 13
     },
     "쓱삭이": {
       "nickname": "쓱삭이",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -451,19 +515,23 @@
       "nickname": "꼬다야",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -472,19 +540,23 @@
       "nickname": "모던블루",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -493,19 +565,23 @@
       "nickname": "요령서",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -514,19 +590,23 @@
       "nickname": "믕치",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -535,19 +615,23 @@
       "nickname": "딱딱똥",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -556,19 +640,23 @@
       "nickname": "지골몬",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -577,19 +665,23 @@
       "nickname": "마표",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -598,19 +690,23 @@
       "nickname": "이병헌",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -619,19 +715,23 @@
       "nickname": "우주여행",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -640,19 +740,23 @@
       "nickname": "월계",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -661,19 +765,23 @@
       "nickname": "강원도호랭이",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -682,19 +790,23 @@
       "nickname": "환이햄",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -703,19 +815,23 @@
       "nickname": "저급",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -724,19 +840,23 @@
       "nickname": "쪼로",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -745,19 +865,23 @@
       "nickname": "서리눈",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -766,19 +890,23 @@
       "nickname": "아아라",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -787,19 +915,23 @@
       "nickname": "멍식2",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -808,19 +940,23 @@
       "nickname": "채권",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -829,19 +965,23 @@
       "nickname": "승환킴",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -850,19 +990,23 @@
       "nickname": "사찰",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -871,19 +1015,23 @@
       "nickname": "다하네",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -892,19 +1040,23 @@
       "nickname": "탑몬스터",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -913,19 +1065,23 @@
       "nickname": "희옥이",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -934,19 +1090,23 @@
       "nickname": "붕찬",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -955,19 +1115,23 @@
       "nickname": "정지태",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -976,19 +1140,23 @@
       "nickname": "가시개미",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -997,19 +1165,23 @@
       "nickname": "소사마귀",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1018,19 +1190,23 @@
       "nickname": "어프로치",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1039,19 +1215,23 @@
       "nickname": "츱",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1060,19 +1240,23 @@
       "nickname": "냥냥쨉",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1081,19 +1265,23 @@
       "nickname": "냥냥킥",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1102,19 +1290,23 @@
       "nickname": "무당청명",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1122,64 +1314,74 @@
     "테스트전사1": {
       "nickname": "테스트전사1",
       "yosin": {
-        "type": "MANUAL",
-        "points": 1,
-        "updatedAt": "2026-11-06T09:37:57.208Z"
+        "type": "ABSENT",
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
-      "totalPoints": 1,
-      "rate": 25
+      "totalPoints": 0,
+      "rate": 0
     },
     "테스트전사2": {
       "nickname": "테스트전사2",
       "yosin": {
-        "type": "CLONE",
-        "points": 0.25,
-        "updatedAt": "2026-11-06T09:37:57.233Z"
+        "type": "ABSENT",
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
-      "totalPoints": 0.25,
-      "rate": 6
+      "totalPoints": 0,
+      "rate": 0
     },
     "신규문파원99": {
       "nickname": "신규문파원99",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1188,19 +1390,23 @@
       "nickname": "문파원_1793957785",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
@@ -1209,25 +1415,76 @@
       "nickname": "문파원_1793957849",
       "yosin": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "gyeolgye": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "mihok": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "singi": {
         "type": "ABSENT",
-        "points": 0
+        "points": 0,
+        "updatedAt": "2026-11-06T09:56:34.547Z"
       },
       "totalPoints": 0,
       "rate": 0
     }
   },
   "auctions": [
+    {
+      "id": "auc_1793958431470",
+      "title": "🔥 [전설] 신기 쟁탈전 보물 상패",
+      "description": "",
+      "startingBid": 10000,
+      "minBidIncrement": 1000,
+      "currentBid": 11000,
+      "status": "ENDED",
+      "bidsCount": 1,
+      "endsAt": "2026-11-09T09:47:11.470Z",
+      "createdAt": "2026-11-06T09:47:11.470Z",
+      "highestBidderNickname": "테스트전사1",
+      "highestBidderId": "usr_1793957075381",
+      "distribution": {
+        "totalGold": 11000,
+        "totalPoints": 8,
+        "goldPerPoint": 1375,
+        "participants": [
+          {
+            "nickname": "뱀설",
+            "points": 4,
+            "share": 5500
+          },
+          {
+            "nickname": "상두불",
+            "points": 2.25,
+            "share": 3093
+          },
+          {
+            "nickname": "테스트전사1",
+            "points": 1,
+            "share": 1375
+          },
+          {
+            "nickname": "해암",
+            "points": 0.5,
+            "share": 687
+          },
+          {
+            "nickname": "테스트전사2",
+            "points": 0.25,
+            "share": 343
+          }
+        ],
+        "leftoverGold": 2
+      }
+    },
     {
       "id": "auc_1793957877362",
       "title": "🔥 [전설] 신기 쟁탈전 보물 상패",
@@ -1324,6 +1581,14 @@
     }
   ],
   "bids": [
+    {
+      "id": "bid_1793958432254",
+      "auctionId": "auc_1793958431470",
+      "bidderNickname": "테스트전사1",
+      "bidderId": "usr_1793957075381",
+      "amount": 11000,
+      "createdAt": "2026-11-06T09:47:12.255Z"
+    },
     {
       "id": "bid_1793957877398",
       "auctionId": "auc_1793957877362",

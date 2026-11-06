@@ -132,27 +132,35 @@ export default function AttendancePage() {
           </p>
         </div>
 
-        {currentUser?.role === 'ADMIN' && (
-          <div className="flex items-center space-x-2 self-start sm:self-auto">
-            <button
-              onClick={() => {
-                setSelectedMember(attendance[0]?.nickname || '');
-                setIsCheckModalOpen(true);
-              }}
-              className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>수동 출석 체크 (관리자)</span>
-            </button>
-            <button
-              onClick={handleWeeklyReset}
-              className="inline-flex items-center space-x-2 px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>주간 초기화</span>
-            </button>
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <a
+            href="/distribution"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:brightness-110 text-white font-bold text-xs shadow-md transition-all"
+          >
+            <span>💰 참여 & 배분 정산소</span>
+          </a>
+          {currentUser?.role === 'ADMIN' && (
+            <>
+              <button
+                onClick={() => {
+                  setSelectedMember(attendance[0]?.nickname || '');
+                  setIsCheckModalOpen(true);
+                }}
+                className="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors"
+              >
+                <UserCheck className="w-4 h-4" />
+                <span>수동 출석 체크</span>
+              </button>
+              <button
+                onClick={handleWeeklyReset}
+                className="inline-flex items-center space-x-2 px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>주간 초기화</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Discord Bot Sync Info Banner */}
