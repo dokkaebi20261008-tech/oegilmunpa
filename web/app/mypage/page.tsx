@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Trophy, Coins, CheckCircle, ArrowRight } from 'lucide-react';
-import { MemberAttendance } from '@/lib/types';
+import { MemberAttendance, getRoleLabel } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 export default function MyPage() {
@@ -13,7 +13,7 @@ export default function MyPage() {
   const [loading, setLoading] = useState(true);
 
   const loadMyData = () => {
-    fetch('/api/auth/me', { cache: 'no-store' })
+    fetch(`/api/auth/me?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         if (!d.authenticated) {
@@ -25,7 +25,7 @@ export default function MyPage() {
       })
       .catch(() => setLoading(false));
 
-    fetch('/api/attendance', { cache: 'no-store' })
+    fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(d => setGuildSummary(d));
   };
@@ -88,8 +88,8 @@ export default function MyPage() {
         <div className="text-center sm:text-left space-y-1">
           <div className="flex items-center justify-center sm:justify-start space-x-2">
             <h1 className="text-2xl font-black text-white">{currentUser.nickname}</h1>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
-              {currentUser.role === 'ADMIN' ? '문파장 / 관리자' : '외길 정회원'}
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">
+              {getRoleLabel(currentUser.role)}
             </span>
           </div>
           <p className="text-xs text-slate-400">

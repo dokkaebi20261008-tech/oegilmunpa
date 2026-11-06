@@ -5,12 +5,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, Swords, Gavel, ShoppingBag, User as UserIcon, LogOut, CheckCircle2, Menu, X, Users, Calculator } from 'lucide-react';
 import { getCachedUser, setCachedUser } from '@/lib/clientAuth';
+import { isManagerRole, getRoleLabel } from '@/lib/types';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<any>(() => getCachedUser());
   const [pendingCount, setPendingCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const getRoleBadgeClass = (role?: string) => {
+    if (role === 'ADMIN') return 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+    if (role === 'SUB_ADMIN') return 'bg-purple-500/20 text-purple-300 border-purple-500/40';
+    if (role === 'ELITE_MEMBER') return 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+    return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+  };
 
   const syncData = () => {
     fetch('/api/auth/me', { cache: 'no-store' })
@@ -19,7 +27,7 @@ export default function Navbar() {
         if (data.authenticated && data.user) {
           setCachedUser(data.user);
           setCurrentUser(data.user);
-          if (data.user.role === 'ADMIN') {
+          if (isManagerRole(data.user.role)) {
             fetch('/api/admin/users', { cache: 'no-store' })
               .then(r => r.json())
               .then(ud => setPendingCount(ud.pendingCount || 0))
@@ -63,10 +71,10 @@ export default function Navbar() {
     { href: '/', label: '문파 포털 안내', icon: Shield },
   ];
 
-  if (currentUser?.role === 'ADMIN') {
+  if (isManagerRole(currentUser?.role)) {
     navLinks.push({
       href: '/admin/members',
-      label: '어드민 회원관리',
+      label: '회원·등급 관리',
       icon: Users,
     });
   }
@@ -133,8 +141,8 @@ export default function Navbar() {
                   </div>
                   <div className="whitespace-nowrap">
                     <span className="font-bold text-slate-200 whitespace-nowrap">{currentUser.nickname}</span>
-                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold whitespace-nowrap">
-                      {currentUser.role === 'ADMIN' ? '문파장' : '정회원'}
+                    <span className={`ml-1.5 text-[10px] px-1.5 py-0.5 rounded border font-semibold whitespace-nowrap ${getRoleBadgeClass(currentUser.role)}`}>
+                      {getRoleLabel(currentUser.role)}
                     </span>
                   </div>
                 </Link>
@@ -200,7 +208,7 @@ export default function Navbar() {
             {currentUser ? (
               <div className="flex items-center justify-between">
                 <Link href="/mypage" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-200">
-                  {currentUser.nickname} ({currentUser.role === 'ADMIN' ? '문파장' : '정회원'})
+                  {currentUser.nickname} ({getRoleLabel(currentUser.role)})
                 </Link>
                 <button
                   onClick={handleLogout}

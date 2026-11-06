@@ -15,7 +15,7 @@ import {
   Vault,
   Flame
 } from 'lucide-react';
-import { MemberAttendance, ContentType, ParticipationType } from '@/lib/types';
+import { MemberAttendance, ContentType, ParticipationType, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 export default function DistributionPage() {
@@ -36,15 +36,15 @@ export default function DistributionPage() {
   const [copied, setCopied] = useState(false);
   const [distributing, setDistributing] = useState(false);
 
-  // 신규 문파원 추가 모달 (어드민 전용)
+  // 신규 문파원 추가 모달 (관리자 전용)
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const isAdmin = isManagerRole(currentUser?.role);
 
   const fetchAttendance = () => {
-    fetch('/api/attendance', { cache: 'no-store' })
+    fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);

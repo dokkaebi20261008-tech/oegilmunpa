@@ -19,7 +19,7 @@ import {
   Award,
   ShoppingBag
 } from 'lucide-react';
-import { MemberAttendance } from '@/lib/types';
+import { MemberAttendance, getRoleLabel } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 export default function HomePage() {
@@ -39,7 +39,7 @@ export default function HomePage() {
   const [filter, setFilter] = useState<'ALL' | 'ACTIVE' | 'PERFECT'>('ALL');
 
   const loadDashboardData = () => {
-    fetch('/api/attendance', { cache: 'no-store' })
+    fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         setData(d);
@@ -260,7 +260,7 @@ export default function HomePage() {
                 <span>정회원 인증 완료</span>
               </div>
               <span className="text-xs text-slate-400">
-                접속자: <strong className="text-white">{currentUser.nickname}</strong> ({currentUser.role === 'ADMIN' ? '문파장' : '정회원'})
+                접속자: <strong className="text-white">{currentUser.nickname}</strong> ({getRoleLabel(currentUser.role)})
               </span>
             </div>
 

@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getDb, saveDb, activateScheduledAuction, finalizeSingleAuction } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { isManagerRole } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
     const user = await getCurrentUser(req);
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json({ success: false, message: '경매 진행/마감 제어는 문파장(어드민)만 가능합니다.' }, { status: 403 });
+    if (!isManagerRole(user?.role)) {
+      return NextResponse.json({ success: false, message: '경매 진행/마감 제어는 문주 또는 부문주만 가능합니다.' }, { status: 403 });
     }
 
     let action = 'END';

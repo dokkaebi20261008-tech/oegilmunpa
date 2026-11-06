@@ -1,11 +1,34 @@
-export type Role = 'ADMIN' | 'MEMBER';
+export type Role = 'ADMIN' | 'SUB_ADMIN' | 'ELITE_MEMBER' | 'MEMBER';
 export type UserStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: '문주',
+  SUB_ADMIN: '부문주',
+  ELITE_MEMBER: '열혈 문파원',
+  MEMBER: '문파원',
+};
+
+export const ROLE_RANK: Record<Role, number> = {
+  ADMIN: 100,       // 문주 (어드민 / 최고 권력자)
+  SUB_ADMIN: 80,    // 부문주 (사이트 전체 관리 권한 보유, 단 문주 권한 침범 불가)
+  ELITE_MEMBER: 20, // 열혈 문파원
+  MEMBER: 10,       // 일반 문파원
+};
+
+export function isManagerRole(role?: string | null): boolean {
+  return role === 'ADMIN' || role === 'SUB_ADMIN';
+}
+
+export function getRoleLabel(role?: string | null): string {
+  if (!role) return '문파원';
+  return ROLE_LABELS[role as Role] || '문파원';
+}
 
 export interface User {
   id: string;
   username: string;
   passwordHash: string;
-  plainPassword?: string; // 문파원 분실 시 어드민(문파장)만 열람 가능한 비밀번호
+  plainPassword?: string; // 문파원 분실 시 문주/부문주가 열람 가능한 비밀번호 (문주 비밀번호는 부문주에게 비공개 보호)
   nickname: string;
   role: Role;
   status: UserStatus;

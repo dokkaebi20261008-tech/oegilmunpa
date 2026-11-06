@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { User } from './types';
+import { User, Role } from './types';
 import { getDb } from './db';
 
 const SESSION_COOKIE = 'oegil_session';
@@ -7,7 +7,7 @@ const SESSION_COOKIE = 'oegil_session';
 export interface SessionData {
   userId: string;
   nickname: string;
-  role: 'ADMIN' | 'MEMBER';
+  role: Role;
 }
 
 export function createSessionToken(user: User): string {

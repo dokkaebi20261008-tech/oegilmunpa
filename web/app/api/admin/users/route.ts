@@ -2,29 +2,42 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getDb, saveDb } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { Role, ROLE_LABELS, ROLE_RANK, isManagerRole } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
+
+const VALID_ROLES: Role[] = ['ADMIN', 'SUB_ADMIN', 'ELITE_MEMBER', 'MEMBER'];
 
 export async function GET(req: Request) {
   try {
     const user = await getCurrentUser(req);
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !isManagerRole(user.role)) {
       return NextResponse.json(
-        { success: false, message: '문파장(어드민) 권한이 필요합니다.' },
+        { success: false, message: '문주 또는 부문주 권한이 필요합니다.' },
         { status: 403 }
       );
     }
 
     const db = await getDb();
-    const adminViewUsers = db.users.map(u => ({
-      id: u.id,
-      username: u.username,
-      plainPassword: u.plainPassword || (u.role === 'ADMIN' ? '(문파장 보안 비밀번호)' : '(이전 가입 계정 - 비번 재설정 가능)'),
-      nickname: u.nickname,
-      role: u.role,
-      status: u.status || 'APPROVED',
-      createdAt: u.createdAt,
-    }));
+    const adminViewUsers = db.users
+      .map(u => ({
+        id: u.id,
+        username: u.username,
+        // 문주(ADMIN) 계정의 비밀번호는 누구에게도(부문주 포함) 평문 노출되지 않도록 보호
+        plainPassword:
+          u.role === 'ADMIN'
+            ? '(문주 보안 비밀번호)'
+            : u.plainPassword || '(이전 가입 계정 - 비번 재설정 가능)',
+        nickname: u.nickname,
+        role: (u.role || 'MEMBER') as Role,
+        status: u.status || 'APPROVED',
+        createdAt: u.createdAt,
+      }))
+      .sort((a, b) => {
+        const rankDiff = (ROLE_RANK[b.role] || 0) - (ROLE_RANK[a.role] || 0);
+        if (rankDiff !== 0) return rankDiff;
+        return a.nickname.localeCompare(b.nickname, 'ko');
+      });
 
     const pendingCount = adminViewUsers.filter(u => u.status === 'PENDING').length;
 
@@ -41,27 +54,36 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser(req);
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !isManagerRole(user.role)) {
       return NextResponse.json(
-        { success: false, message: '문파장(어드민) 권한이 필요합니다.' },
+        { success: false, message: '문주 또는 부문주 권한이 필요합니다.' },
         { status: 403 }
       );
     }
 
     const body = await req.json();
-    const { action, userId, newPassword, username, password, nickname } = body;
+    const { action, userId, newPassword, username, password, nickname, role, newRole } = body;
     const db = await getDb();
 
-    // 어드민이 문파원 계정을 직접 생성 (즉시 정회원 승인 상태)
+    // 1. 문주/부문주가 문파원 계정을 직접 생성 (즉시 정회원 승인 상태)
     if (action === 'CREATE_APPROVED_USER') {
       const cleanUsername = String(username || '').trim().toLowerCase();
       const cleanPass = String(password || '').trim();
       const cleanNickname = String(nickname || '').trim();
+      const requestedRole: Role = VALID_ROLES.includes(role) ? role : 'MEMBER';
 
       if (!cleanUsername || !cleanPass || !cleanNickname) {
         return NextResponse.json(
           { success: false, message: '캐릭터 닉네임, 로그인 아이디, 비밀번호를 모두 입력해주세요.' },
           { status: 400 }
+        );
+      }
+
+      // 부문주는 문주(ADMIN) 계정을 생성할 수 없음
+      if (requestedRole === 'ADMIN' && user.role !== 'ADMIN') {
+        return NextResponse.json(
+          { success: false, message: '부문주 권한으로는 최고 권력자인 [문주] 등급 계정을 생성할 수 없습니다.' },
+          { status: 403 }
         );
       }
 
@@ -78,7 +100,7 @@ export async function POST(req: Request) {
         passwordHash: crypto.createHash('sha256').update(cleanPass).digest('hex'),
         plainPassword: cleanPass,
         nickname: cleanNickname,
-        role: 'MEMBER' as const,
+        role: requestedRole,
         status: 'APPROVED' as const,
         createdAt: new Date().toISOString()
       };
@@ -100,7 +122,7 @@ export async function POST(req: Request) {
       await saveDb(db);
       return NextResponse.json({
         success: true,
-        message: `'${cleanNickname}' 문파원 계정이 즉시 승인 상태로 생성되었습니다!`
+        message: `'${cleanNickname}' 계정이 [${ROLE_LABELS[requestedRole]}] 등급으로 즉시 승인 생성되었습니다!`
       });
     }
 
@@ -113,8 +135,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: '해당 회원을 찾을 수 없습니다.' }, { status: 404 });
     }
 
+    // 🔒 위계 보호 원칙: 부문주(SUB_ADMIN)는 절대 문주(ADMIN) 계정을 수정/삭제/강등/비번변경 할 수 없음!
+    if (targetUser.role === 'ADMIN' && user.role !== 'ADMIN') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '⛔ 부문주 권한으로는 최고 권력자인 [문주] 계정의 권한이나 정보를 변경할 수 없습니다.'
+        },
+        { status: 403 }
+      );
+    }
+
+    // 2. 가입 승인 (승인 시 등급 지정 가능, 기본값 문파원)
     if (action === 'APPROVE') {
+      const assignedRole: Role = VALID_ROLES.includes(role) ? role : targetUser.role || 'MEMBER';
+      if (assignedRole === 'ADMIN' && user.role !== 'ADMIN') {
+        return NextResponse.json(
+          { success: false, message: '부문주 권한으로는 [문주] 등급을 부여할 수 없습니다.' },
+          { status: 403 }
+        );
+      }
+
       targetUser.status = 'APPROVED';
+      targetUser.role = assignedRole;
+
       if (!db.members.includes(targetUser.nickname)) {
         db.members.push(targetUser.nickname);
         db.attendance[targetUser.nickname] = {
@@ -130,10 +174,62 @@ export async function POST(req: Request) {
       await saveDb(db);
       return NextResponse.json({
         success: true,
-        message: `'${targetUser.nickname}' 문파원의 가입이 정식 승인되었습니다!`
+        message: `'${targetUser.nickname}' 님의 가입이 [${ROLE_LABELS[assignedRole]}] 등급으로 정식 승인되었습니다!`
       });
     }
 
+    // 3. 회원 등급(직책) 변경: 문주 / 부문주 / 열혈 문파원 / 문파원
+    if (action === 'UPDATE_ROLE') {
+      const targetRole = (newRole || role) as Role;
+      if (!VALID_ROLES.includes(targetRole)) {
+        return NextResponse.json(
+          { success: false, message: '유효한 등급(문주, 부문주, 열혈 문파원, 문파원)을 선택해주세요.' },
+          { status: 400 }
+        );
+      }
+
+      // 창립 문주(뱀설) 계정은 절대 강등 불가
+      if (targetUser.username === '뱀설' && targetRole !== 'ADMIN') {
+        return NextResponse.json(
+          { success: false, message: '⛔ 최고 권력자인 문주(뱀설) 계정의 등급은 변경할 수 없습니다.' },
+          { status: 403 }
+        );
+      }
+
+      // 부문주는 누구에게도(본인 포함) 문주(ADMIN) 등급을 부여할 수 없음
+      if (targetRole === 'ADMIN' && user.role !== 'ADMIN') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '⛔ 부문주 권한으로는 최고 권력자인 [문주] 등급을 부여할 수 없습니다. 오직 문주만 부여할 수 있습니다.'
+          },
+          { status: 403 }
+        );
+      }
+
+      // 부문주가 다른 부문주의 등급을 강등/변경하는 것 방지 (문주만 부문주 해임 가능)
+      if (user.role === 'SUB_ADMIN' && targetUser.role === 'SUB_ADMIN' && user.userId !== targetUser.id) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: '⛔ 다른 부문주의 등급 변경은 최고 권력자인 [문주]만 가능합니다.'
+          },
+          { status: 403 }
+        );
+      }
+
+      const prevRoleLabel = ROLE_LABELS[targetUser.role] || '문파원';
+      const nextRoleLabel = ROLE_LABELS[targetRole];
+      targetUser.role = targetRole;
+      await saveDb(db);
+
+      return NextResponse.json({
+        success: true,
+        message: `'${targetUser.nickname}' 님의 등급이 [${prevRoleLabel}] ➔ [${nextRoleLabel}](으)로 변경되었습니다.`
+      });
+    }
+
+    // 4. 가입 거절
     if (action === 'REJECT') {
       targetUser.status = 'REJECTED';
       await saveDb(db);
@@ -143,7 +239,14 @@ export async function POST(req: Request) {
       });
     }
 
+    // 5. 비밀번호 재설정
     if (action === 'UPDATE_PASSWORD') {
+      if (user.role === 'SUB_ADMIN' && targetUser.role === 'SUB_ADMIN' && user.userId !== targetUser.id) {
+        return NextResponse.json(
+          { success: false, message: '다른 부문주의 비밀번호 변경은 최고 권력자인 [문주]만 가능합니다.' },
+          { status: 403 }
+        );
+      }
       if (!newPassword || String(newPassword).trim().length === 0) {
         return NextResponse.json({ success: false, message: '변경할 새 비밀번호를 입력해주세요.' }, { status: 400 });
       }
@@ -157,7 +260,21 @@ export async function POST(req: Request) {
       });
     }
 
+    // 6. 계정 삭제
     if (action === 'DELETE') {
+      if (targetUser.username === '뱀설' || targetUser.role === 'ADMIN') {
+        return NextResponse.json(
+          { success: false, message: '⛔ 최고 권력자인 [문주] 계정은 삭제할 수 없습니다.' },
+          { status: 403 }
+        );
+      }
+      if (user.role === 'SUB_ADMIN' && targetUser.role === 'SUB_ADMIN' && user.userId !== targetUser.id) {
+        return NextResponse.json(
+          { success: false, message: '⛔ 다른 부문주 계정 삭제는 최고 권력자인 [문주]만 가능합니다.' },
+          { status: 403 }
+        );
+      }
+
       db.users = db.users.filter(u => u.id !== userId);
       await saveDb(db);
       return NextResponse.json({

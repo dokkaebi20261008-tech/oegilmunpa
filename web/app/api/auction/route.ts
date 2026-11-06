@@ -8,6 +8,7 @@ import {
   maskAuctionForClient
 } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { isManagerRole } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,8 +57,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser(req);
-    if (!user || user.role !== 'ADMIN') {
-      return NextResponse.json({ success: false, message: '문파장(어드민)만 신규 경매를 등록할 수 있습니다.' }, { status: 403 });
+    if (!user || !isManagerRole(user.role)) {
+      return NextResponse.json({ success: false, message: '문주 또는 부문주만 신규 경매를 등록할 수 있습니다.' }, { status: 403 });
     }
 
     const { title, description, imageUrl, startingBid, minBidIncrement, mode } = await req.json();

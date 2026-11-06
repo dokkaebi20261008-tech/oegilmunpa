@@ -7,7 +7,7 @@ import {
   checkAndFinalizeExpiredAuctions
 } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
-import { ContentType, ParticipationType } from '@/lib/types';
+import { ContentType, ParticipationType, isManagerRole } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,9 +75,9 @@ export async function POST(req: Request) {
       authHeader === `Bearer ${process.env.API_SECRET || 'oegil_secret'}` ||
       (!user && userAgent.includes('python-requests'));
 
-    if (!isBotRequest && (!user || user.role !== 'ADMIN')) {
+    if (!isBotRequest && (!user || !isManagerRole(user.role))) {
       return NextResponse.json(
-        { success: false, message: '문파장(어드민)만 출석 및 창고 금전/배점 설정을 수정할 수 있습니다.' },
+        { success: false, message: '문주 또는 부문주만 출석 및 창고 금전/배점 설정을 수정할 수 있습니다.' },
         { status: 403 }
       );
     }
@@ -179,8 +179,8 @@ export async function POST(req: Request) {
     // 4. [문파 창고 세이브 금전 분배 실행 (분배 시 창고 금전 차감 & 선택 시 점수 초기화)]
     if (action === 'DISTRIBUTE_TREASURY_GOLD') {
       const user = await getCurrentUser(req);
-      if (!user || user.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '문파 창고 금전 분배 처리는 문파장(어드민)만 가능합니다.' }, { status: 403 });
+      if (!user || !isManagerRole(user.role)) {
+        return NextResponse.json({ success: false, message: '문파 창고 금전 분배 처리는 문주 또는 부문주만 가능합니다.' }, { status: 403 });
       }
 
       const currentTreasury = db.treasuryGold || 0;
@@ -245,11 +245,11 @@ export async function POST(req: Request) {
       });
     }
 
-    // 5. [어드민: 문파 창고 세이브 금전 직접 수정/조정]
+    // 5. [문주 / 부문주: 문파 창고 세이브 금전 직접 수정/조정]
     if (action === 'UPDATE_TREASURY_GOLD') {
       const user = await getCurrentUser(req);
-      if (!user || user.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '문파장(어드민) 권한이 필요합니다.' }, { status: 403 });
+      if (!user || !isManagerRole(user.role)) {
+        return NextResponse.json({ success: false, message: '문주 또는 부문주 권한이 필요합니다.' }, { status: 403 });
       }
       const newGold = parseInt(String(body.newTreasuryGold), 10);
       if (isNaN(newGold) || newGold < 0) {
@@ -309,6 +309,14 @@ export async function POST(req: Request) {
       const targetName = String(nickname || '').trim();
       if (!targetName) {
         return NextResponse.json({ success: false, message: '삭제할 문파원 닉네임을 입력해주세요.' }, { status: 400 });
+      }
+      // 문주(ADMIN) 캐릭터는 부문주가 삭제할 수 없도록 보호
+      const targetAcc = db.users.find(u => u.nickname === targetName);
+      if (targetName === '뱀설' || (targetAcc?.role === 'ADMIN' && user?.role !== 'ADMIN')) {
+        return NextResponse.json(
+          { success: false, message: '⛔ 최고 권력자인 [문주]는 출석부에서 삭제할 수 없습니다.' },
+          { status: 403 }
+        );
       }
       db.members = db.members.filter(n => n !== targetName);
       delete db.attendance[targetName];

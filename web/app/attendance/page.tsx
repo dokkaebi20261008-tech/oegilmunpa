@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award } from 'lucide-react';
-import { MemberAttendance, ContentType, ParticipationType } from '@/lib/types';
+import { MemberAttendance, ContentType, ParticipationType, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 export default function AttendancePage() {
@@ -13,6 +13,8 @@ export default function AttendancePage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const canManage = isManagerRole(currentUser?.role);
+
   // 관리자 직접 체크 모달
   const [isCheckModalOpen, setIsCheckModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState('');
@@ -21,7 +23,7 @@ export default function AttendancePage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAttendance = () => {
-    fetch('/api/attendance', { cache: 'no-store' })
+    fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);
@@ -224,7 +226,7 @@ export default function AttendancePage() {
           >
             <span>💰 참여 & 배분 정산소</span>
           </a>
-          {currentUser?.role === 'ADMIN' && (
+          {canManage && (
             <>
               <button
                 onClick={() => {
@@ -335,7 +337,7 @@ export default function AttendancePage() {
                 <th className="py-3 px-4 text-center">이번주 점수</th>
                 <th className="py-3 px-4 text-center">총 누적 포인트</th>
                 <th className="py-3 px-4 text-center">주간 참여율</th>
-                {currentUser?.role === 'ADMIN' && (
+                {canManage && (
                   <th className="py-3 px-4 text-center w-24">관리</th>
                 )}
               </tr>
@@ -381,7 +383,7 @@ export default function AttendancePage() {
                         {member.totalPoints}P
                       </td>
                       <td className="py-3 px-4 text-center text-xs font-semibold text-slate-400">{member.rate}%</td>
-                      {currentUser?.role === 'ADMIN' && (
+                      {canManage && (
                         <td className="py-3 px-4 text-center">
                           <button
                             onClick={() => {

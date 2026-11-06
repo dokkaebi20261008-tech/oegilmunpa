@@ -9,6 +9,7 @@ import {
   maskAuctionForClient
 } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { isManagerRole, getRoleLabel } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,10 +53,10 @@ export async function POST(req: Request) {
     const todayKST = getKSTDateStr();
     const wednesdaySchedule = getKSTWednesdaySchedule();
 
-    // 1. 문파장(어드민) 전용: 문파 재화 '용맹의 증표' 업데이트 (전체 공개 내역 기록)
+    // 1. 문주 / 부문주 전용: 문파 재화 '용맹의 증표' 업데이트 (전체 공개 내역 기록)
     if (action === 'UPDATE_GUILD_TOKENS') {
-      if (user.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '문파장(어드민)만 용맹의 증표를 업데이트할 수 있습니다.' }, { status: 403 });
+      if (!isManagerRole(user.role)) {
+        return NextResponse.json({ success: false, message: '문주 또는 부문주만 용맹의 증표를 업데이트할 수 있습니다.' }, { status: 403 });
       }
       const rawBal = body.newBalance !== undefined ? body.newBalance : body.guildTokens;
       const parsedBalance = parseInt(String(rawBal), 10);
@@ -67,7 +68,8 @@ export async function POST(req: Request) {
       const delta = parsedBalance - prevBalance;
       db.guildTokens = parsedBalance;
 
-      const cleanMemo = String(body.memo || body.reason || '').trim() || '문파장 용맹의 증표 보유량 업데이트';
+      const roleName = getRoleLabel(user.role);
+      const cleanMemo = String(body.memo || body.reason || '').trim() || `${roleName} 용맹의 증표 보유량 업데이트`;
       db.tokenLedger.unshift({
         id: `tok_${Date.now()}`,
         type: 'ADMIN_UPDATE',
@@ -88,14 +90,14 @@ export async function POST(req: Request) {
     }
 
     // 2. 내 캐릭터로 상품 구매 희망 신청 / 취소 토글
-    // 한국 시간(KST) 기준 매주 수요일 오후 7시(19:00) ~ 오후 7시 30분(19:30)에만 희망 신청 오픈!
-    // 신청자가 있으면 수요일 19:30에 자동 경매 시작 -> 20:00에 자동 경매 종료 및 낙찰자/낙찰금액 안내!
+    // 매주 수요일 19:00:00 ~ 19:29:59 에만 희망 신청 오픈!
+    // 신청자가 있으면 수요일 19:30:00에 자동 경매 시작 -> 19:59:59까지 입찰 -> 20:00:00에 자동 경매 종료 및 낙찰자 공개!
     if (action === 'TOGGLE_APPLICANT') {
-      const isAdminOverride = Boolean(body.forceAdminTest && user.role === 'ADMIN');
+      const isAdminOverride = Boolean(body.forceAdminTest && isManagerRole(user.role));
       if (!wednesdaySchedule.isShopOpen && !isAdminOverride) {
         return NextResponse.json({
           success: false,
-          message: `문파 상점 구매 희망 신청은 한국 시간(KST) 기준 매주 수요일 오후 7시 ~ 오후 7시 30분에만 오픈됩니다.\n(현재 시각: ${wednesdaySchedule.nowKSTFormatted})`
+          message: `문파 상점 구매 희망 신청은 매주 수요일 오후 7시부터 7시 30분까지(19:00:00 ~ 19:29:59) 오픈됩니다.`
         }, { status: 400 });
       }
 
@@ -128,21 +130,21 @@ export async function POST(req: Request) {
 
       if (item.applicants.length > 0) {
         if (!scheduledAuc) {
-          // 수요일 오후 7시 30분(19:30 KST) 자동 경매 시작, 오후 8시(20:00 KST) 자동 경매 종료 예약
+          // 수요일 19:30:00 자동 경매 시작, 19:59:59까지 입찰 후 20:00:00 자동 경매 종료 예약
           const nowMs = Date.now();
           scheduledAuc = {
             id: `auc_${nowMs}`,
             title: item.name,
-            description: `[수요일 정기 자동 경매] 수요일 오후 7시 30분 자동 시작 ~ 오후 8시 자동 종료 (종료 즉시 낙찰자 및 최종 낙찰금액 공개)`,
+            description: `[수요일 정기 자동 경매] 19:30:00 자동 시작 ~ 19:59:59 입찰 마감 (20:00:00 종료 즉시 낙찰자 및 최종 낙찰금액 공개)`,
             imageUrl: '/images/shop-weapon.png',
             startingBid: item.minStartBid || 20000,
             minBidIncrement: item.bidStep || 500,
             currentBid: item.minStartBid || 20000,
             status: 'SCHEDULED',
-            scheduledStartAt: wednesdaySchedule.auctionStartAtISO, // 수요일 19:30:00 KST
+            scheduledStartAt: wednesdaySchedule.auctionStartAtISO, // 수요일 19:30:00
             applicants: [...item.applicants],
             bidsCount: 0,
-            endsAt: wednesdaySchedule.auctionEndAtISO,             // 수요일 20:00:00 KST
+            endsAt: wednesdaySchedule.auctionEndAtISO,             // 수요일 20:00:00
             createdAt: new Date(nowMs).toISOString()
           };
           db.auctions.unshift(scheduledAuc);
@@ -153,7 +155,7 @@ export async function POST(req: Request) {
           scheduledAuc.endsAt = wednesdaySchedule.auctionEndAtISO;
         }
       } else if (scheduledAuc) {
-        // 대기 중 전원이 신청을 취소한 경우 수요일 19:30 예정 경매 취소
+        // 대기 중 전원이 신청을 취소한 경우 수요일 19:30:00 예정 경매 취소
         db.auctions = db.auctions.filter(a => a.id !== scheduledAuc!.id);
         item.activeAuctionId = undefined;
       }
@@ -167,15 +169,15 @@ export async function POST(req: Request) {
         wednesdaySchedule,
         auctions: db.auctions.map(maskAuctionForClient),
         message: !exists
-          ? '구매 희망 신청이 완료되었습니다! 수요일 오후 7시 30분에 문파 경매장에서 자동으로 익명 경매가 시작되며 오후 8시에 종료됩니다.'
+          ? '구매 희망 신청이 완료되었습니다! 수요일 19:30:00에 자동으로 익명 경매가 시작되며 20:00:00 종료와 동시에 낙찰자가 공개됩니다.'
           : '구매 희망 신청이 취소되었습니다.'
       });
     }
 
-    // 3. 어드민 전용: 경매 최소 입찰가 / 호가 단위 설정 변경
+    // 3. 문주 / 부문주 전용: 경매 최소 입찰가 / 호가 단위 설정 변경
     if (action === 'UPDATE_AUCTION_CONFIG') {
-      if (user.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '문파장(어드민) 권한이 필요합니다.' }, { status: 403 });
+      if (!isManagerRole(user.role)) {
+        return NextResponse.json({ success: false, message: '문주 또는 부문주 권한이 필요합니다.' }, { status: 403 });
       }
       const { startingBid, minBidIncrement } = body;
       const sBid = parseInt(String(startingBid), 10);
@@ -204,10 +206,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // 4. 어드민 전용: 대기 중인 경매를 즉시 본 경매(ACTIVE 30분)로 전환하거나 신규 오픈
+    // 4. 문주 / 부문주 전용: 대기 중인 경매를 즉시 본 경매(ACTIVE 30분)로 전환하거나 신규 오픈
     if (action === 'START_AUCTION_FROM_SHOP') {
-      if (user.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '문파장(어드민)만 즉시 경매를 개시할 수 있습니다.' }, { status: 403 });
+      if (!isManagerRole(user.role)) {
+        return NextResponse.json({ success: false, message: '문주 또는 부문주만 즉시 경매를 개시할 수 있습니다.' }, { status: 403 });
       }
       const { itemId, startingBid, minBidIncrement } = body;
       const item = db.shopItems.find(i => i.id === itemId) || db.shopItems[0];
@@ -226,7 +228,7 @@ export async function POST(req: Request) {
         targetAuc = {
           id: `auc_${nowMs}`,
           title: item.name,
-          description: `[문파 상점 경매] 시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 시 낙찰자 및 최종 낙찰금액이 공개됩니다.`,
+          description: `[문파 상점 경매] 시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 즉시 낙찰자 및 최종 낙찰금액이 공개됩니다.`,
           imageUrl: '/images/shop-weapon.png',
           startingBid: sBid,
           minBidIncrement: mInc,
@@ -260,10 +262,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // 5. 어드민 전용: 희망 신청 마감 잠금 해제
+    // 5. 문주 / 부문주 전용: 희망 신청 마감 잠금 해제
     if (action === 'UNLOCK_DAILY_SHOP') {
-      if (user.role !== 'ADMIN') {
-        return NextResponse.json({ success: false, message: '문파장(어드민) 권한이 필요합니다.' }, { status: 403 });
+      if (!isManagerRole(user.role)) {
+        return NextResponse.json({ success: false, message: '문주 또는 부문주 권한이 필요합니다.' }, { status: 403 });
       }
       db.shopItems.forEach(item => {
         item.dailyLockedDate = undefined;

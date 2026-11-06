@@ -17,7 +17,7 @@ import {
   History,
   Play
 } from 'lucide-react';
-import { AuctionItem, AuctionDistribution, GoldLedgerEntry } from '@/lib/types';
+import { AuctionItem, AuctionDistribution, GoldLedgerEntry, isManagerRole, getRoleLabel } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 export default function AuctionPage() {
@@ -35,7 +35,7 @@ export default function AuctionPage() {
   const [bidError, setBidError] = useState<string>('');
   const [bidLoading, setBidLoading] = useState(false);
 
-  // 어드민 전용 신규 등록 모달
+  // 관리자(문주/부문주) 전용 신규 등록 모달
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('전설 도안 선택 상자');
   const [newDesc, setNewDesc] = useState('');
@@ -50,7 +50,7 @@ export default function AuctionPage() {
   const [resetPointsAfterDist, setResetPointsAfterDist] = useState(false);
   const [distributing, setDistributing] = useState(false);
 
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const canManage = isManagerRole(currentUser?.role);
 
   const fetchAuctions = () => {
     fetch('/api/auction', { cache: 'no-store' })
@@ -375,8 +375,8 @@ export default function AuctionPage() {
                 외길 문파 익명 경매장 & 문파 창고 금전 분배소
               </h1>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                매주 수요일 <strong className="text-amber-300">19:00~19:30 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30~20:00 자동 익명 경매 진행</strong><br className="hidden sm:inline" />
-                <span className="sm:hidden"> • </span>20:00 종료 시 <strong className="text-amber-300">낙찰자·최종 낙찰금액 우선 안내</strong> 및 <strong className="text-emerald-300">세금 10% 공제 금액 창고 적립</strong>
+                매주 수요일 <strong className="text-amber-300">19:00:00 ~ 19:29:59 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30:00 익명 경매 자동 개시 (19:59:59 입찰 마감)</strong><br className="hidden sm:inline" />
+                <span className="sm:hidden"> • </span>20:00:00 종료 시 <strong className="text-amber-300">낙찰자·최종 낙찰금액 우선 공개</strong> 및 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
               </p>
             </div>
           </div>
@@ -388,7 +388,7 @@ export default function AuctionPage() {
             >
               <span>📦 문파 상점</span>
             </Link>
-            {isAdmin && (
+            {canManage && (
               <button
                 onClick={() => setIsCreateOpen(true)}
                 className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs whitespace-nowrap shadow-md shadow-amber-500/20 transition-all"
@@ -579,13 +579,13 @@ export default function AuctionPage() {
                           <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center text-xs text-amber-200 font-semibold leading-relaxed">
                             ⏳ 수요일 오후 7시 30분({timeLeftStr} 후)에<br />자동으로 익명 경매가 시작됩니다.
                           </div>
-                          {isAdmin && (
+                          {canManage && (
                             <button
                               onClick={() => handleStartScheduledNow(auction)}
                               className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center space-x-1.5 whitespace-nowrap"
                             >
                               <Play className="w-3.5 h-3.5 shrink-0" />
-                              <span>어드민: 대기 건너뛰고 즉시 경매 개시</span>
+                              <span>대기 건너뛰고 즉시 경매 개시</span>
                             </button>
                           )}
                         </div>
@@ -599,12 +599,12 @@ export default function AuctionPage() {
                             <span>{nextMinBid.toLocaleString()} 금전부터 익명 입찰하기</span>
                           </button>
 
-                          {isAdmin && (
+                          {canManage && (
                             <button
                               onClick={() => handleEndAuction(auction)}
                               className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors whitespace-nowrap"
                             >
-                              어드민: 경매 즉시 종료 • 낙찰자 및 낙찰금액 공개
+                              경매 즉시 종료 • 낙찰자 및 낙찰금액 공개
                             </button>
                           )}
                         </div>
@@ -718,7 +718,7 @@ export default function AuctionPage() {
                 <label className="text-xs text-slate-300 font-semibold whitespace-nowrap">
                   현재 문파 창고 세이브 금전 (분배 대상)
                 </label>
-                {isAdmin && customGoldInput && (
+                {canManage && customGoldInput && (
                   <button
                     type="button"
                     onClick={() => {
@@ -732,7 +732,7 @@ export default function AuctionPage() {
                 )}
               </div>
 
-              {isAdmin ? (
+              {canManage ? (
                 <div className="relative">
                   <Coins className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -806,7 +806,7 @@ export default function AuctionPage() {
                   </table>
                 </div>
 
-                {isAdmin && (
+                {canManage && (
                   <div className="pt-1 space-y-2 border-t border-slate-800">
                     <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
                       <input
@@ -1014,8 +1014,8 @@ export default function AuctionPage() {
           );
         })()}
 
-      {/* Create Auction Modal (어드민 전용) */}
-      {isAdmin && isCreateOpen && (
+      {/* Create Auction Modal (문주/부문주 전용) */}
+      {canManage && isCreateOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <form
             onSubmit={handleCreateAuction}

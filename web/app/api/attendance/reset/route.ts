@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, saveDb, recalculateMember } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
+import { isManagerRole } from '@/lib/types';
 
 export async function POST(req: Request) {
   try {
@@ -8,8 +9,8 @@ export async function POST(req: Request) {
     const authHeader = req.headers.get('authorization');
     const isSecretValid = authHeader === `Bearer ${process.env.API_SECRET || 'oegil_secret'}`;
 
-    if (!isSecretValid && user?.role !== 'ADMIN') {
-      return NextResponse.json({ success: false, message: '관리자 권한이 필요합니다.' }, { status: 403 });
+    if (!isSecretValid && !isManagerRole(user?.role)) {
+      return NextResponse.json({ success: false, message: '문주 또는 부문주 권한이 필요합니다.' }, { status: 403 });
     }
 
     let body: any = {};
