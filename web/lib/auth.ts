@@ -6,7 +6,6 @@ const SESSION_COOKIE = 'oegil_session';
 
 export interface SessionData {
   userId: string;
-  username: string;
   nickname: string;
   role: 'ADMIN' | 'MEMBER';
 }
@@ -14,7 +13,6 @@ export interface SessionData {
 export function createSessionToken(user: User): string {
   const payload: SessionData = {
     userId: user.id,
-    username: user.username,
     nickname: user.nickname,
     role: user.role,
   };
@@ -62,7 +60,6 @@ export async function getCurrentUser(req?: Request): Promise<SessionData | null>
 
   return {
     userId: user.id,
-    username: user.username,
     nickname: user.nickname,
     role: user.role,
   };

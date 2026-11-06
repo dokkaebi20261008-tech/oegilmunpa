@@ -105,8 +105,8 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      <div className="p-3 bg-slate-950/60 rounded-xl text-[11px] text-slate-500 border border-slate-800/80">
-        💡 <strong>관리자 기본 계정:</strong> admin / admin1234
+      <div className="p-3 bg-slate-950/60 rounded-xl text-[11px] text-slate-400 border border-slate-800/80 text-center">
+        🔒 로그인 아이디는 본인 인증에만 사용되며, 사이트 내 모든 활동명은 <strong>캐릭터 닉네임</strong>으로만 표시됩니다.
       </div>
     </div>
   );

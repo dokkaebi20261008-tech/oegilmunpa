@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getDb, saveDb } from '@/lib/db';
 import { createSessionToken } from '@/lib/auth';
 
@@ -27,10 +28,12 @@ export async function POST(req: Request) {
     const isAdmin = db.users.length === 0;
     const initialStatus = isAdmin ? 'APPROVED' : 'PENDING';
 
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
     const newUser = {
       id: `usr_${Date.now()}`,
       username: cleanUsername,
-      passwordHash: password, // 간편 패스워드
+      passwordHash: hashedPassword,
       nickname: cleanNickname,
       role: (isAdmin ? 'ADMIN' : 'MEMBER') as 'ADMIN' | 'MEMBER',
       status: initialStatus as 'APPROVED' | 'PENDING',
@@ -61,7 +64,6 @@ export async function POST(req: Request) {
         pendingApproval: true,
         message: '회원가입 신청이 완료되었습니다! 문파장(관리자)의 승인 후 로그인하실 수 있습니다.',
         user: {
-          username: newUser.username,
           nickname: newUser.nickname,
           status: newUser.status
         }
@@ -74,7 +76,6 @@ export async function POST(req: Request) {
       pendingApproval: false,
       user: {
         id: newUser.id,
-        username: newUser.username,
         nickname: newUser.nickname,
         role: newUser.role,
         status: newUser.status

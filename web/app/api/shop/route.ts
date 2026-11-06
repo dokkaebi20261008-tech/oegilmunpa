@@ -114,33 +114,45 @@ export async function POST(req: Request) {
       });
     }
 
-    // 5. 사다리 타기 실행 (상품 추첨 및 전 문파원 실시간 결과 공유)
+    // 5. 사다리 타기 실행 (전설 도안 선택 상자 희망자 추첨 또는 부위 추첨, 전 문파원 실시간 결과 공유)
     if (action === 'RUN_LADDER') {
-      const { onlyWithApplicants = true, startCol } = body;
+      const { ladderMode = 'APPLICANTS', startCol } = body;
+      const unifiedItem = db.shopItems[0];
+      const applicants = unifiedItem?.applicants || [];
 
-      // 후보 상품 추출: 희망자가 있는 상품만 추첨할지, 3가지 전체를 추첨할지 결정
-      let candidates = db.shopItems.filter(i => Array.isArray(i.applicants) && i.applicants.length > 0);
-      if (!onlyWithApplicants || candidates.length === 0) {
-        candidates = [...db.shopItems];
-      }
-
-      // 만약 희망자가 있는 상품이 1개뿐인데 사다리를 돌리는 경우, 3가지 상품을 하단에 배치하되 희망 상품들을 포함하여 최소 3줄 사다리 구성
       let ladderCandidates: LadderItemOption[] = [];
-      if (candidates.length === 1 && db.shopItems.length >= 3) {
-        // 희망자가 있는 1개 상품을 포함하여 3개 줄 구성 (당첨 확률 또는 비교 추첨용으로 전체 3상품 배치)
-        ladderCandidates = db.shopItems.map(i => ({
-          itemId: i.id,
-          name: i.name,
-          imageUrl: i.imageUrl || '/images/shop-weapon.png',
-          applicants: i.applicants || []
+
+      if (ladderMode === 'APPLICANTS' && applicants.length >= 2) {
+        // 희망 신청한 문파원(닉네임)별로 사다리 하단 슬롯 구성
+        const icons = ['/images/shop-weapon.png', '/images/shop-armor.png', '/images/shop-acc.png'];
+        ladderCandidates = applicants.map((nick, idx) => ({
+          itemId: unifiedItem.id,
+          name: `전설 도안 선택 상자 (${nick})`,
+          imageUrl: icons[idx % icons.length],
+          applicants: [nick]
         }));
       } else {
-        ladderCandidates = candidates.map(i => ({
-          itemId: i.id,
-          name: i.name,
-          imageUrl: i.imageUrl || '/images/shop-weapon.png',
-          applicants: i.applicants || []
-        }));
+        // 희망자가 2명 미만이거나 부위 추첨 모드일 경우 3열 전설 도안 선택 상자(무기/방어구/장신구 통합) 슬롯 구성
+        ladderCandidates = [
+          {
+            itemId: unifiedItem?.id || 'shop_1',
+            name: '전설 도안 선택 상자 (무기)',
+            imageUrl: '/images/shop-weapon.png',
+            applicants
+          },
+          {
+            itemId: unifiedItem?.id || 'shop_1',
+            name: '전설 도안 선택 상자 (방어구)',
+            imageUrl: '/images/shop-armor.png',
+            applicants
+          },
+          {
+            itemId: unifiedItem?.id || 'shop_1',
+            name: '전설 도안 선택 상자 (장신구)',
+            imageUrl: '/images/shop-acc.png',
+            applicants
+          }
+        ];
       }
 
       // 하단 상품 순서 무작위 셔플 (Fisher-Yates)

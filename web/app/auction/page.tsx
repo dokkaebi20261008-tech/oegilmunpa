@@ -17,7 +17,7 @@ export default function AuctionPage() {
 
   // 신규 등록 모달
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState('전설 무기 도안 선택 상자');
+  const [newTitle, setNewTitle] = useState('전설 도안 선택 상자');
   const [newDesc, setNewDesc] = useState('');
   const [newStartBid, setNewStartBid] = useState(20000);
   const [newMinIncrement, setNewMinIncrement] = useState(500);
@@ -672,24 +672,22 @@ export default function AuctionPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">문파 상점 3대 상품 빠른 선택</label>
+              <label className="text-xs font-semibold text-slate-300">문파 상점 통합 상품 빠른 선택</label>
               <div className="grid grid-cols-1 gap-1.5">
                 {[
-                  '전설 무기 도안 선택 상자',
-                  '산군의 위엄 방어구 도안 선택 상자',
-                  '산군의 어금니 장신구 도안 선택 상자'
+                  '전설 도안 선택 상자'
                 ].map(itemName => (
                   <button
                     key={itemName}
                     type="button"
                     onClick={() => setNewTitle(itemName)}
-                    className={`px-3 py-2 rounded-xl text-left text-xs font-bold border transition-all flex items-center justify-between ${
+                    className={`px-3 py-2.5 rounded-xl text-left text-xs font-bold border transition-all flex items-center justify-between ${
                       newTitle === itemName
                         ? 'bg-amber-500/20 border-amber-400 text-amber-300'
                         : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
                     }`}
                   >
-                    <span>{itemName}</span>
+                    <span>{itemName} (무기 · 방어구 · 장신구 통합)</span>
                     {newTitle === itemName && <span className="text-[10px] font-black">✓ 선택됨</span>}
                   </button>
                 ))}
@@ -701,7 +699,7 @@ export default function AuctionPage() {
               <input
                 type="text"
                 required
-                placeholder="예: 전설 무기 도안 선택 상자"
+                placeholder="예: 전설 도안 선택 상자"
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500"

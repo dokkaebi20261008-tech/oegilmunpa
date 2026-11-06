@@ -36,3 +36,5 @@ Thumbs.db
 *.swp
 
 .vercel
+test_*.py
+web/data/db.json

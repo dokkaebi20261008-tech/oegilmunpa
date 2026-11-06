@@ -81,7 +81,7 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-slate-300">게임 캐릭터 닉네임 (중요)</label>
+          <label className="text-xs font-semibold text-slate-300">게임 캐릭터 닉네임 (사이트 활동명 • 필수)</label>
           <div className="relative">
             <Shield className="w-4 h-4 text-amber-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -89,17 +89,17 @@ export default function RegisterPage() {
               required
               value={nickname}
               onChange={e => setNickname(e.target.value)}
-              placeholder="예: 뱀설, 상두불 등 실제 닉네임"
+              placeholder="게임 내 실제 캐릭터 닉네임 입력"
               className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            * 디스코드 스크린샷 OCR 및 출석 포인트와 실시간 연동됩니다.
+          <p className="text-[11px] text-amber-300/90 mt-0.5">
+            * 사이트 내 모든 곳(출석·사다리·경매·분배)에서 오직 이 닉네임만 활동명으로 표시됩니다.
           </p>
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-slate-300">로그인 아이디</label>
+          <label className="text-xs font-semibold text-slate-300">로그인 전용 아이디 (비공개)</label>
           <div className="relative">
             <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -107,10 +107,13 @@ export default function RegisterPage() {
               required
               value={username}
               onChange={e => setUsername(e.target.value)}
-              placeholder="영문, 숫자 4자 이상"
+              placeholder="본인만 아는 로그인 아이디 입력"
               className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            * 로그인 아이디는 다른 문파원에게 절대 노출되지 않습니다.
+          </p>
         </div>
 
         <div className="space-y-1">

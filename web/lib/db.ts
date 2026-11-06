@@ -85,51 +85,23 @@ function getOfficialShopItems(now: string): ShopItem[] {
   return [
     {
       id: "shop_1",
-      name: "전설 무기 도안 선택 상자",
-      description: "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
-      category: "무기 도안",
+      name: "전설 도안 선택 상자",
+      description: "무기 · 방어구 · 장신구 모든 전설 도안 장비 통합 선택 상자 (11,500 주화)",
+      category: "무기·방어구·장신구 통합",
       price: 11500,
       currency: "문파주화",
       stock: 10,
       maxStock: 10,
       weeklyLimit: "문파 주간 한정: (0/10)",
       imageUrl: "/images/shop-weapon.png",
-      icon: "sword",
-      applicants: ["뱀설", "상두불"],
-      createdAt: now,
-    },
-    {
-      id: "shop_2",
-      name: "산군의 위엄 방어구 도안 선택 상자",
-      description: "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
-      category: "방어구 도안",
-      price: 11500,
-      currency: "문파주화",
-      stock: 10,
-      maxStock: 10,
-      weeklyLimit: "문파 주간 한정: (0/10)",
-      imageUrl: "/images/shop-armor.png",
-      icon: "shield",
-      applicants: ["해암", "로단"],
-      createdAt: now,
-    },
-    {
-      id: "shop_3",
-      name: "산군의 어금니 장신구 도안 선택 상자",
-      description: "문파 상점 11,500 주화 교환 품목 • 희망자 모집 후 사다리 추첨 및 경매 진행",
-      category: "장신구 도안",
-      price: 11500,
-      currency: "문파주화",
-      stock: 10,
-      maxStock: 10,
-      weeklyLimit: "문파 주간 한정: (0/10)",
-      imageUrl: "/images/shop-acc.png",
-      icon: "gem",
-      applicants: ["던롤"],
+      icon: "box",
+      applicants: ["뱀설", "상두불", "해암"],
       createdAt: now,
     }
   ];
 }
+
+const ADMIN_PASS_SHA256 = "e1963081d94b6ccdfb7fe788ac4fb6fc125519d9807208b927311c4e8d52f26e";
 
 function getInitialDb(): DatabaseSchema {
   const now = new Date().toISOString();
@@ -137,19 +109,10 @@ function getInitialDb(): DatabaseSchema {
     users: [
       {
         id: "usr_admin",
-        username: "admin",
-        passwordHash: "admin1234", // 기본 관리자 (문파장)
-        nickname: "문파장",
-        role: "ADMIN",
-        status: "APPROVED",
-        createdAt: now,
-      },
-      {
-        id: "usr_demo",
-        username: "member1",
-        passwordHash: "1234",
+        username: "뱀설",
+        passwordHash: ADMIN_PASS_SHA256,
         nickname: "뱀설",
-        role: "MEMBER",
+        role: "ADMIN",
         status: "APPROVED",
         createdAt: now,
       }
@@ -159,14 +122,14 @@ function getInitialDb(): DatabaseSchema {
     auctions: [
       {
         id: "auc_1",
-        title: "전설 무기 도안 선택 상자",
-        description: "문파 상점 사다리 추첨 선정 상품 • 시작가 20,000 금전 / 최소 호가 단위 500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.",
+        title: "전설 도안 선택 상자",
+        description: "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.",
         imageUrl: "/images/shop-weapon.png",
         startingBid: 20000,
         minBidIncrement: 500,
         currentBid: 20500,
         highestBidderNickname: "뱀설",
-        highestBidderId: "usr_demo",
+        highestBidderId: "usr_admin",
         status: "ACTIVE",
         bidsCount: 2,
         endsAt: new Date(Date.now() + 86400000 * 3).toISOString(),
@@ -186,7 +149,7 @@ function getInitialDb(): DatabaseSchema {
         id: "bid_2",
         auctionId: "auc_1",
         bidderNickname: "뱀설",
-        bidderId: "usr_demo",
+        bidderId: "usr_admin",
         amount: 20500,
         createdAt: new Date(Date.now() - 1800000).toISOString(),
       }
@@ -207,40 +170,82 @@ export function getDb(): DatabaseSchema {
       const data = fs.readFileSync(filePath, 'utf-8');
       memoryDbCache = JSON.parse(data);
       let migrated = false;
-      if (memoryDbCache && memoryDbCache.users) {
+      if (memoryDbCache) {
+        if (!Array.isArray(memoryDbCache.users)) {
+          memoryDbCache.users = [];
+        }
+        // 구버전 admin / member1 기본 계정 제거 및 '뱀설' 단독 관리자 계정 적용
+        const hadOldDefaults = memoryDbCache.users.some(
+          u => u.username === 'admin' || u.username === 'member1'
+        );
+        if (hadOldDefaults) {
+          memoryDbCache.users = memoryDbCache.users.filter(
+            u => u.username !== 'admin' && u.username !== 'member1'
+          );
+          migrated = true;
+        }
+        const adminAcc = memoryDbCache.users.find(u => u.username === '뱀설');
+        if (!adminAcc) {
+          memoryDbCache.users.unshift({
+            id: "usr_admin",
+            username: "뱀설",
+            passwordHash: ADMIN_PASS_SHA256,
+            nickname: "뱀설",
+            role: "ADMIN",
+            status: "APPROVED",
+            createdAt: new Date().toISOString(),
+          });
+          migrated = true;
+        } else if (
+          adminAcc.passwordHash !== ADMIN_PASS_SHA256 ||
+          adminAcc.role !== "ADMIN" ||
+          adminAcc.status !== "APPROVED" ||
+          adminAcc.nickname !== "뱀설"
+        ) {
+          adminAcc.passwordHash = ADMIN_PASS_SHA256;
+          adminAcc.role = "ADMIN";
+          adminAcc.status = "APPROVED";
+          adminAcc.nickname = "뱀설";
+          migrated = true;
+        }
+
         memoryDbCache.users.forEach(u => {
           if (!u.status) {
             u.status = 'APPROVED';
             migrated = true;
           }
         });
-      }
-      // 기존 구버전 상점 아이템이 있으면 공식 3대 도안 선택 상자로 자동 마이그레이션
-      if (memoryDbCache) {
-        const hasOfficial = memoryDbCache.shopItems?.some(i => i.name === "전설 무기 도안 선택 상자");
-        if (!hasOfficial) {
-          memoryDbCache.shopItems = getOfficialShopItems(new Date().toISOString());
-          migrated = true;
-        } else {
-          memoryDbCache.shopItems.forEach(item => {
-            if (!Array.isArray(item.applicants)) {
-              item.applicants = [];
-              migrated = true;
-            }
+
+        // 상점 상품을 '전설 도안 선택 상자' (무기·방어구·장신구 통합) 1종으로 일원화 마이그레이션
+        const isSingleUnified =
+          memoryDbCache.shopItems?.length === 1 &&
+          memoryDbCache.shopItems[0].name === "전설 도안 선택 상자";
+        if (!isSingleUnified) {
+          const mergedApplicants = new Set<string>();
+          memoryDbCache.shopItems?.forEach(it => {
+            it.applicants?.forEach(nick => mergedApplicants.add(nick));
           });
-        }
-        // 기존 구버전 샘플 경매(보물 상패)가 있으면 도안 선택 상자 샘플로 자동 마이그레이션
-        const oldAuction = memoryDbCache.auctions?.find(a => a.id === 'auc_1' && a.title.includes('보물 상패'));
-        if (oldAuction) {
-          oldAuction.title = "전설 무기 도안 선택 상자";
-          oldAuction.description = "문파 상점 사다리 추첨 선정 상품 • 시작가 20,000 금전 / 최소 호가 단위 500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
-          oldAuction.imageUrl = "/images/shop-weapon.png";
-          oldAuction.startingBid = 20000;
-          oldAuction.minBidIncrement = 500;
-          oldAuction.currentBid = 20500;
-          oldAuction.bidsCount = 2;
+          const unified = getOfficialShopItems(new Date().toISOString());
+          if (mergedApplicants.size > 0) {
+            unified[0].applicants = Array.from(mergedApplicants);
+          }
+          memoryDbCache.shopItems = unified;
           migrated = true;
         }
+
+        // 기존 샘플 경매가 있으면 '전설 도안 선택 상자'로 동기화
+        const firstAuction = memoryDbCache.auctions?.find(a => a.id === 'auc_1');
+        if (firstAuction && firstAuction.title !== "전설 도안 선택 상자") {
+          firstAuction.title = "전설 도안 선택 상자";
+          firstAuction.description = "무기·방어구·장신구 전설 도안 통합 상자 • 시작가 20,000 금전 / 최소 호가 단위 +500 금전 • 낙찰 금액은 참여 포인트 비례 100% 분배됩니다.";
+          firstAuction.imageUrl = "/images/shop-weapon.png";
+          firstAuction.startingBid = 20000;
+          firstAuction.minBidIncrement = 500;
+          firstAuction.currentBid = 20500;
+          firstAuction.bidsCount = 2;
+          migrated = true;
+        }
+
         if (memoryDbCache.ladderState === undefined) {
           memoryDbCache.ladderState = null;
           migrated = true;

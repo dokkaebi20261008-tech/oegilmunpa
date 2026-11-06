@@ -31,7 +31,7 @@ export default function ShopPage() {
   const [addNickInputs, setAddNickInputs] = useState<Record<string, string>>({});
 
   // 사다리 설정 상태
-  const [onlyWithApplicants, setOnlyWithApplicants] = useState(true);
+  const [ladderMode, setLadderMode] = useState<'APPLICANTS' | 'PARTS'>('APPLICANTS');
   const [selectedStartCol, setSelectedStartCol] = useState<number | 'RANDOM'>('RANDOM');
   const [isRunningLadder, setIsRunningLadder] = useState(false);
   const [animProgress, setAnimProgress] = useState(100); // 0 ~ 100 애니메이션 진행률
@@ -157,7 +157,7 @@ export default function ShopPage() {
 
   // 전체 희망자 초기화
   const handleResetAllApplicants = async () => {
-    if (!confirm('3가지 상품의 구매 희망자 명단을 모두 초기화하시겠습니까?')) return;
+    if (!confirm('전설 도안 선택 상자의 구매 희망자 명단을 초기화하시겠습니까?')) return;
     try {
       const res = await fetch('/api/shop', {
         method: 'POST',
@@ -182,7 +182,7 @@ export default function ShopPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'RUN_LADDER',
-          onlyWithApplicants,
+          ladderMode,
           startCol: selectedStartCol === 'RANDOM' ? undefined : selectedStartCol
         })
       });
@@ -396,11 +396,11 @@ export default function ShopPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
             <ShoppingBag className="w-7 h-7 text-amber-400" />
-            <span>문파 상점 & 상품 추첨 사다리</span>
+            <span>문파 상점 & 사다리 추첨소</span>
           </h1>
           <div className="mt-1.5 text-xs sm:text-sm text-slate-400 space-y-0.5">
-            <p>• 3가지 도안 선택 상자별로 구매를 희망하는 문파원을 모집합니다.</p>
-            <p>• 희망자가 모이면 사다리 타기로 이번 경매 상품을 추첨하며, 결과는 모든 문파원에게 실시간 공유됩니다.</p>
+            <p>• 무기 · 방어구 · 장신구가 모두 하나로 통합된 <strong>[전설 도안 선택 상자]</strong> 희망자를 모집합니다.</p>
+            <p>• 사다리 타기 추첨 결과는 로그인한 모든 문파원(활동명: 캐릭터 닉네임)에게 실시간 공유되며 바로 경매를 진행합니다.</p>
           </div>
         </div>
 
@@ -410,7 +410,7 @@ export default function ShopPage() {
             className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold text-xs transition-all"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>희망자 전체 초기화</span>
+            <span>희망자 명단 초기화</span>
           </button>
           <Link
             href="/auction"
@@ -422,7 +422,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* STEP 1: 문파 상점 3대 도안 선택 상자 & 상품별 희망자 모집 */}
+      {/* STEP 1: 전설 도안 선택 상자 (무기·방어구·장신구 통합 1종) & 구매 희망자 신청 */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
@@ -430,164 +430,166 @@ export default function ShopPage() {
               STEP 1
             </span>
             <h2 className="text-lg sm:text-xl font-extrabold text-white">
-              문파 상점 3대 상품 & 구매 희망자 신청
+              전설 도안 선택 상자 (무기 · 방어구 · 장신구 통합) 희망자 모집
             </h2>
           </div>
           <span className="text-xs text-slate-400">
-            원하는 상자에 [희망 신청]을 누르거나 문파원 닉네임을 등록하세요
+            모든 활동명은 캐릭터 닉네임으로만 표시됩니다
           </span>
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-400">문파 상점 목록 불러오는 중...</div>
+          <div className="text-center py-12 text-slate-400">문파 상점 정보 불러오는 중...</div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {items.map((item) => {
+          <div className="grid grid-cols-1 gap-5">
+            {items.slice(0, 1).map((item) => {
               const applicants = item.applicants || [];
               const isMeApplied = applicants.includes(currentUser.nickname);
-              const isWinner = ladderState?.winnerItem?.itemId === item.id;
 
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl bg-[#141824] border transition-all flex flex-col justify-between overflow-hidden shadow-xl ${
-                    isWinner
-                      ? 'border-amber-400 ring-2 ring-amber-400/30'
-                      : 'border-slate-800 hover:border-slate-700'
-                  }`}
+                  className="rounded-3xl bg-[#141824] border border-amber-500/40 shadow-2xl overflow-hidden"
                 >
-                  <div>
-                    {/* 인게임 상점 슬롯 동일 디자인 헤더 */}
-                    <div className="p-4 bg-[#1c1f26] border-b border-slate-800/90 flex items-center space-x-4 relative">
-                      {isWinner && (
-                        <span className="absolute top-2.5 right-3 px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow">
-                          👑 사다리 당첨 상품
-                        </span>
-                      )}
-                      <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-amber-400/60 shadow-md bg-[#2a2215]">
+                  {/* 상단 인게임 상점 통합 헤더 */}
+                  <div className="p-5 sm:p-6 bg-[#1c1f26] border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    <div className="flex items-center space-x-4">
+                      {/* 무기/방어구/장신구 3종 아이콘 통합 쇼케이스 */}
+                      <div className="flex items-center -space-x-2 shrink-0">
                         <img
-                          src={item.imageUrl || '/images/shop-weapon.png'}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
+                          src="/images/shop-weapon.png"
+                          alt="무기 도안"
+                          className="w-16 h-16 rounded-xl border-2 border-amber-400 shadow-lg z-30 object-cover"
+                        />
+                        <img
+                          src="/images/shop-armor.png"
+                          alt="방어구 도안"
+                          className="w-14 h-14 rounded-xl border border-amber-400/70 shadow-md z-20 object-cover opacity-90"
+                        />
+                        <img
+                          src="/images/shop-acc.png"
+                          alt="장신구 도안"
+                          className="w-12 h-12 rounded-xl border border-amber-400/50 shadow z-10 object-cover opacity-80"
                         />
                       </div>
 
-                      <div className="space-y-1 min-w-0 flex-1">
-                        <h3 className="text-base font-extrabold text-slate-100 truncate">
-                          {item.name}
-                        </h3>
-                        <div className="flex items-center space-x-1.5">
-                          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/30 border border-amber-400/60 text-[10px] text-amber-300 font-black">
-                            🪙
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-[11px]">
+                            전 장비 통합 상품
                           </span>
-                          <span className="text-base font-black text-[#e05252] tracking-tight">
-                            {item.price.toLocaleString()}
+                          <span className="text-xs text-slate-400 font-semibold">
+                            무기 · 방어구 · 장신구 도안 일괄 포함
                           </span>
                         </div>
-                        <div className="text-xs font-extrabold text-[#e5c158]">
-                          {item.weeklyLimit || '문파 주간 한정: (0/10)'}
+                        <h3 className="text-xl sm:text-2xl font-black text-white">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center space-x-4 pt-0.5">
+                          <div className="flex items-center space-x-1.5">
+                            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/30 border border-amber-400/60 text-[10px] text-amber-300 font-black">
+                              🪙
+                            </span>
+                            <span className="text-lg font-black text-[#e05252] tracking-tight">
+                              {item.price.toLocaleString()}
+                            </span>
+                          </div>
+                          <span className="text-xs sm:text-sm font-extrabold text-[#e5c158]">
+                            {item.weeklyLimit || '문파 주간 한정: (0/10)'}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* 구매 희망자 명단 영역 */}
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
-                          <Users className="w-4 h-4 text-indigo-400" />
-                          <span>구매 희망자 명단</span>
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-extrabold ${
-                            applicants.length > 0
-                              ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
-                              : 'bg-slate-800 text-slate-400'
-                          }`}
-                        >
-                          {applicants.length}명 희망
-                        </span>
-                      </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenAuctionModal(item)}
+                      className="inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-500/20 transition-all shrink-0"
+                    >
+                      <Gavel className="w-4 h-4" />
+                      <span>전설 도안 선택 상자 경매 시작하기 (입찰가/단위 설정)</span>
+                    </button>
+                  </div>
 
-                      {/* 희망자 배지 목록 */}
-                      <div className="min-h-[64px] p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 flex flex-wrap items-start gap-1.5">
-                        {applicants.length === 0 ? (
-                          <span className="text-xs text-slate-500 m-auto">
-                            아직 이 상품을 신청한 희망자가 없습니다.
-                          </span>
-                        ) : (
-                          applicants.map(nick => (
-                            <span
-                              key={nick}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-950/80 border border-indigo-500/40 text-xs font-bold text-indigo-200"
+                  {/* 하단 구매 희망자 신청 및 명단 관리 */}
+                  <div className="p-5 sm:p-6 space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-extrabold text-white flex items-center space-x-2">
+                        <Users className="w-4 h-4 text-indigo-400" />
+                        <span>전설 도안 선택 상자 구매 희망자 명단 (캐릭터 닉네임)</span>
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        현재 {applicants.length}명 희망 중
+                      </span>
+                    </div>
+
+                    <div className="min-h-[68px] p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex flex-wrap items-center gap-2">
+                      {applicants.length === 0 ? (
+                        <span className="text-xs text-slate-500 m-auto">
+                          아직 신청한 희망자가 없습니다. 아래 버튼으로 희망 신청을 등록하세요.
+                        </span>
+                      ) : (
+                        applicants.map((nick, i) => (
+                          <span
+                            key={nick}
+                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-950/90 border border-indigo-500/40 text-xs sm:text-sm font-bold text-indigo-200 shadow"
+                          >
+                            <span className="text-[11px] text-amber-400 font-black">{i + 1}.</span>
+                            <span>{nick}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveApplicant(item.id, nick)}
+                              className="text-slate-400 hover:text-rose-400 ml-1"
+                              title="희망자 제외"
                             >
-                              <span>{nick}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveApplicant(item.id, nick)}
-                                className="text-slate-400 hover:text-rose-400 ml-1"
-                                title="희망자 제외"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </span>
-                          ))
-                        )}
-                      </div>
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </span>
+                        ))
+                      )}
+                    </div>
 
-                      {/* 내 캐릭터 원클릭 희망 신청 / 취소 버튼 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button
                         type="button"
                         onClick={() => handleToggleMyApplication(item.id)}
-                        className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center space-x-1.5 ${
+                        className={`py-3 px-4 rounded-xl font-black text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 ${
                           isMeApplied
                             ? 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-950/50'
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-950/50'
                         }`}
                       >
                         {isMeApplied ? (
                           <>
                             <Check className="w-4 h-4" />
-                            <span>내 캐릭터({currentUser.nickname}) 희망 신청됨 (클릭 시 취소)</span>
+                            <span>내 캐릭터({currentUser.nickname}) 희망 신청 완료 (클릭 시 취소)</span>
                           </>
                         ) : (
                           <>
                             <UserPlus className="w-4 h-4" />
-                            <span>✋ [{currentUser.nickname}] 이 상품 희망 신청하기</span>
+                            <span>✋ [{currentUser.nickname}] 전설 도안 선택 상자 희망 신청하기</span>
                           </>
                         )}
                       </button>
 
-                      {/* 다른 문파원 수동 추가 입력폼 */}
-                      <form onSubmit={e => handleAddApplicant(item.id, e)} className="flex gap-1.5 pt-1">
+                      <form onSubmit={e => handleAddApplicant(item.id, e)} className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="희망 문파원 닉네임 직접 추가..."
+                          placeholder="희망 문파원 캐릭터 닉네임 직접 추가..."
                           value={addNickInputs[item.id] || ''}
                           onChange={e =>
                             setAddNickInputs(prev => ({ ...prev, [item.id]: e.target.value }))
                           }
-                          className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                          className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                         />
                         <button
                           type="submit"
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 shrink-0"
+                          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold border border-slate-700 shrink-0"
                         >
-                          + 추가
+                          + 닉네임 추가
                         </button>
                       </form>
                     </div>
-                  </div>
-
-                  {/* 하단 즉시 경매 오픈 버튼 */}
-                  <div className="px-4 pb-4 pt-2 border-t border-slate-800/60">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAuctionModal(item)}
-                      className="w-full py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-extrabold text-xs transition-all flex items-center justify-center space-x-1.5"
-                    >
-                      <Gavel className="w-3.5 h-3.5" />
-                      <span>이 상품으로 경매 시작하기 (최소 입찰가 설정)</span>
-                    </button>
                   </div>
                 </div>
               );
@@ -605,7 +607,7 @@ export default function ShopPage() {
                 STEP 2
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-white">
-                🪜 문파 상점 상품 선정 사다리 타기
+                🪜 전설 도안 선택 상자 사다리 타기
               </h2>
               <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -613,7 +615,7 @@ export default function ShopPage() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400">
-              각 상품별 희망자가 있을 때 사다리를 돌려 이번 회차에 구매 및 경매를 진행할 도안 상자를 공정하게 추첨합니다.
+              희망 신청한 문파원들(또는 무기·방어구·장신구 도안)을 대상으로 사다리를 타서 추첨하며, 결과는 전 문파원에게 실시간 공유됩니다.
             </p>
           </div>
 
@@ -621,14 +623,14 @@ export default function ShopPage() {
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
-              onClick={() => setOnlyWithApplicants(prev => !prev)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
-                onlyWithApplicants
-                  ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300'
-                  : 'bg-slate-900 border-slate-700 text-slate-400'
-              }`}
+              onClick={() =>
+                setLadderMode(prev => (prev === 'APPLICANTS' ? 'PARTS' : 'APPLICANTS'))
+              }
+              className="px-3 py-2 rounded-xl text-xs font-bold border bg-indigo-600/20 border-indigo-500/40 text-indigo-300 transition-all"
             >
-              {onlyWithApplicants ? '✓ 희망자 있는 상품 우선 추첨' : '3대 도안 상자 전체 추첨'}
+              {ladderMode === 'APPLICANTS'
+                ? '✓ 희망자(닉네임) 기준 사다리 추첨'
+                : '✓ 무기·방어구·장신구 기준 사다리 추첨'}
             </button>
 
             <select

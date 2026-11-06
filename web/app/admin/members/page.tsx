@@ -152,10 +152,10 @@ export default function AdminMembersPage() {
 
                   <div className="mt-3">
                     <div className="text-base font-black text-white flex items-center space-x-2">
-                      <span>캐릭터: {user.nickname}</span>
+                      <span>활동 닉네임: {user.nickname}</span>
                     </div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      로그인 아이디: <code className="text-slate-300">{user.username}</code>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      로그인 아이디: 비공개 보호됨
                     </div>
                   </div>
                 </div>
@@ -195,8 +195,7 @@ export default function AdminMembersPage() {
           <table className="w-full text-left text-sm text-slate-300">
             <thead className="bg-slate-950/70 text-xs uppercase text-slate-400 font-bold border-b border-slate-800">
               <tr>
-                <th className="py-3 px-4">게임 캐릭터 닉네임</th>
-                <th className="py-3 px-4">아이디</th>
+                <th className="py-3 px-4">게임 캐릭터 닉네임 (활동명)</th>
                 <th className="py-3 px-4">권한</th>
                 <th className="py-3 px-4">가입일</th>
                 <th className="py-3 px-4 text-center w-24">관리</th>
@@ -206,7 +205,6 @@ export default function AdminMembersPage() {
               {approvedUsers.map(user => (
                 <tr key={user.id} className="hover:bg-slate-800/40">
                   <td className="py-3 px-4 font-bold text-white">{user.nickname}</td>
-                  <td className="py-3 px-4 text-slate-400">{user.username}</td>
                   <td className="py-3 px-4">
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${
                       user.role === 'ADMIN'

@@ -83,7 +83,7 @@ export default function MyPage() {
             </span>
           </div>
           <p className="text-xs text-slate-400">
-            아이디: <code className="text-slate-300">{currentUser.username}</code>
+            문파 공식 활동명: <strong className="text-slate-200">{currentUser.nickname}</strong> <span className="text-slate-500">(로그인 아이디 비공개 보호됨)</span>
           </p>
           <div className="pt-2 flex items-center justify-center sm:justify-start space-x-3 text-xs text-slate-400">
             <span>주간 포인트: <strong className="text-amber-300 text-sm font-black">{totalPoints}P</strong></span>

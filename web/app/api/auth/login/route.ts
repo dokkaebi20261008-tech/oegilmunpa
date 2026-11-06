@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { getDb } from '@/lib/db';
 import { createSessionToken } from '@/lib/auth';
 
@@ -11,9 +12,14 @@ export async function POST(req: Request) {
     }
 
     const cleanUsername = username.trim().toLowerCase();
+    const hashedInput = crypto.createHash('sha256').update(password).digest('hex');
     const db = getDb();
 
-    const user = db.users.find(u => u.username.toLowerCase() === cleanUsername && u.passwordHash === password);
+    const user = db.users.find(
+      u =>
+        u.username.toLowerCase() === cleanUsername &&
+        (u.passwordHash === hashedInput || u.passwordHash === password)
+    );
     if (!user) {
       return NextResponse.json({ success: false, message: '아이디 또는 비밀번호가 일치하지 않습니다.' }, { status: 401 });
     }
@@ -40,7 +46,6 @@ export async function POST(req: Request) {
       success: true,
       user: {
         id: user.id,
-        username: user.username,
         nickname: user.nickname,
         role: user.role
       }

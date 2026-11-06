@@ -15,7 +15,6 @@ export async function GET(req: Request) {
     const db = getDb();
     const safeUsers = db.users.map(u => ({
       id: u.id,
-      username: u.username,
       nickname: u.nickname,
       role: u.role,
       status: u.status || 'APPROVED',
