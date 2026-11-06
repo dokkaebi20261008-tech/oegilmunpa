@@ -84,11 +84,11 @@ export async function POST(req: Request) {
         );
       }
 
-      // 부문주는 문주(ADMIN) 계정을 생성할 수 없음
-      if (requestedRole === 'ADMIN' && user.role !== 'ADMIN') {
+      // 최고 권력자인 문주(ADMIN) 계정은 추가 생성 불가
+      if (requestedRole === 'ADMIN') {
         return NextResponse.json(
-          { success: false, message: '부문주 권한으로는 최고 권력자인 [문주] 등급 계정을 생성할 수 없습니다.' },
-          { status: 403 }
+          { success: false, message: '⛔ 최고 권력자인 [문주] 직책은 추가로 생성할 수 없습니다.' },
+          { status: 400 }
         );
       }
 
@@ -201,14 +201,14 @@ export async function POST(req: Request) {
         );
       }
 
-      // 부문주는 누구에게도(본인 포함) 문주(ADMIN) 등급을 부여할 수 없음
-      if (targetRole === 'ADMIN' && user.role !== 'ADMIN') {
+      // 문주(ADMIN) 직책은 양도 또는 변경할 수 없음
+      if (targetRole === 'ADMIN') {
         return NextResponse.json(
           {
             success: false,
-            message: '⛔ 부문주 권한으로는 최고 권력자인 [문주] 등급을 부여할 수 없습니다. 오직 문주만 부여할 수 있습니다.'
+            message: '⛔ 문주 직책은 양도 또는 변경할 수 없는 고유 직책입니다.'
           },
-          { status: 403 }
+          { status: 400 }
         );
       }
 

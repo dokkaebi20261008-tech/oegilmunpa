@@ -523,7 +523,6 @@ export default function AdminMembersPage() {
                           <option value="MEMBER">문파원</option>
                           <option value="ELITE_MEMBER">열혈 문파원</option>
                           <option value="SUB_ADMIN">부문주</option>
-                          {isMainAdmin && <option value="ADMIN">문주 (양도)</option>}
                         </select>
                       )}
                     </td>
@@ -619,7 +618,6 @@ export default function AdminMembersPage() {
                 <option value="MEMBER">문파원</option>
                 <option value="ELITE_MEMBER">열혈 문파원</option>
                 <option value="SUB_ADMIN">부문주</option>
-                {isMainAdmin && <option value="ADMIN">문주</option>}
               </select>
             </div>
 
