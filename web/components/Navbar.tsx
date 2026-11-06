@@ -76,28 +76,28 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href="/" className="flex items-center space-x-2.5 group shrink-0 whitespace-nowrap">
             <img
               src="/images/oegil-logo.jpg"
               alt="외길 문파 로고"
-              className="w-10 h-10 rounded-xl object-cover border border-amber-500/40 shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform"
+              className="w-10 h-10 rounded-xl object-cover border border-amber-500/40 shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform shrink-0"
             />
-            <div>
-              <div className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent flex items-center gap-2">
-                <span>외길 문파</span>
-                <span className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold tracking-normal">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  실시간 연동
+            <div className="whitespace-nowrap">
+              <div className="font-extrabold text-base lg:text-lg tracking-tight bg-gradient-to-r from-amber-300 via-amber-100 to-white bg-clip-text text-transparent flex items-center gap-2 whitespace-nowrap">
+                <span className="whitespace-nowrap">외길 문파</span>
+                <span className="hidden xl:inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold tracking-normal whitespace-nowrap shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                  <span>실시간 연동</span>
                 </span>
               </div>
-              <div className="text-[10px] text-slate-400 -mt-0.5 tracking-wider uppercase font-semibold">
+              <div className="text-[10px] text-slate-400 -mt-0.5 tracking-wider uppercase font-semibold whitespace-nowrap">
                 Dokkaebi Guild System
               </div>
             </div>
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1 shrink-0">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -105,16 +105,16 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-xs lg:text-sm font-semibold whitespace-nowrap transition-colors ${
+                  className={`flex items-center space-x-1.5 px-2.5 lg:px-3 py-2 rounded-lg text-xs lg:text-sm font-semibold whitespace-nowrap shrink-0 transition-colors ${
                     isActive
                       ? 'bg-indigo-600/20 text-amber-300 border border-indigo-500/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                   }`}
                 >
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-slate-400'}`} />
-                  <span>{link.label}</span>
+                  <span className="whitespace-nowrap">{link.label}</span>
                   {link.href === '/admin/members' && pendingCount > 0 && (
-                    <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shadow-sm shadow-rose-500/50 animate-pulse">
+                    <span className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shadow-sm shadow-rose-500/50 animate-pulse whitespace-nowrap shrink-0">
                       대기 {pendingCount}
                     </span>
                   )}
@@ -124,23 +124,23 @@ export default function Navbar() {
           </div>
 
           {/* User Controls */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-3 shrink-0 whitespace-nowrap">
             {currentUser ? (
-              <div className="flex items-center space-x-3 bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-1.5">
-                <Link href="/mypage" className="flex items-center space-x-2 text-sm hover:opacity-80 transition-opacity">
-                  <div className="w-7 h-7 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-xs font-bold text-indigo-300">
+              <div className="flex items-center space-x-2.5 bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-1.5 whitespace-nowrap shrink-0">
+                <Link href="/mypage" className="flex items-center space-x-2 text-sm hover:opacity-80 transition-opacity whitespace-nowrap">
+                  <div className="w-7 h-7 rounded-full bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-xs font-bold text-indigo-300 shrink-0">
                     {currentUser.nickname.slice(0, 1)}
                   </div>
-                  <div>
-                    <span className="font-bold text-slate-200">{currentUser.nickname}</span>
-                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                  <div className="whitespace-nowrap">
+                    <span className="font-bold text-slate-200 whitespace-nowrap">{currentUser.nickname}</span>
+                    <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold whitespace-nowrap">
                       {currentUser.role === 'ADMIN' ? '문파장' : '정회원'}
                     </span>
                   </div>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors shrink-0"
                   title="로그아웃"
                 >
                   <LogOut className="w-4 h-4" />

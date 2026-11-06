@@ -397,10 +397,10 @@ export default function DistributionPage() {
       <div className="bg-[#0d111e]/90 border border-slate-800/90 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div className="flex items-center space-x-2.5">
-            <Vault className="w-6 h-6 text-emerald-400" />
+            <Vault className="w-6 h-6 text-emerald-400 shrink-0" />
             <div>
               <h2 className="text-lg font-extrabold text-white">
-                문파 창고 세이브 금전 (세금 10% 공제 후 실수령) & 배점 기준
+                문파 창고 세이브 금전 (세금 10% 공제 실수령) & 배점 기준
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 인게임 지정 분배 시 낙찰가에서 세금 10%가 제외된 90% 금액(예: 3만G 낙찰 → 2만7천G)이 문파 창고에 세이브되며, 분배 시 차감됩니다.
@@ -408,9 +408,9 @@ export default function DistributionPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 flex items-center space-x-1.5">
-              <Flame className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 flex items-center space-x-1.5 whitespace-nowrap shrink-0">
+              <Flame className="w-3.5 h-3.5 shrink-0" />
               <span>용맹의 증표: {guildTokens.toLocaleString()}개</span>
             </span>
           </div>

@@ -307,61 +307,63 @@ export default function HomePage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 등록 문파원 */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-            <span>등록 문파원</span>
-            <Users className="w-4 h-4 text-indigo-400" />
+          <div className="flex items-center justify-between gap-2 text-slate-400 text-xs font-semibold">
+            <span className="whitespace-nowrap">등록 문파원</span>
+            <Users className="w-4 h-4 text-indigo-400 shrink-0" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
             <span className="text-3xl font-black text-white">{totalRegistered}</span>
             <span className="text-xs text-slate-400">명</span>
           </div>
-          <div className="mt-2 text-[11px] text-slate-500">
+          <div className="mt-2 text-[11px] text-slate-400 whitespace-nowrap">
             누적 참여자: <span className="text-indigo-400 font-semibold">{data?.activeMembersCount || 0}명</span>
           </div>
         </div>
 
         {/* 문파 총 누적 포인트 */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-            <span>문파 총 누적 포인트</span>
-            <Trophy className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center justify-between gap-2 text-slate-400 text-xs font-semibold">
+            <span className="whitespace-nowrap">문파 총 누적 포인트</span>
+            <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
             <span className="text-3xl font-black text-amber-400">{totalPoints}</span>
             <span className="text-xs text-slate-400">P</span>
           </div>
-          <div className="mt-2 text-[11px] text-slate-500">
-            주간 미참 초기화 시에도 누적 점수 유지
+          <div className="mt-2 text-[11px] text-slate-400 whitespace-nowrap">
+            주간 미참 초기화 시 누적 유지
           </div>
         </div>
 
-        {/* 문파 창고 세이브 금전 (세금 10% 공제) */}
+        {/* 문파 창고 세이브 금전 */}
         <div className="bg-slate-900/60 border border-emerald-500/30 rounded-2xl p-5 hover:border-emerald-500/50 transition-colors">
-          <div className="flex items-center justify-between text-emerald-300 text-xs font-semibold">
-            <span>문파 창고 세이브 금전 (세금 10% 공제)</span>
-            <Coins className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center justify-between gap-2 text-emerald-300 text-xs font-semibold">
+            <span className="whitespace-nowrap">문파 창고 세이브 금전</span>
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 whitespace-nowrap shrink-0">
+              세금 10% 공제
+            </span>
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
             <span className="text-3xl font-black text-emerald-400">{treasuryGold.toLocaleString()}</span>
             <span className="text-xs text-slate-400">G</span>
           </div>
-          <div className="mt-2 text-[11px] text-slate-400">
+          <div className="mt-2 text-[11px] text-slate-400 whitespace-nowrap">
             1P당 분배금: <span className="text-emerald-400 font-semibold">{Math.round(goldPerPoint).toLocaleString()}G</span> (낙찰 {endedAuctionsCount}건)
           </div>
         </div>
 
         {/* 문파 재화 (용맹의 증표) */}
         <div className="bg-slate-900/60 border border-amber-500/30 rounded-2xl p-5 hover:border-amber-500/50 transition-colors">
-          <div className="flex items-center justify-between text-amber-300 text-xs font-semibold">
-            <span>문파 재화 (용맹의 증표)</span>
-            <Award className="w-4 h-4 text-amber-400" />
+          <div className="flex items-center justify-between gap-2 text-amber-300 text-xs font-semibold">
+            <span className="whitespace-nowrap">문파 재화 (용맹의 증표)</span>
+            <Award className="w-4 h-4 text-amber-400 shrink-0" />
           </div>
           <div className="mt-2 flex items-baseline space-x-2">
             <span className="text-3xl font-black text-amber-300">{guildTokens.toLocaleString()}</span>
             <span className="text-xs text-slate-400">개</span>
           </div>
-          <div className="mt-2 text-[11px] text-slate-400">
-            상점 경매 시작 시 <span className="text-rose-400 font-semibold">-11,500개</span> 자동 차감
+          <div className="mt-2 text-[11px] text-slate-400 whitespace-nowrap">
+            상점 경매 시 <span className="text-rose-400 font-semibold">-11,500개</span> 차감
           </div>
         </div>
       </div>

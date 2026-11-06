@@ -281,16 +281,21 @@ export default function AttendancePage() {
         </div>
 
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-emerald-300 flex items-center space-x-1.5">
-              <Coins className="w-4 h-4 text-emerald-400" />
-              <span>문파 창고 세이브 금전 (세금 10% 공제)</span>
+          <div className="space-y-1 w-full">
+            <div className="text-xs font-bold text-emerald-300 flex items-center justify-between gap-2">
+              <span className="flex items-center space-x-1.5 whitespace-nowrap">
+                <Coins className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>문파 창고 세이브 금전</span>
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 whitespace-nowrap shrink-0">
+                세금 10% 공제
+              </span>
             </div>
             <div className="text-xl font-black text-emerald-400">
               {treasuryGold.toLocaleString()} 금전
             </div>
-            <div className="text-[11px] text-slate-400 flex items-center space-x-2">
-              <Award className="w-3.5 h-3.5 text-amber-400" />
+            <div className="text-[11px] text-slate-400 flex items-center space-x-2 whitespace-nowrap">
+              <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>문파 용맹의 증표: <strong className="text-amber-300">{guildTokens.toLocaleString()}개</strong></span>
             </div>
           </div>

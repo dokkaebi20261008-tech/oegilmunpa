@@ -351,12 +351,12 @@ export default function ShopPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className={`${isAdmin ? 'lg:col-span-5' : 'lg:col-span-12'} bg-gradient-to-br from-amber-950/40 via-slate-900/90 to-slate-900 border border-amber-500/35 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4`}>
           <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center space-x-1.5">
-                <Flame className="w-4 h-4 text-amber-400" />
-                <span>문파 보유 총 재화 (정회원 전체 공개)</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center space-x-1.5 whitespace-nowrap">
+                <Flame className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>문파 보유 총 재화 (정회원 공개)</span>
               </span>
-              <span className="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300">
+              <span className="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300 whitespace-nowrap shrink-0">
                 용맹의 증표
               </span>
             </div>
@@ -364,7 +364,7 @@ export default function ShopPage() {
               <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                 {guildTokens.toLocaleString()}
               </span>
-              <span className="text-sm font-bold text-amber-400">용맹의 증표</span>
+              <span className="text-sm font-bold text-amber-400 whitespace-nowrap">용맹의 증표</span>
             </div>
           </div>
 
@@ -373,7 +373,7 @@ export default function ShopPage() {
               • 상점 상품 가격: <strong className="text-amber-300">11,500 용맹의 증표</strong>
             </div>
             <div>
-              • 수요일 19:30 경매 자동 개시 순간 <strong className="text-rose-300">문파 총재화 - 11,500 용맹의 증표</strong>가 자동 차감되며 아래 공개 장부에 날짜와 함께 기록됩니다.
+              • 수요일 19:30 경매 개시 순간 <strong className="text-rose-300">문파 총재화 - 11,500 증표</strong>가 자동 차감되며 아래 공개 장부에 날짜별로 기록됩니다.
             </div>
           </div>
         </div>
@@ -383,17 +383,19 @@ export default function ShopPage() {
             onSubmit={handleUpdateGuildTokens}
             className="lg:col-span-7 bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3.5 flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-              <h2 className="text-sm font-extrabold text-white flex items-center space-x-2">
-                <Coins className="w-4 h-4 text-amber-400" />
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+              <h2 className="text-sm font-extrabold text-white flex items-center space-x-2 whitespace-nowrap">
+                <Coins className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>어드민 전용: 문파 총 [용맹의 증표] 업데이트</span>
               </h2>
-              <span className="text-[11px] text-amber-300 font-bold">문파장(어드민)만 수정 가능</span>
+              <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 font-bold whitespace-nowrap shrink-0">
+                어드민 전용
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1 whitespace-nowrap">
                   현재 문파 보유 총 용맹의 증표 수량 입력
                 </label>
                 <input
@@ -407,7 +409,7 @@ export default function ShopPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1 whitespace-nowrap">
                   업데이트 사유 / 메모 (공개 내역 표시)
                 </label>
                 <input
@@ -427,7 +429,7 @@ export default function ShopPage() {
                     key={preset}
                     type="button"
                     onClick={() => setTokenInput(String(preset))}
-                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300"
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 whitespace-nowrap"
                   >
                     {preset.toLocaleString()}
                   </button>
@@ -436,7 +438,7 @@ export default function ShopPage() {
               <button
                 type="submit"
                 disabled={updatingToken}
-                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md transition-all disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md transition-all disabled:opacity-50 whitespace-nowrap shrink-0"
               >
                 {updatingToken ? '반영 중...' : '용맹의 증표 보유량 업데이트'}
               </button>
@@ -449,15 +451,15 @@ export default function ShopPage() {
       <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <span className="text-xs sm:text-sm font-extrabold text-white flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-amber-400" />
+            <Clock className="w-4 h-4 text-amber-400 shrink-0" />
             <span>매주 수요일 정기 상점 & 경매 자동화 일정 (한국 시간 KST)</span>
           </span>
-          <span className="text-xs font-bold text-amber-300 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+          <span className="text-xs font-bold text-amber-300 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 whitespace-nowrap shrink-0">
             현재 한국 시각: {kstSched.nowKSTFormatted}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
           <div
             className={`p-3 rounded-xl border ${
               kstSched.isShopOpen
@@ -465,12 +467,12 @@ export default function ShopPage() {
                 : 'bg-slate-950/70 border-slate-800 text-slate-400'
             }`}
           >
-            <div className="font-black text-white flex items-center justify-between">
-              <span>1. 희망 신청 오픈</span>
-              <span className="text-[10px] font-bold text-amber-300">수 19:00~19:30</span>
+            <div className="font-black text-white flex items-center justify-between gap-1.5">
+              <span className="whitespace-nowrap">1. 희망 신청 오픈</span>
+              <span className="text-[10px] font-bold text-amber-300 whitespace-nowrap shrink-0">수 19:00~19:30</span>
             </div>
-            <div className="text-[11px] mt-1">
-              {kstSched.isShopOpen ? '🟢 현재 구매 희망 신청 가능!' : '수요일 오후 7시 ~ 7시 30분만 오픈'}
+            <div className="text-[11px] mt-1 whitespace-nowrap">
+              {kstSched.isShopOpen ? '🟢 현재 구매 희망 신청 가능!' : '매주 수요일 19:00 ~ 19:30 오픈'}
             </div>
           </div>
 
@@ -481,14 +483,14 @@ export default function ShopPage() {
                 : 'bg-slate-950/70 border-slate-800 text-slate-400'
             }`}
           >
-            <div className="font-black text-white flex items-center justify-between">
-              <span>2. 경매 시작 대기</span>
-              <span className="text-[10px] font-bold text-amber-300">~ 수 19:30</span>
+            <div className="font-black text-white flex items-center justify-between gap-1.5">
+              <span className="whitespace-nowrap">2. 경매 시작 대기</span>
+              <span className="text-[10px] font-bold text-amber-300 whitespace-nowrap shrink-0">~ 수 19:30</span>
             </div>
-            <div className="text-[11px] mt-1">
+            <div className="text-[11px] mt-1 whitespace-nowrap">
               {scheduledAuction
                 ? `개시까지 ${formatRemainingTime(scheduledAuction.scheduledStartAt)}`
-                : '희망 신청자가 있으면 19:30 자동 개시'}
+                : '희망자 있을 시 19:30 자동 개시'}
             </div>
           </div>
 
@@ -499,14 +501,14 @@ export default function ShopPage() {
                 : 'bg-slate-950/70 border-slate-800 text-slate-400'
             }`}
           >
-            <div className="font-black text-white flex items-center justify-between">
-              <span>3. 자동 익명 경매</span>
-              <span className="text-[10px] font-bold text-indigo-300">수 19:30~20:00</span>
+            <div className="font-black text-white flex items-center justify-between gap-1.5">
+              <span className="whitespace-nowrap">3. 자동 익명 경매</span>
+              <span className="text-[10px] font-bold text-indigo-300 whitespace-nowrap shrink-0">수 19:30~20:00</span>
             </div>
-            <div className="text-[11px] mt-1">
+            <div className="text-[11px] mt-1 whitespace-nowrap">
               {activeAuction
                 ? `🔥 종료까지 ${formatRemainingTime(activeAuction.endsAt)}`
-                : '19:30 시작 시 11,500 증표 자동 차감'}
+                : '19:30 개시 시 11,500 증표 차감'}
             </div>
           </div>
 
@@ -517,12 +519,12 @@ export default function ShopPage() {
                 : 'bg-slate-950/70 border-slate-800 text-slate-400'
             }`}
           >
-            <div className="font-black text-white flex items-center justify-between">
-              <span>4. 낙찰 안내 & 기록</span>
-              <span className="text-[10px] font-bold text-emerald-300">수 20:00 종료</span>
+            <div className="font-black text-white flex items-center justify-between gap-1.5">
+              <span className="whitespace-nowrap">4. 낙찰 안내 & 기록</span>
+              <span className="text-[10px] font-bold text-emerald-300 whitespace-nowrap shrink-0">수 20:00 종료</span>
             </div>
-            <div className="text-[11px] mt-1">
-              낙찰자·최종 낙찰금액 안내 & 10% 공제 창고 적립
+            <div className="text-[11px] mt-1 whitespace-nowrap">
+              낙찰자·낙찰가 안내 & 창고 적립
             </div>
           </div>
         </div>

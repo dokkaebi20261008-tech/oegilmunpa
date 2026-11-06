@@ -123,9 +123,11 @@ export default function MyPage() {
         </div>
 
         <div className="bg-gradient-to-br from-emerald-950/40 to-slate-900/80 border border-emerald-900/40 rounded-2xl p-5 space-y-2">
-          <div className="flex items-center justify-between text-emerald-300 text-xs font-bold uppercase">
-            <span>문파 창고 세이브 금전 배당금 (세금 10% 공제)</span>
-            <Coins className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center justify-between gap-2 text-emerald-300 text-xs font-bold uppercase">
+            <span className="whitespace-nowrap">문파 창고 세이브 금전 배당금</span>
+            <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 whitespace-nowrap shrink-0">
+              세금 10% 공제
+            </span>
           </div>
           <div className="text-3xl font-black text-emerald-300">
             +{myEstimatedGold.toLocaleString()} 금전

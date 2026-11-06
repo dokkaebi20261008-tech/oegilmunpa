@@ -366,16 +366,17 @@ export default function AuctionPage() {
       {/* 상단 헤더 & 수요일 자동 경매 / 인게임 지정 분배 안내 */}
       <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+          <div className="flex items-start sm:items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 mt-0.5 sm:mt-0">
               <Gavel className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">
                 외길 문파 익명 경매장 & 문파 창고 금전 분배소
               </h1>
-              <p className="text-xs text-slate-400 mt-0.5">
-                매주 수요일 <strong className="text-amber-300">19:00~19:30 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30~20:00 자동 익명 경매</strong> ➔ 20:00 종료 시 <strong className="text-amber-300">낙찰자 닉네임 & 최종 낙찰금액 안내</strong> + <strong className="text-emerald-300">10% 세금 공제 금액 별도 표시 및 창고 세이브</strong>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                매주 수요일 <strong className="text-amber-300">19:00~19:30 상점 희망 신청</strong> ➔ <strong className="text-indigo-300">19:30~20:00 자동 익명 경매 진행</strong><br className="hidden sm:inline" />
+                <span className="sm:hidden"> • </span>20:00 종료 시 <strong className="text-amber-300">낙찰자·최종 낙찰금액 우선 안내</strong> 및 <strong className="text-emerald-300">세금 10% 공제 금액 창고 적립</strong>
               </p>
             </div>
           </div>
@@ -383,17 +384,17 @@ export default function AuctionPage() {
           <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/shop"
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-all"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs whitespace-nowrap transition-all"
             >
               <span>📦 문파 상점</span>
             </Link>
             {isAdmin && (
               <button
                 onClick={() => setIsCreateOpen(true)}
-                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs whitespace-nowrap shadow-md shadow-amber-500/20 transition-all"
               >
                 <Plus className="w-4 h-4" />
-                <span>어드민: 수동 경매 등록</span>
+                <span>수동 경매 등록</span>
               </button>
             )}
           </div>
@@ -404,14 +405,14 @@ export default function AuctionPage() {
           <div className="p-3.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 flex items-center justify-between">
             <div>
               <div className="text-[11px] font-bold text-emerald-400 flex items-center space-x-1">
-                <Vault className="w-3.5 h-3.5" />
-                <span>현재 문파 창고 세이브 금전 (세금 10% 공제 후 적립)</span>
+                <Vault className="w-3.5 h-3.5 shrink-0" />
+                <span>현재 문파 창고 세이브 금전</span>
               </div>
               <div className="text-xl font-black text-white mt-0.5">
                 {treasuryGold.toLocaleString()} <span className="text-xs font-bold text-emerald-400">금전</span>
               </div>
-              <div className="text-[10px] text-slate-400 mt-0.5">
-                낙찰금액에서 10% 세금 공제된 금액이 창고에 적립 • 분배 시 차감
+              <div className="text-[11px] text-slate-400 mt-0.5">
+                세금 10% 공제 실수령액 • 분배 시 차감
               </div>
             </div>
           </div>
@@ -419,22 +420,23 @@ export default function AuctionPage() {
           <div className="p-3.5 rounded-xl bg-slate-950/80 border border-amber-500/30 flex items-center justify-between">
             <div>
               <div className="text-[11px] font-bold text-amber-300 flex items-center space-x-1">
-                <Flame className="w-3.5 h-3.5" />
+                <Flame className="w-3.5 h-3.5 shrink-0" />
                 <span>문파 보유 재화: 용맹의 증표</span>
               </div>
               <div className="text-xl font-black text-white mt-0.5">
                 {guildTokens.toLocaleString()} <span className="text-xs font-bold text-amber-400">용맹의 증표</span>
               </div>
-              <div className="text-[10px] text-slate-400 mt-0.5">
-                수요일 19:30 경매 개시 시 상품가(11,500) 자동 차감
+              <div className="text-[11px] text-slate-400 mt-0.5">
+                수요일 19:30 경매 개시 시 11,500개 차감
               </div>
             </div>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-300 flex flex-col justify-center space-y-1">
-            <div className="font-bold text-amber-300">💡 낙찰 금액(지정 분배 원금) & 10% 공제 금액 안내</div>
+            <div className="font-bold text-amber-300">💡 낙찰 금액 & 세금 10% 공제 안내</div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              종료 시 운영진이 인게임 지정 분배에 바로 입력할 수 있도록 <strong className="text-amber-300">최종 낙찰 금액(예: 30,000G)</strong>을 먼저 보여드리고, 그 아래에 <strong className="text-emerald-300">10% 세금 공제 후 창고 세이브 금액(예: 27,000G)</strong>을 별도로 안내합니다.
+              인게임 지정 분배 입력용 <strong className="text-amber-300">최종 낙찰 금액</strong>을 먼저 보여드리고,<br />
+              <strong className="text-emerald-300">세금 10% 공제 후 창고 세이브 금액</strong>을 별도로 표시합니다.
             </p>
           </div>
         </div>
@@ -445,24 +447,26 @@ export default function AuctionPage() {
         {/* Column 1: 수요일 19:30 대기 중 & 19:30~20:00 진행 중 경매 */}
         <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2 whitespace-nowrap">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                 <span>대기 및 진행 경매 ({liveOrWaitingAuctions.length}건)</span>
               </h2>
-              <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300">
-                수 19:30 시작 ~ 20:00 종료
+              <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[11px] font-bold text-amber-300 text-center leading-tight shrink-0">
+                <span className="block whitespace-nowrap">수요일 19:30 시작</span>
+                <span className="block whitespace-nowrap">오후 20:00 종료</span>
               </span>
             </div>
 
             {loading ? (
               <div className="text-center py-16 text-xs text-slate-400">경매 정보를 불러오는 중...</div>
             ) : liveOrWaitingAuctions.length === 0 ? (
-              <div className="bg-slate-950/50 border border-slate-800/80 rounded-xl p-8 text-center space-y-2 my-4">
+              <div className="bg-slate-950/50 border border-slate-800/80 rounded-xl p-8 text-center space-y-2.5 my-4">
                 <Gavel className="w-7 h-7 text-slate-600 mx-auto" />
-                <div className="text-sm font-bold text-slate-300">현재 대기 또는 진행 중인 경매가 없습니다</div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  매주 수요일 <strong>19:00 ~ 19:30</strong> [문파 상점]에서 희망 신청자가 있으면 <strong>수요일 19:30에 자동으로 경매가 시작</strong>되어 <strong>20:00에 자동 종료</strong>됩니다.
+                <div className="text-sm font-bold text-slate-300">현재 대기 또는 진행 경매가 없습니다</div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  매주 수요일 <strong>19:00 ~ 19:30</strong> 상점 희망 신청 시<br />
+                  <strong>19:30에 자동 시작</strong>되어 <strong>20:00에 종료</strong>됩니다.
                 </p>
               </div>
             ) : (
@@ -486,19 +490,19 @@ export default function AuctionPage() {
                       }`}
                     >
                       {/* 상단 상태 배지 & 타이머 */}
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between gap-2 text-xs">
                         {isScheduled ? (
-                          <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
-                            ⏳ 수요일 19:30 시작 대기 (희망자 {auction.applicants?.length || 1}명)
+                          <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold whitespace-nowrap">
+                            ⏳ 19:30 시작 대기 ({auction.applicants?.length || 1}명)
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold whitespace-nowrap">
                             🔥 익명 입찰 {auction.bidsCount}회 진행중
                           </span>
                         )}
-                        <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black">
-                          <Clock className="w-3.5 h-3.5 text-amber-400" />
-                          <span>{isScheduled ? `개시까지 ${timeLeftStr}` : `종료까지 ${timeLeftStr}`}</span>
+                        <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black whitespace-nowrap shrink-0">
+                          <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>{isScheduled ? `개시 ${timeLeftStr}` : `종료 ${timeLeftStr}`}</span>
                         </span>
                       </div>
 
@@ -518,52 +522,52 @@ export default function AuctionPage() {
                           <p className="text-[11px] text-slate-400 truncate mt-0.5">
                             {isScheduled
                               ? `희망자: ${(auction.applicants || []).join(', ') || '접수 중'}`
-                              : '무기·방어구·장신구 통합 도안 상자 (익명 경매)'}
+                              : '무기·방어구·장신구 통합 도안 상자'}
                           </p>
                         </div>
                       </div>
 
-                      {/* 핵심 수치 그리드: 현재 입찰가(지정 분배 원금) & 10% 공제 창고 세이브 별도 표시 */}
+                      {/* 핵심 수치 그리드 */}
                       <div className="grid grid-cols-2 gap-2">
                         <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800/80">
-                          <div className="text-[11px] text-slate-400">최소 구매 입찰가</div>
-                          <div className="text-xs font-bold text-slate-200 mt-0.5">
+                          <div className="text-[11px] text-slate-400 whitespace-nowrap">최소 구매 입찰가</div>
+                          <div className="text-xs font-bold text-slate-200 mt-0.5 whitespace-nowrap">
                             {auction.startingBid.toLocaleString()} 금전
                           </div>
                         </div>
                         <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800/80">
-                          <div className="text-[11px] text-slate-400">최소 입찰 단위</div>
-                          <div className="text-xs font-bold text-emerald-400 mt-0.5">
+                          <div className="text-[11px] text-slate-400 whitespace-nowrap">최소 입찰 단위</div>
+                          <div className="text-xs font-bold text-emerald-400 mt-0.5 whitespace-nowrap">
                             +{auction.minBidIncrement.toLocaleString()} 금전
                           </div>
                         </div>
                         <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/40">
-                          <div className="text-[11px] text-amber-300 font-bold">
-                            {auction.bidsCount === 0 ? '시작 입찰가' : '현재 최고 입찰가 (낙찰금액)'}
+                          <div className="text-[11px] text-amber-300 font-bold whitespace-nowrap">
+                            {auction.bidsCount === 0 ? '시작 입찰가' : '현재 최고 입찰가'}
                           </div>
-                          <div className="text-base font-black text-amber-300 mt-0.5">
+                          <div className="text-sm sm:text-base font-black text-amber-300 mt-0.5 whitespace-nowrap">
                             {auction.currentBid.toLocaleString()} 금전
                           </div>
                         </div>
                         <div className="p-2.5 rounded-lg bg-slate-900/90 border border-emerald-500/30">
-                          <div className="text-[11px] text-emerald-300 font-semibold">10% 공제 후 창고 세이브</div>
-                          <div className="text-xs font-black text-emerald-400 mt-1">
+                          <div className="text-[11px] text-emerald-300 font-semibold whitespace-nowrap">10% 공제 창고 적립</div>
+                          <div className="text-xs font-black text-emerald-400 mt-1 whitespace-nowrap">
                             +{expectedNetSave.toLocaleString()} 금전
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-900/90 border border-slate-800 text-xs">
-                        <span className="text-slate-400">현재 최고 입찰자</span>
-                        <span className="text-amber-300 font-bold flex items-center gap-1">
+                        <span className="text-slate-400 whitespace-nowrap">현재 최고 입찰자</span>
+                        <span className="text-amber-300 font-bold flex items-center gap-1 whitespace-nowrap">
                           {auction.bidsCount > 0 ? (
                             <>
-                              <Lock className="w-3 h-3" />
-                              <span>익명 입찰자 (20:00 종료 시 공개)</span>
+                              <Lock className="w-3 h-3 shrink-0" />
+                              <span>익명 입찰자 (20:00 공개)</span>
                             </>
                           ) : (
                             <span className="text-slate-500">
-                              {isScheduled ? '수요일 19:30 자동 입찰 오픈' : '첫 입찰 대기 중'}
+                              {isScheduled ? '19:30 자동 입찰 오픈' : '첫 입찰 대기 중'}
                             </span>
                           )}
                         </span>
@@ -572,15 +576,15 @@ export default function AuctionPage() {
                       {/* 액션 버튼 */}
                       {isScheduled ? (
                         <div className="space-y-2 pt-1">
-                          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center text-xs text-amber-200 font-semibold">
-                            ⏳ 수요일 오후 7시 30분({timeLeftStr} 후)에 자동으로 익명 경매가 시작됩니다.
+                          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center text-xs text-amber-200 font-semibold leading-relaxed">
+                            ⏳ 수요일 오후 7시 30분({timeLeftStr} 후)에<br />자동으로 익명 경매가 시작됩니다.
                           </div>
                           {isAdmin && (
                             <button
                               onClick={() => handleStartScheduledNow(auction)}
-                              className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center space-x-1.5"
+                              className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center space-x-1.5 whitespace-nowrap"
                             >
-                              <Play className="w-3.5 h-3.5" />
+                              <Play className="w-3.5 h-3.5 shrink-0" />
                               <span>어드민: 대기 건너뛰고 즉시 경매 개시</span>
                             </button>
                           )}
@@ -589,16 +593,16 @@ export default function AuctionPage() {
                         <div className="space-y-2 pt-1">
                           <button
                             onClick={() => handleOpenBid(auction)}
-                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-1.5"
+                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-1.5 whitespace-nowrap"
                           >
-                            <Gavel className="w-4 h-4" />
+                            <Gavel className="w-4 h-4 shrink-0" />
                             <span>{nextMinBid.toLocaleString()} 금전부터 익명 입찰하기</span>
                           </button>
 
                           {isAdmin && (
                             <button
                               onClick={() => handleEndAuction(auction)}
-                              className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors"
+                              className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold text-xs transition-colors whitespace-nowrap"
                             >
                               어드민: 경매 즉시 종료 • 낙찰자 및 낙찰금액 공개
                             </button>
@@ -613,16 +617,17 @@ export default function AuctionPage() {
           </div>
         </div>
 
-        {/* Column 2: 최근 낙찰 완료 안내 및 기록 (최종 낙찰금액 우선 안내 + 10% 공제 창고 세이브 금액 별도 안내) */}
+        {/* Column 2: 최근 낙찰 완료 안내 및 기록 */}
         <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2">
-                <Trophy className="w-4 h-4 text-amber-400" />
-                <span>낙찰 완료 안내 및 기록 ({endedAuctions.length}건)</span>
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3 mb-4">
+              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2 whitespace-nowrap">
+                <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>최근 낙찰 및 세이브 ({endedAuctions.length}건)</span>
               </h2>
-              <span className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-[11px] font-bold text-amber-300">
-                낙찰금액 + 10% 공제 별도 표시
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-bold text-emerald-300 text-center leading-tight shrink-0">
+                <span className="block whitespace-nowrap">세금 10% 공제</span>
+                <span className="block whitespace-nowrap">창고 적립 반영</span>
               </span>
             </div>
 
@@ -631,8 +636,8 @@ export default function AuctionPage() {
                 <Trophy className="w-7 h-7 text-slate-600 mx-auto" />
                 <div className="text-sm font-bold text-slate-300">아직 마감된 경매 기록이 없습니다</div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  수요일 오후 8시 경매 종료 시 이곳에 <strong className="text-amber-300">최종 낙찰자 & 최종 낙찰 금액(인게임 지정 분배 입력금)</strong>을 먼저 보여드리고,<br />
-                  그 아래에 <strong className="text-emerald-300">10% 세금 공제된 문파 창고 세이브 금액</strong>을 별도로 안내합니다.
+                  수요일 20:00 종료 시 <strong className="text-amber-300">낙찰자·최종 낙찰금액</strong>과<br />
+                  <strong className="text-emerald-300">세금 10% 공제 창고 세이브 금액</strong>이 기록됩니다.
                 </p>
               </div>
             ) : (
@@ -645,26 +650,26 @@ export default function AuctionPage() {
                   return (
                     <div key={item.id} className="bg-slate-950/85 border border-slate-800 rounded-xl p-4 space-y-3">
                       <div className="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
-                        <span className="font-bold text-amber-400">{item.title}</span>
-                        <span className="text-[11px] text-slate-400">{formatDateTime(item.endsAt)} 종료</span>
+                        <span className="font-bold text-amber-400 truncate">{item.title}</span>
+                        <span className="text-[11px] text-slate-400 whitespace-nowrap shrink-0">{formatDateTime(item.endsAt)}</span>
                       </div>
 
                       {/* 1순위: 인게임 지정 분배 시 그대로 입력할 [최종 낙찰자 & 최종 낙찰 금액] */}
                       <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-amber-200 flex items-center gap-1">
-                            <Eye className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="text-xs font-bold text-amber-200 flex items-center gap-1 whitespace-nowrap">
+                            <Eye className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                             <span>최종 낙찰자</span>
                           </span>
-                          <span className="text-sm font-black text-white">
+                          <span className="text-sm font-black text-white whitespace-nowrap">
                             {item.highestBidderNickname || '입찰자 없음'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between pt-1 border-t border-amber-500/20">
-                          <span className="text-xs font-extrabold text-amber-300">
-                            최종 낙찰 금액 (인게임 지정 분배 입력금)
+                          <span className="text-xs font-extrabold text-amber-300 whitespace-nowrap">
+                            최종 낙찰 금액 (지정 분배 입력금)
                           </span>
-                          <span className="text-base font-black text-amber-300">
+                          <span className="text-base font-black text-amber-300 whitespace-nowrap">
                             {gross.toLocaleString()} 금전
                           </span>
                         </div>
@@ -673,15 +678,15 @@ export default function AuctionPage() {
                       {/* 2순위: 별도 표시되는 [세금 10% 공제 금액 & 문파 창고 세이브 금액] */}
                       <div className="p-2.5 rounded-xl bg-slate-900 border border-emerald-500/30 flex items-center justify-between text-xs">
                         <div>
-                          <div className="font-bold text-emerald-300">
-                            10% 세금 공제 후 문파 창고 세이브 금액
+                          <div className="font-bold text-emerald-300 whitespace-nowrap">
+                            10% 세금 공제 후 창고 세이브
                           </div>
-                          <div className="text-[11px] text-slate-400 mt-0.5">
-                            낙찰금 {gross.toLocaleString()}G - 세금 10%({tax.toLocaleString()}G)
+                          <div className="text-[11px] text-slate-400 mt-0.5 whitespace-nowrap">
+                            낙찰금 {gross.toLocaleString()}G - 세금 {tax.toLocaleString()}G
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className="text-sm font-black text-emerald-400">
+                        <div className="text-right shrink-0">
+                          <span className="text-sm font-black text-emerald-400 whitespace-nowrap">
                             +{netSaved.toLocaleString()} 금전
                           </span>
                         </div>
@@ -697,19 +702,20 @@ export default function AuctionPage() {
         {/* Column 3: 문파 창고 세이브 금전 & 누적 점수 분배소 (수정은 어드민만 가능) */}
         <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col justify-between">
           <div className="space-y-3.5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2">
-                <Calculator className="w-4 h-4 text-emerald-400" />
-                <span>문파 창고 세이브 금전 분배소</span>
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <h2 className="text-sm sm:text-base font-extrabold text-white flex items-center space-x-2 whitespace-nowrap">
+                <Calculator className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>창고 세이브 금전 분배소</span>
               </h2>
-              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-bold text-emerald-300">
-                10% 공제 창고 적립금 기준
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-bold text-emerald-300 text-center leading-tight shrink-0">
+                <span className="block whitespace-nowrap">세금 10% 제외</span>
+                <span className="block whitespace-nowrap">실수령액 기준</span>
               </span>
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-300 font-semibold">
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-xs text-slate-300 font-semibold whitespace-nowrap">
                   현재 문파 창고 세이브 금전 (분배 대상)
                 </label>
                 {isAdmin && customGoldInput && (
@@ -719,9 +725,9 @@ export default function AuctionPage() {
                       setCustomGoldInput(false);
                       setCalcGold(treasuryGold);
                     }}
-                    className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-slate-950"
+                    className="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500 text-slate-950 whitespace-nowrap shrink-0"
                   >
-                    실제 창고 잔액({treasuryGold.toLocaleString()}G) 동기화
+                    창고 잔액({treasuryGold.toLocaleString()}G) 복원
                   </button>
                 )}
               </div>
@@ -741,14 +747,15 @@ export default function AuctionPage() {
                 </div>
               ) : (
                 <div className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
-                  <span className="text-xs text-slate-400 font-semibold">창고 세이브 잔액</span>
-                  <span className="text-base font-black text-emerald-400">
+                  <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">창고 세이브 잔액</span>
+                  <span className="text-base font-black text-emerald-400 whitespace-nowrap">
                     {treasuryGold.toLocaleString()} 금전
                   </span>
                 </div>
               )}
-              <p className="text-[11px] text-slate-400">
-                경매 종료 시 낙찰금액에서 세금 10%가 공제된 금액이 창고에 자동 합산되며, 분배 실행 시 차감됩니다.
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                경매 종료 시 세금 10%를 제외한 90% 금액이<br />
+                문파 창고에 자동 합산되며 분배 시 차감됩니다.
               </p>
             </div>
 
@@ -756,18 +763,18 @@ export default function AuctionPage() {
               <div className="space-y-3">
                 <div className="grid grid-cols-3 gap-1.5 p-2.5 bg-slate-950/80 rounded-xl border border-slate-800/80 text-center text-[11px]">
                   <div>
-                    <div className="text-slate-400">문파 총 누적 점수</div>
-                    <div className="font-bold text-amber-300 mt-0.5">{simDistribution.totalPoints}P</div>
+                    <div className="text-slate-400 whitespace-nowrap">총 누적 점수</div>
+                    <div className="font-bold text-amber-300 mt-0.5 whitespace-nowrap">{simDistribution.totalPoints}P</div>
                   </div>
                   <div>
-                    <div className="text-slate-400">1P당 배당금</div>
-                    <div className="font-bold text-emerald-400 mt-0.5">
+                    <div className="text-slate-400 whitespace-nowrap">1P당 배당금</div>
+                    <div className="font-bold text-emerald-400 mt-0.5 whitespace-nowrap">
                       {simDistribution.goldPerPoint.toLocaleString()}G
                     </div>
                   </div>
                   <div>
-                    <div className="text-slate-400">자투리 잔액</div>
-                    <div className="font-bold text-slate-300 mt-0.5">
+                    <div className="text-slate-400 whitespace-nowrap">자투리 잔액</div>
+                    <div className="font-bold text-slate-300 mt-0.5 whitespace-nowrap">
                       {simDistribution.leftoverGold.toLocaleString()}G
                     </div>
                   </div>
@@ -777,20 +784,20 @@ export default function AuctionPage() {
                   <table className="w-full text-xs text-left">
                     <thead className="bg-slate-950 text-slate-400 font-bold sticky top-0">
                       <tr>
-                        <th className="py-2 px-3">문파원</th>
-                        <th className="py-2 px-2 text-center">누적 점수</th>
-                        <th className="py-2 px-3 text-right">창고 금전 배당액</th>
+                        <th className="py-2 px-3 whitespace-nowrap">문파원</th>
+                        <th className="py-2 px-2 text-center whitespace-nowrap">누적 점수</th>
+                        <th className="py-2 px-3 text-right whitespace-nowrap">창고 금전 배당액</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/60">
                       {simDistribution.participants.map((p, i) => (
                         <tr key={p.nickname} className="hover:bg-slate-800/30">
-                          <td className="py-1.5 px-3">
+                          <td className="py-1.5 px-3 whitespace-nowrap">
                             <span className="text-[10px] text-slate-500 mr-1">{i + 1}.</span>
                             <span className="font-bold text-white">{p.nickname}</span>
                           </td>
-                          <td className="py-1.5 px-2 text-center text-amber-300 font-semibold">{p.points}P</td>
-                          <td className="py-1.5 px-3 text-right font-bold text-emerald-400">
+                          <td className="py-1.5 px-2 text-center text-amber-300 font-semibold whitespace-nowrap">{p.points}P</td>
+                          <td className="py-1.5 px-3 text-right font-bold text-emerald-400 whitespace-nowrap">
                             +{p.share.toLocaleString()} 금전
                           </td>
                         </tr>
@@ -808,18 +815,18 @@ export default function AuctionPage() {
                         onChange={e => setResetPointsAfterDist(e.target.checked)}
                         className="rounded border-slate-700 text-amber-500 focus:ring-0"
                       />
-                      <span>금전 분배 완료와 동시에 전 문파원 누적 점수도 0P로 초기화</span>
+                      <span className="whitespace-nowrap">분배 완료와 동시에 누적 점수도 0P로 초기화</span>
                     </label>
                     <button
                       type="button"
                       disabled={distributing || treasuryGold <= 0}
                       onClick={handleDistributeTreasury}
-                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-extrabold text-xs shadow-lg transition-all"
+                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-extrabold text-xs shadow-lg transition-all whitespace-nowrap"
                     >
                       {distributing
                         ? '분배 처리 중...'
                         : treasuryGold > 0
-                        ? `💰 어드민: 창고 세이브 금전(${treasuryGold.toLocaleString()}G) 분배 완료 및 창고 차감`
+                        ? `💰 창고 금전(${treasuryGold.toLocaleString()}G) 분배 완료 및 차감`
                         : '현재 창고 세이브 금전 0G (분배 대기 없음)'}
                     </button>
                   </div>
@@ -834,11 +841,11 @@ export default function AuctionPage() {
       <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-            <History className="w-5 h-5 text-emerald-400" />
+            <History className="w-5 h-5 text-emerald-400 shrink-0" />
             <span>경매 낙찰 금액(지정분배 입력금) & 세금 10% 공제 창고 세이브 공개 기록</span>
           </h2>
           <span className="text-xs text-slate-400">
-            인게임 지정 분배 시 입력할 최종 낙찰 금액과 10% 세금 공제 후 창고 세이브 금액이 함께 기록됩니다
+            인게임 지정 분배 입력용 최종 낙찰 금액과 10% 세금 공제 후 창고 적립금이 함께 기록됩니다
           </span>
         </div>
 
@@ -851,12 +858,12 @@ export default function AuctionPage() {
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
                 <tr>
-                  <th className="py-2.5 px-4">날짜 및 시각</th>
-                  <th className="py-2.5 px-4">구분</th>
+                  <th className="py-2.5 px-4 whitespace-nowrap">날짜 및 시각</th>
+                  <th className="py-2.5 px-4 whitespace-nowrap">구분</th>
                   <th className="py-2.5 px-4">상세 내역</th>
-                  <th className="py-2.5 px-4 text-right text-amber-300">최종 낙찰금액 (지정분배 입력금)</th>
-                  <th className="py-2.5 px-4 text-right text-emerald-300">10% 공제 창고 변동</th>
-                  <th className="py-2.5 px-4 text-right">반영 후 창고 세이브 잔액</th>
+                  <th className="py-2.5 px-4 text-right text-amber-300 whitespace-nowrap">최종 낙찰금액 (지정분배 원금)</th>
+                  <th className="py-2.5 px-4 text-right text-emerald-300 whitespace-nowrap">10% 공제 창고 변동</th>
+                  <th className="py-2.5 px-4 text-right whitespace-nowrap">반영 후 창고 잔액</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-200">
@@ -867,7 +874,7 @@ export default function AuctionPage() {
                     </td>
                     <td className="py-2.5 px-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
+                        className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap ${
                           g.type === 'AUCTION_SAVED'
                             ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                             : g.type === 'DISTRIBUTED'
@@ -936,11 +943,11 @@ export default function AuctionPage() {
                     <span className="font-black text-amber-300">{minRequired.toLocaleString()} 금전 이상</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">낙찰 시 인게임 지정 분배 지불 원금:</span>
+                    <span className="text-slate-400">낙찰 시 인게임 지정 분배 입력 원금:</span>
                     <span className="font-black text-amber-300">{bidAmount.toLocaleString()} 금전</span>
                   </div>
                   <div className="flex justify-between pt-1 border-t border-slate-800">
-                    <span className="text-slate-400">세금 10%(-{expectedTax.toLocaleString()}G) 공제 후 창고 세이브:</span>
+                    <span className="text-slate-400">세금 10%(-{expectedTax.toLocaleString()}G) 공제 후 창고 적립:</span>
                     <span className="font-black text-emerald-400">+{expectedNet.toLocaleString()} 금전</span>
                   </div>
                 </div>
