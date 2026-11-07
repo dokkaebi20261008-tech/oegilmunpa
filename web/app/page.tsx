@@ -124,10 +124,13 @@ export default function HomePage() {
     };
   }, [currentUser]);
 
-  // 문파원 명단 항상 가나다순 정렬
-  const attendanceList = [...(data?.attendance || [])].sort((a, b) =>
-    a.nickname.localeCompare(b.nickname, 'ko')
-  );
+  // 출석 대시보드 순위표: 점수가 높은 순위(내림차순)로 정렬, 동점일 경우 닉네임 가나다순 정렬
+  const attendanceList = [...(data?.attendance || [])].sort((a, b) => {
+    if (b.totalPoints !== a.totalPoints) {
+      return b.totalPoints - a.totalPoints;
+    }
+    return a.nickname.localeCompare(b.nickname, 'ko');
+  });
   const filtered = attendanceList.filter(m => {
     const matchSearch = m.nickname.toLowerCase().includes(search.toLowerCase());
     if (!matchSearch) return false;
