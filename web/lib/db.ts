@@ -775,3 +775,75 @@ export function renameMember(
     message: `문파원 닉네임이 [${oldName}] ➔ [${newName}](으)로 성공적으로 변경되었습니다.`
   };
 }
+
+/**
+ * 문파원 추방 및 삭제 (members, attendance, users 계정, shop/auction 신청자 목록 등 전역 일괄 제거)
+ */
+export function removeMember(
+  db: DatabaseSchema,
+  target: { nickname?: string; userId?: string }
+): { success: boolean; message: string; removedNickname?: string } {
+  let targetNick = String(target.nickname || '').trim();
+  const userId = target.userId;
+
+  let userObj = userId ? (db.users || []).find(u => u.id === userId) : undefined;
+  if (!targetNick && userObj) {
+    targetNick = userObj.nickname;
+  }
+  if (!userObj && targetNick) {
+    userObj = (db.users || []).find(u => u.nickname === targetNick);
+  }
+
+  if (!targetNick && !userId) {
+    return { success: false, message: '추방/삭제할 문파원 닉네임 또는 유저 ID를 지정해주세요.' };
+  }
+
+  // 최고 권력자인 문주(뱀설) 계정은 추방 불가
+  if (targetNick === '뱀설' || userObj?.username === '뱀설' || userObj?.role === 'ADMIN') {
+    return { success: false, message: '⛔ 최고 권력자인 [문주(뱀설)]는 추방 또는 삭제할 수 없습니다.' };
+  }
+
+  // 1. users 테이블에서 계정 삭제
+  if (Array.isArray(db.users)) {
+    if (userId) {
+      db.users = db.users.filter(u => u.id !== userId);
+    } else if (targetNick) {
+      db.users = db.users.filter(u => u.nickname !== targetNick);
+    }
+  }
+
+  // 2. members 목록에서 제외 및 항상 가나다순 유지
+  if (targetNick && Array.isArray(db.members)) {
+    db.members = db.members.filter(m => m !== targetNick);
+    db.members.sort((a, b) => a.localeCompare(b, 'ko'));
+  }
+
+  // 3. attendance 출석부에서 제외
+  if (targetNick && db.attendance) {
+    delete db.attendance[targetNick];
+  }
+
+  // 4. shopItems 희망 신청자 명단에서 제외
+  if (targetNick && Array.isArray(db.shopItems)) {
+    db.shopItems.forEach(item => {
+      if (Array.isArray(item.applicants)) {
+        item.applicants = item.applicants.filter(app => app !== targetNick);
+      }
+    });
+  }
+
+  // 5. auctions 경매 신청자 명단에서 제외
+  if (targetNick && Array.isArray(db.auctions)) {
+    db.auctions.forEach(a => {
+      if (Array.isArray(a.applicants)) {
+        a.applicants = a.applicants.filter(app => app !== targetNick);
+      }
+    });
+  }
+
+  return {
+    success: true,
+    message: `'${targetNick || '해당'}' 문파원이 추방(계정 삭제)되었으며 문파 명단에서도 완전히 제외되었습니다.`,
+    removedNickname: targetNick
+  };
+}

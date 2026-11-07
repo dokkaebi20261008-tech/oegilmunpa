@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getDb, saveDb, renameMember } from '@/lib/db';
+import { getDb, saveDb, renameMember, removeMember } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Role, ROLE_LABELS, ROLE_RANK, isManagerRole } from '@/lib/types';
 
@@ -109,6 +109,7 @@ export async function POST(req: Request) {
       db.users.push(newUser);
       if (!db.members.includes(cleanNickname)) {
         db.members.push(cleanNickname);
+        db.members.sort((a, b) => a.localeCompare(b, 'ko'));
         db.attendance[cleanNickname] = {
           nickname: cleanNickname,
           yosin: { type: 'ABSENT', points: 0 },
@@ -162,6 +163,7 @@ export async function POST(req: Request) {
 
       if (!db.members.includes(targetUser.nickname)) {
         db.members.push(targetUser.nickname);
+        db.members.sort((a, b) => a.localeCompare(b, 'ko'));
         db.attendance[targetUser.nickname] = {
           nickname: targetUser.nickname,
           yosin: { type: 'ABSENT', points: 0 },
@@ -233,10 +235,15 @@ export async function POST(req: Request) {
     // 4. 가입 거절
     if (action === 'REJECT') {
       targetUser.status = 'REJECTED';
+      if (db.members.includes(targetUser.nickname)) {
+        db.members = db.members.filter(m => m !== targetUser.nickname);
+        db.members.sort((a, b) => a.localeCompare(b, 'ko'));
+        delete db.attendance[targetUser.nickname];
+      }
       await saveDb(db);
       return NextResponse.json({
         success: true,
-        message: `'${targetUser.nickname}' 님의 가입 신청이 거절되었습니다.`
+        message: `'${targetUser.nickname}' 님의 가입 신청이 거절되었으며, 문파 명단에서도 완전히 제외되었습니다.`
       });
     }
 
@@ -261,7 +268,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // 6. 계정 삭제
+    // 6. 계정 삭제 / 문파원 추방
     if (action === 'DELETE') {
       if (targetUser.username === '뱀설' || targetUser.role === 'ADMIN') {
         return NextResponse.json(
@@ -276,11 +283,15 @@ export async function POST(req: Request) {
         );
       }
 
-      db.users = db.users.filter(u => u.id !== userId);
+      const expelResult = removeMember(db, { userId, nickname: targetUser.nickname });
+      if (!expelResult.success) {
+        return NextResponse.json({ success: false, message: expelResult.message }, { status: 400 });
+      }
+
       await saveDb(db);
       return NextResponse.json({
         success: true,
-        message: `'${targetUser.nickname}' 계정이 삭제되었습니다.`
+        message: `'${targetUser.nickname}' 문파원이 추방(계정 삭제)되었으며 문파 명단(출석부·분배 현황)에서도 자동으로 완전히 제외되었습니다.`
       });
     }
 

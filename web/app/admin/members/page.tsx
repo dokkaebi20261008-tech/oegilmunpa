@@ -113,9 +113,13 @@ export default function AdminMembersPage() {
     nickname: string,
     roleForApprove?: Role
   ) => {
-    const actionLabel =
-      action === 'APPROVE' ? '승인' : action === 'REJECT' ? '거절' : '삭제';
-    if (!confirm(`'${nickname}' 문파원을 정말 ${actionLabel}하시겠습니까?`)) {
+    const confirmMsg =
+      action === 'DELETE'
+        ? `'${nickname}' 문파원을 정말 추방하시겠습니까?\n\n※ 계정 삭제와 함께 문파 명단(출석부, 참여 분배 등)에서도 완전히 자동 삭제됩니다.`
+        : action === 'REJECT'
+        ? `'${nickname}' 님의 가입 신청을 거절하시겠습니까?`
+        : `'${nickname}' 문파원을 정식 승인하시겠습니까?`;
+    if (!confirm(confirmMsg)) {
       return;
     }
 
@@ -623,7 +627,7 @@ export default function AdminMembersPage() {
                                   type="button"
                                   onClick={() => handleAction('DELETE', user.id, user.nickname)}
                                   className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors"
-                                  title="계정 삭제"
+                                  title="문파원 추방 (계정 삭제 및 문파 명단에서 영구 제외)"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>

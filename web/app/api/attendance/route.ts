@@ -5,7 +5,8 @@ import {
   recalculateMember,
   calculateAuctionDistribution,
   checkAndFinalizeExpiredAuctions,
-  renameMember
+  renameMember,
+  removeMember
 } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { ContentType, ParticipationType, isManagerRole } from '@/lib/types';
@@ -323,11 +324,13 @@ export async function POST(req: Request) {
           { status: 403 }
         );
       }
-      db.members = db.members.filter(n => n !== targetName);
-      delete db.attendance[targetName];
+      const expelResult = removeMember(db, { nickname: targetName });
+      if (!expelResult.success) {
+        return NextResponse.json({ success: false, message: expelResult.message }, { status: 400 });
+      }
       await saveDb(db);
       const sortedList = Object.values(db.attendance).sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
-      return NextResponse.json({ success: true, message: `문파원 [${targetName}] 삭제 완료`, attendance: sortedList });
+      return NextResponse.json({ success: true, message: `문파원 [${targetName}] 삭제 및 계정 연동 완료`, attendance: sortedList });
     }
 
     // 8. [문파원 닉네임 변경]
