@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { getDb, saveDb } from '@/lib/db';
+import { getDb, saveDb, renameMember } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { Role, ROLE_LABELS, ROLE_RANK, isManagerRole } from '@/lib/types';
 
@@ -38,11 +38,7 @@ export async function GET(req: Request) {
         status: u.status || 'APPROVED',
         createdAt: u.createdAt,
       }))
-      .sort((a, b) => {
-        const rankDiff = (ROLE_RANK[b.role] || 0) - (ROLE_RANK[a.role] || 0);
-        if (rankDiff !== 0) return rankDiff;
-        return a.nickname.localeCompare(b.nickname, 'ko');
-      });
+      .sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
 
     const pendingCount = adminViewUsers.filter(u => u.status === 'PENDING').length;
 
@@ -285,6 +281,21 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         message: `'${targetUser.nickname}' 계정이 삭제되었습니다.`
+      });
+    }
+
+    // 7. 회원/문파원 닉네임 변경
+    if (action === 'RENAME_NICKNAME' || action === 'RENAME_MEMBER') {
+      const oldNick = String(body.oldNickname || body.nickname || targetUser?.nickname || '').trim();
+      const newNick = String(body.newNickname || '').trim();
+      const result = renameMember(db, oldNick, newNick);
+      if (!result.success) {
+        return NextResponse.json({ success: false, message: result.message }, { status: 400 });
+      }
+      await saveDb(db);
+      return NextResponse.json({
+        success: true,
+        message: result.message
       });
     }
 

@@ -13,7 +13,8 @@ import {
   RotateCcw,
   Lock,
   Vault,
-  Flame
+  Flame,
+  Pencil
 } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
@@ -107,14 +108,16 @@ export default function DistributionPage() {
     const goldPerPoint = totalPoints > 0 ? totalAuctionGold / totalPoints : 0;
 
     let distributedSum = 0;
-    const finalMembers = listWithCalculations.map(m => {
-      const share = m.computedPoints > 0 ? Math.floor(m.computedPoints * goldPerPoint) : 0;
-      distributedSum += share;
-      return {
-        ...m,
-        share
-      };
-    });
+    const finalMembers = listWithCalculations
+      .map(m => {
+        const share = m.computedPoints > 0 ? Math.floor(m.computedPoints * goldPerPoint) : 0;
+        distributedSum += share;
+        return {
+          ...m,
+          share
+        };
+      })
+      .sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
 
     const errorGold = totalAuctionGold - distributedSum;
 
@@ -301,6 +304,42 @@ export default function DistributionPage() {
     if (d.success) fetchAttendance();
   };
 
+  // 어드민 전용: 문파원 닉네임 변경
+  const handleRenameMember = async (currentNickname: string) => {
+    if (!isAdmin) return;
+    if (currentNickname === '뱀설') {
+      alert('최고 권력자인 문주(뱀설) 캐릭터 닉네임은 변경할 수 없습니다.');
+      return;
+    }
+    const newNick = prompt(`[${currentNickname}] 문파원의 새로운 캐릭터 닉네임을 입력해주세요:`, currentNickname);
+    if (!newNick || !newNick.trim()) return;
+    const cleanNew = newNick.trim();
+    if (cleanNew === currentNickname) {
+      alert('기존 닉네임과 동일합니다.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'RENAME_MEMBER',
+          oldNickname: currentNickname,
+          newNickname: cleanNew
+        })
+      });
+      const d = await res.json();
+      if (!d.success) {
+        alert(d.message || '닉네임 변경 실패');
+        return;
+      }
+      alert(d.message);
+      fetchAttendance();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   // 디스코드 / 게임 공지 텍스트 복사
   const handleCopyNotice = () => {
     const activeList = stats.members
@@ -347,9 +386,10 @@ export default function DistributionPage() {
     return <span className="text-xs text-slate-500">미참</span>;
   };
 
-  const filteredMembers = stats.members.filter(m =>
-    m.nickname.toLowerCase().includes(search.toLowerCase())
-  );
+  // 문파원 명단 항상 가나다순 정렬
+  const filteredMembers = stats.members
+    .filter(m => m.nickname.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
 
   if (authChecking) {
     return null;
@@ -880,16 +920,27 @@ export default function DistributionPage() {
                       </span>
                     </td>
 
-                    {/* 삭제 아이콘 (어드민 전용) */}
+                    {/* 관리 아이콘 (어드민 전용) */}
                     {isAdmin && (
                       <td className="py-3 px-3 text-center">
-                        <button
-                          onClick={() => handleDeleteMember(m.nickname)}
-                          className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors"
-                          title="문파원 삭제"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleRenameMember(m.nickname)}
+                            className="text-slate-400 hover:text-amber-300 p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors"
+                            title="문파원 닉네임 변경"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMember(m.nickname)}
+                            className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800/60 transition-colors"
+                            title="문파원 삭제"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>

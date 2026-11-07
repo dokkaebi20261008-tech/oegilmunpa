@@ -4,7 +4,8 @@ import {
   saveDb,
   recalculateMember,
   calculateAuctionDistribution,
-  checkAndFinalizeExpiredAuctions
+  checkAndFinalizeExpiredAuctions,
+  renameMember
 } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { ContentType, ParticipationType, isManagerRole } from '@/lib/types';
@@ -33,12 +34,8 @@ export async function GET(req: Request) {
   const list = Object.values(db.attendance);
   list.forEach(recalculateMember);
 
-  // 누적 총점 높은 순, 같으면 이번 주 점수 높은 순, 같으면 가나다순
-  list.sort((a, b) => {
-    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-    if ((b.weeklyPoints || 0) !== (a.weeklyPoints || 0)) return (b.weeklyPoints || 0) - (a.weeklyPoints || 0);
-    return a.nickname.localeCompare(b.nickname);
-  });
+  // 사이트 전역 문파원 명단 항상 가나다순 정렬
+  list.sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
 
   const totalGuildPoints = Math.round(list.reduce((sum, m) => sum + (m.totalPoints || 0), 0) * 100) / 100;
   const activeMembersCount = list.filter(m => m.totalPoints > 0).length;
@@ -295,6 +292,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, message: '이미 존재하는 문파원입니다.' }, { status: 400 });
       }
       db.members.push(targetName);
+      db.members.sort((a, b) => a.localeCompare(b, 'ko'));
       db.attendance[targetName] = {
         nickname: targetName,
         yosin: { type: 'ABSENT', points: 0 },
@@ -307,7 +305,8 @@ export async function POST(req: Request) {
         rate: 0
       };
       await saveDb(db);
-      return NextResponse.json({ success: true, message: `문파원 [${targetName}] 등록 완료`, attendance: Object.values(db.attendance) });
+      const sortedList = Object.values(db.attendance).sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
+      return NextResponse.json({ success: true, message: `문파원 [${targetName}] 등록 완료`, attendance: sortedList });
     }
 
     // 7. [문파원 삭제]
@@ -327,10 +326,29 @@ export async function POST(req: Request) {
       db.members = db.members.filter(n => n !== targetName);
       delete db.attendance[targetName];
       await saveDb(db);
-      return NextResponse.json({ success: true, message: `문파원 [${targetName}] 삭제 완료`, attendance: Object.values(db.attendance) });
+      const sortedList = Object.values(db.attendance).sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
+      return NextResponse.json({ success: true, message: `문파원 [${targetName}] 삭제 완료`, attendance: sortedList });
     }
 
-    // 8. 개별/다수 출석 체크
+    // 8. [문파원 닉네임 변경]
+    if (action === 'RENAME_MEMBER' || action === 'RENAME_NICKNAME') {
+      const oldNick = String(body.oldNickname || body.nickname || '').trim();
+      const newNick = String(body.newNickname || '').trim();
+      const result = renameMember(db, oldNick, newNick);
+      if (!result.success) {
+        return NextResponse.json({ success: false, message: result.message }, { status: 400 });
+      }
+      await saveDb(db);
+      const sortedList = Object.values(db.attendance).sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
+      return NextResponse.json({
+        success: true,
+        message: result.message,
+        attendance: sortedList,
+        members: db.members
+      });
+    }
+
+    // 9. 개별/다수 출석 체크
     const targetNames: string[] = names && Array.isArray(names)
       ? names
       : nickname

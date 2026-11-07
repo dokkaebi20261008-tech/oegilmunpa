@@ -124,7 +124,10 @@ export default function HomePage() {
     };
   }, [currentUser]);
 
-  const attendanceList = data?.attendance || [];
+  // 문파원 명단 항상 가나다순 정렬
+  const attendanceList = [...(data?.attendance || [])].sort((a, b) =>
+    a.nickname.localeCompare(b.nickname, 'ko')
+  );
   const filtered = attendanceList.filter(m => {
     const matchSearch = m.nickname.toLowerCase().includes(search.toLowerCase());
     if (!matchSearch) return false;

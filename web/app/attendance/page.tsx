@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award } from 'lucide-react';
+import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
@@ -21,6 +21,12 @@ export default function AttendancePage() {
   const [selectedContent, setSelectedContent] = useState<ContentType>('신기');
   const [selectedType, setSelectedType] = useState<ParticipationType>('MANUAL');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // 문파원 닉네임 변경 모달
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [renameTarget, setRenameTarget] = useState('');
+  const [renameNewNick, setRenameNewNick] = useState('');
+  const [renameLoading, setRenameLoading] = useState(false);
 
   const fetchAttendance = () => {
     fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' })
@@ -141,7 +147,53 @@ export default function AttendancePage() {
     }
   };
 
-  const filtered = attendance.filter(m =>
+  const handleOpenRename = (currentNickname: string) => {
+    setRenameTarget(currentNickname);
+    setRenameNewNick(currentNickname);
+    setIsRenameModalOpen(true);
+  };
+
+  const handleRenameSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanNew = renameNewNick.trim();
+    if (!renameTarget || !cleanNew) return;
+    if (renameTarget === cleanNew) {
+      alert('기존 닉네임과 동일합니다.');
+      return;
+    }
+    setRenameLoading(true);
+    try {
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'RENAME_MEMBER',
+          oldNickname: renameTarget,
+          newNickname: cleanNew,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || '닉네임 변경에 실패했습니다.');
+        setRenameLoading(false);
+        return;
+      }
+      alert(data.message);
+      setIsRenameModalOpen(false);
+      fetchAttendance();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
+  // 문파원 명단 항상 가나다순 정렬
+  const sortedAttendance = [...attendance].sort((a, b) =>
+    a.nickname.localeCompare(b.nickname, 'ko')
+  );
+
+  const filtered = sortedAttendance.filter(m =>
     m.nickname.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -338,7 +390,7 @@ export default function AttendancePage() {
                 <th className="py-3 px-4 text-center">총 누적 포인트</th>
                 <th className="py-3 px-4 text-center">주간 참여율</th>
                 {canManage && (
-                  <th className="py-3 px-4 text-center w-24">관리</th>
+                  <th className="py-3 px-4 text-center w-36">관리</th>
                 )}
               </tr>
             </thead>
@@ -385,15 +437,27 @@ export default function AttendancePage() {
                       <td className="py-3 px-4 text-center text-xs font-semibold text-slate-400">{member.rate}%</td>
                       {canManage && (
                         <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => {
-                              setSelectedMember(member.nickname);
-                              setIsCheckModalOpen(true);
-                            }}
-                            className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-semibold"
-                          >
-                            체크
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedMember(member.nickname);
+                                setIsCheckModalOpen(true);
+                              }}
+                              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 text-xs font-semibold"
+                            >
+                              체크
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenRename(member.nickname)}
+                              className="px-2 py-1 rounded bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-semibold border border-amber-500/30 flex items-center gap-1 transition-colors"
+                              title="문파원 닉네임 변경"
+                            >
+                              <Pencil className="w-3 h-3" />
+                              <span>닉네임</span>
+                            </button>
+                          </div>
                         </td>
                       )}
                     </tr>
@@ -508,6 +572,73 @@ export default function AttendancePage() {
                 className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-md"
               >
                 {actionLoading ? '반영 중...' : '출석 반영 완료'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Admin Member Nickname Rename Modal */}
+      {isRenameModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <form
+            onSubmit={handleRenameSubmit}
+            className="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                <Pencil className="w-5 h-5 text-amber-400" />
+                <span>문파원 닉네임 변경 (관리자)</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsRenameModalOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-400">현재 문파원 닉네임</label>
+              <input
+                type="text"
+                disabled
+                value={renameTarget}
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm font-bold text-slate-400 cursor-not-allowed"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-amber-300">변경할 새로운 캐릭터 닉네임</label>
+              <input
+                type="text"
+                required
+                autoFocus
+                value={renameNewNick}
+                onChange={e => setRenameNewNick(e.target.value)}
+                placeholder="새 닉네임 입력 (예: 최강홍섭)"
+                className="w-full px-3 py-2.5 rounded-lg bg-slate-950 border border-amber-500/50 text-sm font-bold text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                * 닉네임 변경 시 출석 포인트, 계정 정보, 경매 및 정산 내역이 새로운 닉네임으로 자동 승계·통합됩니다.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsRenameModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                disabled={renameLoading || !renameNewNick.trim() || renameNewNick.trim() === renameTarget}
+                className="px-5 py-2 rounded-lg bg-amber-400 hover:bg-amber-300 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 text-xs font-black transition-all shadow-md"
+              >
+                {renameLoading ? '변경 중...' : '닉네임 변경 적용'}
               </button>
             </div>
           </form>

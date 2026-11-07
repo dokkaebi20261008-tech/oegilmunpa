@@ -22,7 +22,8 @@ import {
   RefreshCw,
   X,
   Crown,
-  Award
+  Award,
+  Pencil
 } from 'lucide-react';
 
 interface MemberUser {
@@ -247,6 +248,44 @@ export default function AdminMembersPage() {
     }
   };
 
+  const handleRenameUser = async (currentNickname: string) => {
+    if (currentNickname === '뱀설') {
+      alert('최고 권력자인 문주(뱀설) 캐릭터 닉네임은 변경할 수 없습니다.');
+      return;
+    }
+    const newNick = prompt(
+      `[${currentNickname}] 문파원의 새로운 캐릭터 닉네임을 입력해주세요:`,
+      currentNickname
+    );
+    if (!newNick || !newNick.trim()) return;
+    const cleanNew = newNick.trim();
+    if (cleanNew === currentNickname) {
+      alert('기존 닉네임과 동일합니다.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'RENAME_NICKNAME',
+          oldNickname: currentNickname,
+          newNickname: cleanNew,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || '닉네임 변경에 실패했습니다.');
+        return;
+      }
+      alert(data.message);
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   const handleCopyCredentials = (user: MemberUser) => {
     const passDisplay = isMainAdmin
       ? user.plainPassword || ''
@@ -263,8 +302,13 @@ export default function AdminMembersPage() {
       u.username.toLowerCase().includes(search.toLowerCase())
   );
 
-  const pendingUsers = filteredUsers.filter(u => u.status === 'PENDING');
-  const approvedUsers = filteredUsers.filter(u => u.status === 'APPROVED');
+  // 사이트 문파원 이름 항상 가나다순 정렬
+  const pendingUsers = filteredUsers
+    .filter(u => u.status === 'PENDING')
+    .sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
+  const approvedUsers = filteredUsers
+    .filter(u => u.status === 'APPROVED')
+    .sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
 
   if (authChecking) return null;
   if (!canManage) return null;
@@ -555,6 +599,16 @@ export default function AdminMembersPage() {
 
                             {!isTargetAdmin && !disabledForOtherSubAdmin && (
                               <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRenameUser(user.nickname)}
+                                  className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 text-xs font-bold transition-colors whitespace-nowrap"
+                                  title="문파원 캐릭터 닉네임 변경"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span>닉네임</span>
+                                </button>
+
                                 <button
                                   type="button"
                                   onClick={() => handleResetPassword(user)}

@@ -529,7 +529,7 @@ export default function AuctionPage() {
                           <h3 className="text-base font-extrabold text-white truncate">{auction.title}</h3>
                           <p className="text-[11px] text-slate-400 truncate mt-0.5">
                             {isScheduled
-                              ? `희망자: ${(auction.applicants || []).join(', ') || '접수 중'}`
+                              ? `희망자: ${[...(auction.applicants || [])].sort((a, b) => a.localeCompare(b, 'ko')).join(', ') || '접수 중'}`
                               : '무기 및 산군 방어구·장신구 통합 도안 상자'}
                           </p>
                         </div>

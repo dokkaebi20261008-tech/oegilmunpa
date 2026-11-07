@@ -743,7 +743,9 @@ export default function ShopPage() {
                     : '현재 등록된 구매 희망 신청자가 없습니다. (매주 수요일 오후 7시 ~ 7시 30분 오픈)'}
                 </span>
               ) : (
-                (singleItem.applicants || []).map(nick => {
+                [...(singleItem.applicants || [])]
+                  .sort((a, b) => a.localeCompare(b, 'ko'))
+                  .map(nick => {
                   const isMe = currentUser?.nickname === nick;
                   return (
                     <span

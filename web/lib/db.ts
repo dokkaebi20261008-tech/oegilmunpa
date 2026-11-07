@@ -285,11 +285,15 @@ function migrateSchema(db: DatabaseSchema): boolean {
     migrated = true;
   }
 
-  // 문파원 명단 중복 원천 방지
+  // 문파원 명단 중복 원천 방지 및 항상 가나다순 자동 정렬
   if (Array.isArray(db.members)) {
     const uniqueMembers = Array.from(new Set(db.members.map(m => m.trim()).filter(Boolean)));
-    if (uniqueMembers.length !== db.members.length) {
-      db.members = uniqueMembers;
+    const sortedMembers = [...uniqueMembers].sort((a, b) => a.localeCompare(b, 'ko'));
+    const isDifferent =
+      uniqueMembers.length !== db.members.length ||
+      sortedMembers.some((m, idx) => m !== db.members[idx]);
+    if (isDifferent) {
+      db.members = sortedMembers;
       migrated = true;
     }
   }
@@ -630,4 +634,144 @@ export function maskAuctionForClient(auction: AuctionItem): AuctionItem {
     };
   }
   return auction;
+}
+
+/**
+ * 문파원 닉네임 일괄 변경 (members, attendance, users, shopItems, auctions, bids, ledgers 등 전역 일괄 동기화)
+ */
+export function renameMember(
+  db: DatabaseSchema,
+  oldNickname: string,
+  newNickname: string
+): { success: boolean; message: string } {
+  const oldName = String(oldNickname || '').trim();
+  const newName = String(newNickname || '').trim();
+
+  if (!oldName) {
+    return { success: false, message: '기존 문파원 닉네임을 입력해주세요.' };
+  }
+  if (!newName) {
+    return { success: false, message: '변경할 새로운 닉네임을 입력해주세요.' };
+  }
+  if (oldName === newName) {
+    return { success: false, message: '기존 닉네임과 새 닉네임이 동일합니다.' };
+  }
+  if (oldName === '뱀설') {
+    return { success: false, message: '⛔ 최고 권력자인 [문주(뱀설)] 캐릭터 닉네임은 변경할 수 없습니다.' };
+  }
+
+  // 중복 닉네임 검사
+  const isMemberExists = (db.members || []).some(m => m.toLowerCase() === newName.toLowerCase());
+  const isUserExists = (db.users || []).some(u => u.nickname.toLowerCase() === newName.toLowerCase());
+  if (isMemberExists || isUserExists) {
+    return { success: false, message: `이미 문파에 존재하는 닉네임입니다: [${newName}]` };
+  }
+
+  // 1. members 배열 내 닉네임 교체 및 항상 가나다순 재정렬
+  if (Array.isArray(db.members)) {
+    const idx = db.members.indexOf(oldName);
+    if (idx !== -1) {
+      db.members[idx] = newName;
+    } else {
+      db.members.push(newName);
+    }
+    db.members.sort((a, b) => a.localeCompare(b, 'ko'));
+  }
+
+  // 2. attendance 출석부 키 및 내부 nickname 교체
+  if (db.attendance) {
+    if (db.attendance[oldName]) {
+      const record = db.attendance[oldName];
+      delete db.attendance[oldName];
+      record.nickname = newName;
+      db.attendance[newName] = record;
+    } else {
+      db.attendance[newName] = {
+        nickname: newName,
+        yosin: { type: 'ABSENT', points: 0 },
+        gyeolgye: { type: 'ABSENT', points: 0 },
+        mihok: { type: 'ABSENT', points: 0 },
+        singi: { type: 'ABSENT', points: 0 },
+        carriedPoints: 0,
+        weeklyPoints: 0,
+        totalPoints: 0,
+        rate: 0
+      };
+    }
+  }
+
+  // 3. users 계정 정보 내 nickname 동기화
+  if (Array.isArray(db.users)) {
+    db.users.forEach(u => {
+      if (u.nickname === oldName) {
+        u.nickname = newName;
+      }
+    });
+  }
+
+  // 4. shopItems 희망 신청자 명단 교체
+  if (Array.isArray(db.shopItems)) {
+    db.shopItems.forEach(item => {
+      if (Array.isArray(item.applicants)) {
+        item.applicants = item.applicants.map(app => (app === oldName ? newName : app));
+      }
+    });
+  }
+
+  // 5. auctions 경매 최고 입찰자 및 신청자 명단 교체
+  if (Array.isArray(db.auctions)) {
+    db.auctions.forEach(a => {
+      if (a.highestBidderNickname === oldName) {
+        a.highestBidderNickname = newName;
+      }
+      if (Array.isArray(a.applicants)) {
+        a.applicants = a.applicants.map(app => (app === oldName ? newName : app));
+      }
+      if (a.distribution && Array.isArray(a.distribution.participants)) {
+        a.distribution.participants.forEach(p => {
+          if (p.nickname === oldName) p.nickname = newName;
+        });
+      }
+    });
+  }
+
+  // 6. bids 입찰 기록 닉네임 교체
+  if (Array.isArray(db.bids)) {
+    db.bids.forEach(b => {
+      if (b.bidderNickname === oldName) {
+        b.bidderNickname = newName;
+      }
+    });
+  }
+
+  // 7. purchases 구매 기록 닉네임 교체
+  if (Array.isArray(db.purchases)) {
+    db.purchases.forEach(p => {
+      if (p.buyerNickname === oldName) {
+        p.buyerNickname = newName;
+      }
+    });
+  }
+
+  // 8. tokenLedger & goldLedger 장부 내역 교체
+  if (Array.isArray(db.tokenLedger)) {
+    db.tokenLedger.forEach(t => {
+      if (t.actorNickname === oldName) t.actorNickname = newName;
+    });
+  }
+  if (Array.isArray(db.goldLedger)) {
+    db.goldLedger.forEach(g => {
+      if (g.actorNickname === oldName) g.actorNickname = newName;
+      if (g.distribution && Array.isArray(g.distribution.participants)) {
+        g.distribution.participants.forEach(p => {
+          if (p.nickname === oldName) p.nickname = newName;
+        });
+      }
+    });
+  }
+
+  return {
+    success: true,
+    message: `문파원 닉네임이 [${oldName}] ➔ [${newName}](으)로 성공적으로 변경되었습니다.`
+  };
 }
