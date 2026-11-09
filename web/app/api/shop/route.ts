@@ -90,8 +90,8 @@ export async function POST(req: Request) {
     }
 
     // 2. 내 캐릭터로 상품 구매 희망 신청 / 취소 토글
-    // 매주 수요일 19:00:00 ~ 23:59:59 에 희망 신청 오픈 (목요일 00:00:00 자동 클로즈)
-    // 최초 신청자 발생 시 10분 뒤 자동 경매 시작 (1번 신청자 최저 입찰가 자동 배정) -> 30분간 진행 후 자동 종료 및 재신청 가능!
+    // 매주 수요일 19:00:00 ~ 23:59:59 에 희망 신청 오픈 (목요일 00:00:00 희망 신청 마감)
+    // 최초 신청자 발생 시 10분 뒤 자동 경매 시작 -> 30분간 진행 후 자동 종료 및 재신청 가능!
     if (action === 'TOGGLE_APPLICANT') {
       // 이미 본 경매(ACTIVE)가 진행 중인 경우 경매 종료 후 신청 안내
       const activeAuc = db.auctions.find(a => a.status === 'ACTIVE');
@@ -137,17 +137,15 @@ export async function POST(req: Request) {
 
       if (item.applicants.length > 0) {
         if (!scheduledAuc) {
-          // 최초 희망 신청 시점으로부터 10분 후 자동 경매 시작, 시작 후 30분간 진행
+          // 최초 희망 신청 시점으로부터 10분 후 자동 경매 시작, 시작 후 30분간 진행 (진행 중 자정이 지나더라도 마감 시간 보장)
           const nowMs = Date.now();
           const startMs = nowMs + 10 * 60 * 1000;
-          const wedCloseMs = new Date(wednesdaySchedule.auctionEndAtISO).getTime();
-          const rawEndMs = startMs + 30 * 60 * 1000;
-          const finalEndMs = wednesdaySchedule.isShopOpen && rawEndMs > wedCloseMs ? wedCloseMs : rawEndMs;
+          const finalEndMs = startMs + 30 * 60 * 1000;
 
           scheduledAuc = {
             id: `auc_${nowMs}`,
             title: item.name,
-            description: `[수요일 자동 경매] 구매 희망 신청 10분 후 자동 시작 • 30분간 익명 경매 (1번 신청자 최저 입찰가 자동 배정)`,
+            description: `[수요일 자동 경매] 구매 희망 신청 10분 후 자동 시작 • 30분간 익명 경매 진행`,
             imageUrl: '/images/shop-weapon.png',
             startingBid: item.minStartBid || 20000,
             minBidIncrement: item.bidStep || 500,
@@ -172,7 +170,6 @@ export async function POST(req: Request) {
       }
 
       const myOrder = item.applicants.indexOf(targetName) + 1;
-      const minBidVal = (item.minStartBid || 20000).toLocaleString();
 
       await saveDb(db);
       return NextResponse.json({
@@ -184,9 +181,7 @@ export async function POST(req: Request) {
         wednesdaySchedule,
         auctions: db.auctions.map(maskAuctionForClient),
         message: !exists
-          ? myOrder === 1
-            ? `1번 순번으로 구매 희망 신청이 완료되었습니다! 10분 뒤 자동으로 30분 익명 경매가 시작되며, 최초 신청 혜택으로 최저 입찰가(${minBidVal} 금전)가 자동 배정됩니다.`
-            : `${myOrder}번 순번으로 구매 희망 신청이 완료되었습니다! 대기시간 종료 후 자동으로 30분 익명 경매가 시작됩니다.`
+          ? `${myOrder}번 순번으로 구매 희망 신청이 완료되었습니다! 대기시간(10분) 종료 후 자동으로 30분 익명 경매가 시작됩니다.`
           : '구매 희망 신청이 취소되었습니다.'
       });
     }

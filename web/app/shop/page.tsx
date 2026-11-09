@@ -38,7 +38,8 @@ function getClientKSTSchedule(nowMs: number) {
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
   const nowFormatted = `${year}.${String(month + 1).padStart(2, '0')}.${String(date).padStart(2, '0')} (${dayNames[day]}) ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
 
-  // 매주 수요일 19:00:00 ~ 23:59:59 상점 구매 희망 신청 및 경매 오픈 (목요일 00:00:00 자동 클로즈)
+  // 매주 수요일 19:00:00 ~ 23:59:59 상점 구매 희망 신청 오픈 (목요일 00:00:00 희망 신청 마감)
+  const isWednesday = day === 3;
   const isShopOpen = day === 3 && hour >= 19 && hour <= 23;
   const isAuctionWindow = day === 3 && hour >= 19 && hour <= 23;
 
@@ -60,6 +61,7 @@ function getClientKSTSchedule(nowMs: number) {
 
   return {
     nowFormatted,
+    isWednesday,
     isShopOpen,
     isAuctionWindow,
     shopOpenAtISO,
@@ -335,7 +337,7 @@ export default function ShopPage() {
             <span>외길 문파 상점·신청 & 용맹의 증표 관리소</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed break-keep">
-            <strong className="text-amber-300">매주 수요일 오후 7시(19:00:00 ~ 23:59:59)</strong> 구매 희망 오픈 (목요일 00:00:00 자동 클로즈) ➔ 구매 희망 신청 시 <strong className="text-emerald-300">10분 후 30분간 자동 익명 경매 개시 (1번 신청자 최저 입찰가 자동 배정)</strong> ➔ <strong className="text-indigo-300">경매 종료 시 낙찰 안내 및 재신청 가능</strong>
+            <strong className="text-amber-300">매주 수요일 오후 7시(19:00:00 ~ 23:59:59)</strong> 구매 희망 오픈 (목요일 00:00:00 희망 신청 마감) ➔ 구매 희망 신청 시 <strong className="text-emerald-300">10분 후 30분간 자동 익명 경매 개시</strong> ➔ <strong className="text-indigo-300">경매 종료 시 낙찰 안내 및 재신청 가능</strong>
           </p>
         </div>
 
@@ -511,7 +513,7 @@ export default function ShopPage() {
             <div className="text-[11px] mt-1 whitespace-nowrap">
               {activeAuction
                 ? `🔥 종료까지 ${formatRemainingTime(activeAuction.endsAt)}`
-                : `1번 신청자 최저가(${(singleItem?.minStartBid || 20000).toLocaleString()}G) 자동 배정`}
+                : `최소 시작가 ${(singleItem?.minStartBid || 20000).toLocaleString()}G • 익명 입찰`}
             </div>
           </div>
 
@@ -523,11 +525,11 @@ export default function ShopPage() {
             }`}
           >
             <div className="font-black text-white flex items-center justify-between gap-1.5">
-              <span className="whitespace-nowrap">4. 낙찰 안내 & 클로즈</span>
-              <span className="text-[10px] font-bold text-emerald-300 whitespace-nowrap shrink-0">목 00:00 클로즈</span>
+              <span className="whitespace-nowrap">4. 낙찰 안내 & 신청 마감</span>
+              <span className="text-[10px] font-bold text-emerald-300 whitespace-nowrap shrink-0">목 00:00 신청마감</span>
             </div>
             <div className="text-[11px] mt-1 whitespace-nowrap">
-              종료 후 재신청 가능 (목요일 00시 마감)
+              종료 후 재신청 가능 (목 00시 신청 마감)
             </div>
           </div>
         </div>
@@ -622,9 +624,7 @@ export default function ShopPage() {
                   <span>⏳ 구매 희망 신청 접수 완료 • 10분 대기 후 문파 경매장 자동 시작 대기 중</span>
                 </div>
                 <p className="text-xs text-slate-200 break-keep leading-relaxed">
-                  구매 희망 신청자가 있어 <strong>대기시간 10분 후 문파 경매장에서 30분간 자동으로 익명 경매가 시작</strong>됩니다.{' '}
-                  (1번 신청자 <strong className="text-amber-300">{scheduledAuction.applicants?.[0] || singleItem.applicants?.[0] || '최초 신청자'}</strong>님에게 최저 입찰가{' '}
-                  <strong>{(singleItem.minStartBid || 20000).toLocaleString()} 금전</strong> 자동 배정)
+                  구매 희망 신청자가 있어 <strong>대기시간 10분 후 문파 경매장에서 30분간 자동으로 익명 경매가 시작</strong>됩니다.
                 </p>
               </div>
               <div className="flex items-center space-x-3 shrink-0">
@@ -729,8 +729,8 @@ export default function ShopPage() {
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold shrink-0">
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/40 text-amber-300">
-                  👑 1번 신청자 최저 입찰가 자동 배정
+                <span className="px-2 py-0.5 rounded bg-slate-900 border border-amber-500/30 text-amber-300">
+                  최소 시작가: {(singleItem.minStartBid || 20000).toLocaleString()} 금전
                 </span>
                 <span className="px-2 py-0.5 rounded bg-slate-900 border border-amber-500/30 text-amber-300">
                   최소 호가: +{(singleItem.bidStep || 500).toLocaleString()} 금전
@@ -746,34 +746,28 @@ export default function ShopPage() {
                 <span className="text-xs text-slate-400">
                   {kstSched.isShopOpen
                     ? activeAuction
-                      ? '현재 익명 경매가 진행 중입니다. 경매 종료 후 다시 구매 희망을 신청할 수 있습니다.'
-                      : '현재 구매 희망 신청이 오픈되어 있습니다! 가장 먼저 신청하시는 1번 순번 문파원에게 최저 시작 입찰가가 자동 배정됩니다.'
-                    : '현재 등록된 구매 희망 신청자가 없습니다. (매주 수요일 오후 7시 오픈)'}
+                      ? '현재 경매가 진행 중입니다. 경매 종료 후 구매 희망을 신청할 수 있습니다.'
+                      : '현재 등록된 구매 희망 신청자가 없습니다.'
+                    : kstSched.isWednesday
+                    ? '현재 등록된 구매 희망 신청자가 없습니다. (매주 수요일 오후 7시 오픈)'
+                    : '현재 구매 희망 신청이 불가합니다. (매주 수요일 오후 7시 오픈)'}
                 </span>
               ) : (
                 (singleItem.applicants || []).map((nick, idx) => {
                   const isMe = currentUser?.nickname === nick;
-                  const isFirst = idx === 0;
                   return (
                     <span
                       key={nick}
                       className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                        isFirst
-                          ? 'bg-amber-500/25 text-amber-200 border-amber-400 shadow-sm shadow-amber-500/20'
-                          : isMe
+                        isMe
                           ? 'bg-indigo-500/20 text-indigo-200 border-indigo-400/50'
                           : 'bg-slate-800 text-slate-200 border-slate-700'
                       }`}
                     >
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${isFirst ? 'bg-amber-400 text-slate-950' : 'bg-slate-950 text-slate-400'}`}>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-950 text-amber-300">
                         {idx + 1}번
                       </span>
                       <span>{nick}</span>
-                      {isFirst && (
-                        <span className="text-[10px] text-amber-300 font-extrabold">
-                          (최저 입찰가 자동 배정)
-                        </span>
-                      )}
                     </span>
                   );
                 })
@@ -792,7 +786,7 @@ export default function ShopPage() {
                     <div className="flex items-center space-x-2 text-rose-300 text-xs sm:text-sm">
                       <Lock className="w-4 h-4 shrink-0" />
                       <span>
-                        구매 희망 신청은 <strong>매주 수요일 오후 7시에 오픈됩니다.</strong> (현재 닫힘)
+                        구매 희망 신청은 <strong>매주 수요일 오후 7시에 오픈됩니다.</strong>
                       </span>
                     </div>
                     <span className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-amber-300 text-xs font-extrabold shrink-0 whitespace-nowrap">
@@ -825,7 +819,7 @@ export default function ShopPage() {
                     <>
                       <Check className="w-4 h-4" />
                       <span>
-                        내 캐릭터 ({myNick}) {myOrder}번 순번 구매 희망 신청 완료 ({myOrder === 1 ? '최저 입찰가 자동 배정 • ' : ''}10분 뒤 자동 경매 • 클릭 시 취소)
+                        내 캐릭터 ({myNick}) {myOrder}번 순번 구매 희망 신청 완료 (10분 뒤 자동 경매 • 클릭 시 취소)
                       </span>
                     </>
                   ) : (

@@ -375,8 +375,8 @@ export default function AuctionPage() {
                 외길 문파 익명 경매·창고 & 금전 분배소
               </h1>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed break-keep">
-                매주 수요일 <strong className="text-amber-300">19:00:00 ~ 23:59:59 상점 희망 신청 및 경매 오픈 (목요일 00:00:00 마감)</strong><br className="hidden sm:inline" />
-                <span className="sm:hidden"> • </span>신청 후 <strong className="text-indigo-300">10분 뒤 30분 익명 경매 자동 개시 (1번 신청자 최저가 20,000G 자동 배정 / 호가 500G)</strong> • 종료 시 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
+                매주 수요일 <strong className="text-amber-300">19:00:00 ~ 23:59:59 상점 희망 신청 오픈 (목요일 00:00:00 신청 마감)</strong><br className="hidden sm:inline" />
+                <span className="sm:hidden"> • </span>신청 후 <strong className="text-indigo-300">10분 뒤 30분 익명 경매 자동 개시 (최소 시작가 20,000G / 호가 500G)</strong> • 종료 시 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
               </p>
             </div>
           </div>
@@ -470,7 +470,7 @@ export default function AuctionPage() {
                 </p>
                 <div className="pt-1 flex flex-wrap items-center justify-center gap-2 text-xs">
                   <span className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold">
-                    최소 시작 입찰가: <strong className="text-white">20,000 금전 (1번 신청자 배정)</strong>
+                    최소 시작 입찰가: <strong className="text-white">20,000 금전</strong>
                   </span>
                   <span className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-semibold">
                     최소 호가 단위: <strong className="text-emerald-400">+500 금전</strong>
@@ -575,11 +575,7 @@ export default function AuctionPage() {
                             </>
                           ) : (
                             <span className="text-slate-400">
-                              {isScheduled
-                                ? auction.applicants?.[0]
-                                  ? `1번 ${auction.applicants[0]} 최저가 자동 배정 예정`
-                                  : '10분 후 자동 입찰 오픈'
-                                : '첫 입찰 대기 중'}
+                              {isScheduled ? '10분 대기 후 자동 입찰 오픈' : '첫 입찰 대기 중'}
                             </span>
                           )}
                         </span>
@@ -589,7 +585,7 @@ export default function AuctionPage() {
                       {isScheduled ? (
                         <div className="space-y-2 pt-1">
                           <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-center text-xs text-amber-200 font-semibold leading-relaxed">
-                            ⏳ 대기시간 종료({timeLeftStr} 후) 시 1번 신청자 최저 입찰가 배정과 함께<br />30분간 자동으로 익명 경매가 시작됩니다.
+                            ⏳ 대기시간 종료({timeLeftStr} 후) 시<br />30분간 자동으로 익명 경매가 시작됩니다.
                           </div>
                           {canManage && (
                             <button
