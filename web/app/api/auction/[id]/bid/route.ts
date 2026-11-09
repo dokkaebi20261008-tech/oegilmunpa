@@ -27,7 +27,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     if (auction.status !== 'ACTIVE') {
-      return NextResponse.json({ success: false, message: '경매 입찰 가능 시간(19:30:00 ~ 19:59:59)이 종료되어 마감된 경매입니다.' }, { status: 400 });
+      return NextResponse.json({ success: false, message: '경매 입찰 가능 시간이 종료되어 마감된 경매입니다.' }, { status: 400 });
     }
 
     // 최소 필요 입찰가 계산

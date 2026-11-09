@@ -75,15 +75,25 @@ export async function POST(req: Request) {
     }
 
     const db = await getDb();
+    await checkAndFinalizeExpiredAuctions(db);
+
+    const existingLive = db.auctions.find(a => a.status === 'ACTIVE' || a.status === 'SCHEDULED');
+    if (existingLive) {
+      return NextResponse.json({
+        success: false,
+        message: '현재 대기 또는 진행 중인 경매가 있습니다. 기존 경매 종료 후 등록할 수 있습니다.'
+      }, { status: 400 });
+    }
+
     const nowMs = Date.now();
     const resolvedImage = imageUrl || '/images/shop-weapon.png';
 
     const isScheduled = mode === 'SCHEDULED';
     const scheduledStartAt = isScheduled
-      ? new Date(nowMs + 30 * 60 * 1000).toISOString()
+      ? new Date(nowMs + 10 * 60 * 1000).toISOString()
       : new Date(nowMs).toISOString();
     const endsAt = isScheduled
-      ? new Date(nowMs + 60 * 60 * 1000).toISOString()
+      ? new Date(nowMs + 40 * 60 * 1000).toISOString()
       : new Date(nowMs + 30 * 60 * 1000).toISOString();
 
     const newAuction = {

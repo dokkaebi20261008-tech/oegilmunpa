@@ -33,12 +33,12 @@ export interface DatabaseSchema {
 export interface WednesdayScheduleInfo {
   nowKSTFormatted: string;
   dayOfWeekKST: number;       // 0(일) ~ 3(수) ~ 6(토)
-  isShopOpen: boolean;        // 매주 수요일 19:00:00 <= KST < 19:30:00
-  isAuctionWindow: boolean;   // 매주 수요일 19:30:00 <= KST < 20:00:00
+  isShopOpen: boolean;        // 매주 수요일 19:00:00 <= KST <= 23:59:59
+  isAuctionWindow: boolean;   // 매주 수요일 19:00:00 <= KST <= 23:59:59 (목요일 00:00:00 자동 클로즈)
   cycleDateStr: string;       // 이번(또는 다음) 수요일 YYYY-MM-DD (KST)
   shopOpenAtISO: string;      // 수요일 19:00:00 KST (UTC ISO)
-  auctionStartAtISO: string;  // 수요일 19:30:00 KST (UTC ISO)
-  auctionEndAtISO: string;    // 수요일 20:00:00 KST (UTC ISO)
+  auctionStartAtISO: string;  // 수요일 19:10:00 KST (UTC ISO)
+  auctionEndAtISO: string;    // 목요일 00:00:00 KST (수요일 23:59:59 마감, UTC ISO)
 }
 
 export const DEFAULT_MEMBERS = [
@@ -56,7 +56,7 @@ export function getKSTDateStr(date: Date = new Date()): string {
 }
 
 /**
- * 한국 시간(KST) 기준 매주 수요일 상점 오픈(19:00~19:30) 및 자동 경매(19:30~20:00) 스케줄 계산
+ * 한국 시간(KST) 기준 매주 수요일 상점 구매 희망 & 경매 오픈(19:00:00~23:59:59) 및 목요일 00:00:00 자동 클로즈 스케줄 계산
  */
 export function getKSTWednesdaySchedule(nowMs: number = Date.now()): WednesdayScheduleInfo {
   const kstOffsetMs = 9 * 60 * 60 * 1000;
@@ -73,14 +73,13 @@ export function getKSTWednesdaySchedule(nowMs: number = Date.now()): WednesdaySc
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
   const nowKSTFormatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')} (${dayNames[day]}) ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`;
 
-  // 매주 수요일 오후 7시(19:00) ~ 오후 7시 30분(19:30 미만)까지만 상점 희망 신청 오픈
-  const isShopOpen = day === 3 && hour === 19 && minute >= 0 && minute < 30;
-  // 매주 수요일 오후 7시 30분(19:30) ~ 오후 8시(20:00 미만) 자동 경매 진행 시간
-  const isAuctionWindow = day === 3 && hour === 19 && minute >= 30 && minute < 60;
+  // 매주 수요일 오후 7시(19:00:00) ~ 오후 11시 59분 59초(23:59:59) 상점 구매 희망 및 경매 오픈 (목요일 00:00:00 자동 클로즈)
+  const isShopOpen = day === 3 && hour >= 19 && hour <= 23;
+  const isAuctionWindow = day === 3 && hour >= 19 && hour <= 23;
 
   let daysUntilWed = 0;
   if (day === 3) {
-    daysUntilWed = hour >= 20 ? 7 : 0;
+    daysUntilWed = 0;
   } else {
     daysUntilWed = (3 - day + 7) % 7;
   }
@@ -91,10 +90,10 @@ export function getKSTWednesdaySchedule(nowMs: number = Date.now()): WednesdaySc
   const wd = targetWedUTC.getUTCDate();
 
   const cycleDateStr = `${wy}-${String(wm + 1).padStart(2, '0')}-${String(wd).padStart(2, '0')}`;
-  // KST 19:00 = UTC 10:00, KST 19:30 = UTC 10:30, KST 20:00 = UTC 11:00
+  // KST 19:00:00 = UTC 10:00:00, KST 24:00:00(목요일 00:00:00) = UTC 15:00:00
   const shopOpenAtISO = new Date(Date.UTC(wy, wm, wd, 10, 0, 0)).toISOString();
-  const auctionStartAtISO = new Date(Date.UTC(wy, wm, wd, 10, 30, 0)).toISOString();
-  const auctionEndAtISO = new Date(Date.UTC(wy, wm, wd, 11, 0, 0)).toISOString();
+  const auctionStartAtISO = new Date(Date.UTC(wy, wm, wd, 10, 10, 0)).toISOString();
+  const auctionEndAtISO = new Date(Date.UTC(wy, wm, wd, 15, 0, 0)).toISOString();
 
   return {
     nowKSTFormatted,
@@ -480,26 +479,60 @@ export function calculateAuctionDistribution(totalGold: number, attendanceRecord
 }
 
 /**
- * 매주 수요일 오후 7시 30분(19:30 KST) 도달 시 -> 희망 신청 마감 + 용맹의 증표 차감 + 오후 8시(20:00 KST)까지 30분 익명 경매(ACTIVE) 자동 시작
+ * 구매 희망 신청 후 10분 대기 시간 도달 시 -> 1번 신청자에게 최저 입찰가 자동 배정 + 용맹의 증표 차감 + 30분 익명 경매(ACTIVE) 자동 시작
  */
 export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionItem, isManualNow: boolean = false): void {
-  const nowIso = new Date().toISOString();
-  const scheduledStartMs = auction.scheduledStartAt ? new Date(auction.scheduledStartAt).getTime() : Date.now();
+  const nowMs = Date.now();
+  const nowIso = new Date(nowMs).toISOString();
+  const scheduledStartMs = auction.scheduledStartAt ? new Date(auction.scheduledStartAt).getTime() : nowMs;
+  const baseStartMs = isManualNow ? nowMs : (scheduledStartMs <= nowMs ? scheduledStartMs : nowMs);
 
   auction.status = 'ACTIVE';
-  if (isManualNow) {
-    // 관리자가 수동으로 즉시 개시한 경우 현재 시각부터 30분
-    auction.endsAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  const rawEndMs = (isManualNow ? nowMs : Math.max(baseStartMs, nowMs - 60 * 1000)) + 30 * 60 * 1000;
+
+  // 수요일 정기 오픈 시간 중 자동 시작된 경우 목요일 00:00:00 (수요일 23:59:59)를 넘지 않도록 마감 시각 제한
+  const wedSched = getKSTWednesdaySchedule(nowMs);
+  const wedCloseMs = new Date(wedSched.auctionEndAtISO).getTime();
+  if (!isManualNow && wedSched.isShopOpen && rawEndMs > wedCloseMs) {
+    auction.endsAt = wedSched.auctionEndAtISO;
   } else {
-    // 수요일 19:30 자동 개시 시 정확히 수요일 20:00(19:30 + 30분)에 종료되도록 설정
-    const targetEndMs = scheduledStartMs + 30 * 60 * 1000;
-    auction.endsAt = new Date(targetEndMs > Date.now() ? targetEndMs : Date.now() + 30 * 60 * 1000).toISOString();
+    auction.endsAt = new Date(rawEndMs).toISOString();
   }
 
-  const shopItem = db.shopItems?.[0];
-  if (shopItem) {
-    shopItem.dailyLockedDate = getKSTDateStr();
+  const shopItem = db.shopItems?.find(i => i.activeAuctionId === auction.id) || db.shopItems?.[0];
+  const minBid = auction.startingBid || shopItem?.minStartBid || 20000;
+  auction.startingBid = minBid;
 
+  // 구매 희망 신청자 명단 동기화 (선착순 신청 순번 그대로 보존)
+  const orderedApplicants =
+    auction.applicants && auction.applicants.length > 0
+      ? [...auction.applicants]
+      : shopItem?.applicants && shopItem.applicants.length > 0
+      ? [...shopItem.applicants]
+      : [];
+  auction.applicants = orderedApplicants;
+
+  // ★ 제일 빠르게 구매 희망 신청한 1번 신청자에게 최저 입찰가(시작가) 자동 배정 혜택 부여
+  if (orderedApplicants.length > 0 && auction.bidsCount === 0) {
+    const firstApplicantNick = orderedApplicants[0];
+    const firstUser = (db.users || []).find(u => u.nickname === firstApplicantNick);
+    auction.currentBid = minBid;
+    auction.highestBidderNickname = firstApplicantNick;
+    auction.highestBidderId = firstUser?.id || `applicant_${firstApplicantNick}`;
+    auction.bidsCount = 1;
+
+    if (!Array.isArray(db.bids)) db.bids = [];
+    db.bids.unshift({
+      id: `bid_init_${nowMs}`,
+      auctionId: auction.id,
+      bidderNickname: firstApplicantNick,
+      bidderId: firstUser?.id || `applicant_${firstApplicantNick}`,
+      amount: minBid,
+      createdAt: nowIso
+    });
+  }
+
+  if (shopItem) {
     // 문파 총재화(용맹의 증표) - 상품 재화(11,500) 자동 차감 및 공개 내역 기록
     if (!auction.tokenDeducted) {
       const cost = shopItem.price || 11500;
@@ -513,19 +546,17 @@ export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionIte
       }
 
       const appList =
-        auction.applicants && auction.applicants.length > 0
-          ? auction.applicants.join(', ')
-          : shopItem.applicants && shopItem.applicants.length > 0
-          ? shopItem.applicants.join(', ')
+        orderedApplicants.length > 0
+          ? orderedApplicants.map((n, idx) => `${idx + 1}번 ${n}`).join(', ')
           : '문파원';
 
       db.tokenLedger.unshift({
-        id: `tok_${Date.now()}`,
+        id: `tok_${nowMs}`,
         type: 'AUCTION_DEDUCT',
         delta: -cost,
         balanceAfter: db.guildTokens,
-        description: `[${shopItem.name}] 수요일 19:30 경매 개시로 상품 재화 차감 (희망 신청: ${appList})`,
-        actorNickname: appList,
+        description: `[${shopItem.name}] 경매 개시로 상품 재화 차감 (희망 순번: ${appList})`,
+        actorNickname: orderedApplicants[0] || '문파원',
         createdAt: nowIso
       });
     }
@@ -533,7 +564,7 @@ export function activateScheduledAuction(db: DatabaseSchema, auction: AuctionIte
 }
 
 /**
- * 매주 수요일 오후 8시(20:00 KST) 익명 경매(ACTIVE) 종료 시 -> 최고 입찰자 닉네임 및 최종 낙찰금액 안내 + 세금 10% 공제 금액(90%) 문파 창고 세이브 기록
+ * 30분 익명 경매(ACTIVE) 종료 시 -> 최고 입찰자 닉네임 및 최종 낙찰금액 안내 + 세금 10% 공제 금액(90%) 문파 창고 세이브 기록 + 구매 희망 재신청 가능 상태로 초기화
  */
 export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem): void {
   const nowIso = new Date().toISOString();
@@ -543,7 +574,7 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
     (auction.bidsCount > 0 && auction.currentBid > 0) ||
     (auction.applicants && auction.applicants.length > 0 && auction.currentBid > 0);
 
-  if (auction.bidsCount === 0 && auction.applicants && auction.applicants.length === 1 && !auction.highestBidderNickname) {
+  if (auction.bidsCount === 0 && auction.applicants && auction.applicants.length > 0 && !auction.highestBidderNickname) {
     auction.highestBidderNickname = auction.applicants[0];
   }
 
@@ -579,41 +610,74 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
     auction.distribution = calculateAuctionDistribution(0, db.attendance);
   }
 
-  const shopItem = db.shopItems?.[0];
-  if (shopItem && shopItem.activeAuctionId === auction.id) {
+  // 경매 종료 즉시 다시 구매 희망 신청을 받을 수 있도록 상점 아이템 상태 초기화
+  const shopItem = db.shopItems?.find(i => i.activeAuctionId === auction.id) || db.shopItems?.[0];
+  if (shopItem) {
     shopItem.activeAuctionId = undefined;
     shopItem.applicants = [];
+    shopItem.dailyLockedDate = undefined;
   }
 }
 
 export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promise<boolean> {
   let updated = false;
   const nowMs = Date.now();
+  const wedSched = getKSTWednesdaySchedule(nowMs);
 
   for (let i = db.auctions.length - 1; i >= 0; i--) {
     const auction = db.auctions[i];
 
-    // 1단계: 수요일 19:30 대기(SCHEDULED) 도달 -> 희망 신청자가 있으면 익명 경매(ACTIVE, 20:00 종료) 자동 시작
-    if (auction.status === 'SCHEDULED' && auction.scheduledStartAt) {
-      const startMs = new Date(auction.scheduledStartAt).getTime();
-      if (!isNaN(startMs) && startMs <= nowMs) {
-        const shopItem = db.shopItems?.[0];
-        const applicantsCount = (auction.applicants?.length || 0) + (shopItem?.applicants?.length || 0);
-        if (applicantsCount > 0) {
-          activateScheduledAuction(db, auction, false);
-        } else {
-          // 희망 신청자가 0명이면 대기 경매 자동 제거
-          db.auctions.splice(i, 1);
+    // 1단계: 대기 중(SCHEDULED) 경매 처리
+    if (auction.status === 'SCHEDULED') {
+      // 목요일 00:00:00 도달 등 수요일 오픈 시간이 종료된 경우 대기 경매 및 희망 신청 자동 클로즈
+      if (!wedSched.isShopOpen) {
+        const shopItem = db.shopItems?.find(it => it.activeAuctionId === auction.id) || db.shopItems?.[0];
+        if (shopItem) {
+          shopItem.activeAuctionId = undefined;
+          shopItem.applicants = [];
+          shopItem.dailyLockedDate = undefined;
         }
+        db.auctions.splice(i, 1);
         updated = true;
+        continue;
+      }
+
+      if (auction.scheduledStartAt) {
+        const startMs = new Date(auction.scheduledStartAt).getTime();
+        if (!isNaN(startMs) && startMs <= nowMs) {
+          const shopItem = db.shopItems?.[0];
+          const applicantsCount = (auction.applicants?.length || 0) + (shopItem?.applicants?.length || 0);
+          if (applicantsCount > 0) {
+            activateScheduledAuction(db, auction, false);
+          } else {
+            // 희망 신청자가 0명이면 대기 경매 자동 제거
+            db.auctions.splice(i, 1);
+          }
+          updated = true;
+        }
       }
     }
 
-    // 2단계: 수요일 20:00 익명 경매(ACTIVE) 종료 시각 도달 -> 경매 종료(ENDED), 낙찰자/낙찰금액 안내 & 10% 공제 금액 창고 세이브
+    // 2단계: 익명 경매(ACTIVE) 종료 시각 도달 (또는 30분 경과 / 목요일 00:00:00 마감 도달) -> 경매 종료(ENDED) 처리
     if (auction.status === 'ACTIVE' && auction.endsAt) {
       const endsAtMs = new Date(auction.endsAt).getTime();
       if (!isNaN(endsAtMs) && endsAtMs <= nowMs) {
         finalizeSingleAuction(db, auction);
+        updated = true;
+      }
+    }
+  }
+
+  // 수요일 오픈 시간(19:00:00 ~ 23:59:59)이 아닐 때 남아있는 미진행 구매 희망 신청자 명단 자동 클로즈
+  if (!wedSched.isShopOpen && Array.isArray(db.shopItems)) {
+    for (const item of db.shopItems) {
+      const hasLiveAuc = db.auctions.some(
+        a => (a.status === 'ACTIVE' || a.status === 'SCHEDULED') && a.id === item.activeAuctionId
+      );
+      if (!hasLiveAuc && ((item.applicants && item.applicants.length > 0) || item.dailyLockedDate)) {
+        item.applicants = [];
+        item.activeAuctionId = undefined;
+        item.dailyLockedDate = undefined;
         updated = true;
       }
     }

@@ -90,14 +90,23 @@ export async function POST(req: Request) {
     }
 
     // 2. 내 캐릭터로 상품 구매 희망 신청 / 취소 토글
-    // 매주 수요일 19:00:00 ~ 19:29:59 에만 희망 신청 오픈!
-    // 신청자가 있으면 수요일 19:30:00에 자동 경매 시작 -> 19:59:59까지 입찰 -> 20:00:00에 자동 경매 종료 및 낙찰자 공개!
+    // 매주 수요일 19:00:00 ~ 23:59:59 에 희망 신청 오픈 (목요일 00:00:00 자동 클로즈)
+    // 최초 신청자 발생 시 10분 뒤 자동 경매 시작 (1번 신청자 최저 입찰가 자동 배정) -> 30분간 진행 후 자동 종료 및 재신청 가능!
     if (action === 'TOGGLE_APPLICANT') {
+      // 이미 본 경매(ACTIVE)가 진행 중인 경우 경매 종료 후 신청 안내
+      const activeAuc = db.auctions.find(a => a.status === 'ACTIVE');
+      if (activeAuc) {
+        return NextResponse.json({
+          success: false,
+          message: '현재 경매가 진행 중입니다. 경매 종료 후 구매 희망을 신청할 수 있습니다.'
+        }, { status: 400 });
+      }
+
       const isAdminOverride = Boolean(body.forceAdminTest && isManagerRole(user.role));
       if (!wednesdaySchedule.isShopOpen && !isAdminOverride) {
         return NextResponse.json({
           success: false,
-          message: `문파 상점 구매 희망 신청은 매주 수요일 오후 7시부터 7시 30분까지(19:00:00 ~ 19:29:59) 오픈됩니다.`
+          message: `구매 희망 신청은 매주 수요일 오후 7시에 오픈됩니다.`
         }, { status: 400 });
       }
 
@@ -109,16 +118,16 @@ export async function POST(req: Request) {
       }
       if (!Array.isArray(item.applicants)) item.applicants = [];
 
-      const exists = item.applicants.includes(targetName);
-
-      // 이미 본 경매(ACTIVE)가 진행 중인 경우 신청/취소 불가
-      const activeAuc = db.auctions.find(a => a.status === 'ACTIVE');
-      if (activeAuc) {
+      // 다중 경매 방지: 다른 아이템이 이미 경매 대기(SCHEDULED) 중이면 차단
+      let scheduledAuc = db.auctions.find(a => a.status === 'SCHEDULED');
+      if (scheduledAuc && item.activeAuctionId && scheduledAuc.id !== item.activeAuctionId) {
         return NextResponse.json({
           success: false,
-          message: '현재 문파 익명 경매가 이미 진행 중이므로 희망 신청을 변경할 수 없습니다.'
+          message: '현재 다른 상품의 경매 시작 대기가 진행 중입니다. 경매 종료 후 신청할 수 있습니다.'
         }, { status: 400 });
       }
+
+      const exists = item.applicants.includes(targetName);
 
       if (exists) {
         item.applicants = item.applicants.filter(n => n !== targetName);
@@ -126,50 +135,58 @@ export async function POST(req: Request) {
         item.applicants.push(targetName);
       }
 
-      let scheduledAuc = db.auctions.find(a => a.status === 'SCHEDULED');
-
       if (item.applicants.length > 0) {
         if (!scheduledAuc) {
-          // 수요일 19:30:00 자동 경매 시작, 19:59:59까지 입찰 후 20:00:00 자동 경매 종료 예약
+          // 최초 희망 신청 시점으로부터 10분 후 자동 경매 시작, 시작 후 30분간 진행
           const nowMs = Date.now();
+          const startMs = nowMs + 10 * 60 * 1000;
+          const wedCloseMs = new Date(wednesdaySchedule.auctionEndAtISO).getTime();
+          const rawEndMs = startMs + 30 * 60 * 1000;
+          const finalEndMs = wednesdaySchedule.isShopOpen && rawEndMs > wedCloseMs ? wedCloseMs : rawEndMs;
+
           scheduledAuc = {
             id: `auc_${nowMs}`,
             title: item.name,
-            description: `[수요일 정기 자동 경매] 19:30:00 자동 시작 ~ 19:59:59 입찰 마감 (20:00:00 종료 즉시 낙찰자 및 최종 낙찰금액 공개)`,
+            description: `[수요일 자동 경매] 구매 희망 신청 10분 후 자동 시작 • 30분간 익명 경매 (1번 신청자 최저 입찰가 자동 배정)`,
             imageUrl: '/images/shop-weapon.png',
             startingBid: item.minStartBid || 20000,
             minBidIncrement: item.bidStep || 500,
             currentBid: item.minStartBid || 20000,
             status: 'SCHEDULED',
-            scheduledStartAt: wednesdaySchedule.auctionStartAtISO, // 수요일 19:30:00
+            scheduledStartAt: new Date(startMs).toISOString(),
             applicants: [...item.applicants],
             bidsCount: 0,
-            endsAt: wednesdaySchedule.auctionEndAtISO,             // 수요일 20:00:00
+            endsAt: new Date(finalEndMs).toISOString(),
             createdAt: new Date(nowMs).toISOString()
           };
           db.auctions.unshift(scheduledAuc);
           item.activeAuctionId = scheduledAuc.id;
         } else {
+          // 기존 10분 타이머 유지하면서 신청자 순번 명단만 갱신
           scheduledAuc.applicants = [...item.applicants];
-          scheduledAuc.scheduledStartAt = wednesdaySchedule.auctionStartAtISO;
-          scheduledAuc.endsAt = wednesdaySchedule.auctionEndAtISO;
         }
       } else if (scheduledAuc) {
-        // 대기 중 전원이 신청을 취소한 경우 수요일 19:30:00 예정 경매 취소
+        // 대기 중 전원이 신청을 취소한 경우 예정 경매 취소 및 타이머 초기화
         db.auctions = db.auctions.filter(a => a.id !== scheduledAuc!.id);
         item.activeAuctionId = undefined;
       }
+
+      const myOrder = item.applicants.indexOf(targetName) + 1;
+      const minBidVal = (item.minStartBid || 20000).toLocaleString();
 
       await saveDb(db);
       return NextResponse.json({
         success: true,
         applied: !exists,
+        myOrder: !exists ? myOrder : 0,
         item,
         items: db.shopItems,
         wednesdaySchedule,
         auctions: db.auctions.map(maskAuctionForClient),
         message: !exists
-          ? '구매 희망 신청이 완료되었습니다! 수요일 19:30:00에 자동으로 익명 경매가 시작되며 20:00:00 종료와 동시에 낙찰자가 공개됩니다.'
+          ? myOrder === 1
+            ? `1번 순번으로 구매 희망 신청이 완료되었습니다! 10분 뒤 자동으로 30분 익명 경매가 시작되며, 최초 신청 혜택으로 최저 입찰가(${minBidVal} 금전)가 자동 배정됩니다.`
+            : `${myOrder}번 순번으로 구매 희망 신청이 완료되었습니다! 대기시간 종료 후 자동으로 30분 익명 경매가 시작됩니다.`
           : '구매 희망 신청이 취소되었습니다.'
       });
     }
@@ -211,6 +228,14 @@ export async function POST(req: Request) {
       if (!isManagerRole(user.role)) {
         return NextResponse.json({ success: false, message: '문주 또는 부문주만 즉시 경매를 개시할 수 있습니다.' }, { status: 403 });
       }
+      const existingActive = db.auctions.find(a => a.status === 'ACTIVE');
+      if (existingActive) {
+        return NextResponse.json({
+          success: false,
+          message: '현재 이미 진행 중인 경매가 있습니다. 경매 종료 후 새 경매를 시작할 수 있습니다.'
+        }, { status: 400 });
+      }
+
       const { itemId, startingBid, minBidIncrement } = body;
       const item = db.shopItems.find(i => i.id === itemId) || db.shopItems[0];
       if (!item) {

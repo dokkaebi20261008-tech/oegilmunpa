@@ -90,7 +90,7 @@ export interface AuctionItem {
   highestBidderNickname?: string;
   highestBidderId?: string;
   status: 'SCHEDULED' | 'ACTIVE' | 'ENDED' | 'CANCELLED';
-  scheduledStartAt?: string;    // 구매 희망 신청 후 30분 뒤 익명 경매 자동 시작 시각
+  scheduledStartAt?: string;    // 구매 희망 신청 후 10분 뒤 익명 경매 자동 시작 시각
   applicants?: string[];        // 구매 희망 신청 문파원 목록
   grossBid?: number;            // 낙찰 금액 (세전)
   taxAmount?: number;           // 인게임 거래 세금 10%

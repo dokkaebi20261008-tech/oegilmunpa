@@ -196,7 +196,7 @@ export default function HomePage() {
                 <li className="flex items-start space-x-2">
                   <span className="text-amber-400 font-bold mt-0.5">•</span>
                   <span>
-                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 ➔ 상점 희망 신청 ➔ 1시간 자동 익명 경매 ➔ 세금 10% 공제 후 창고 금전 비례 분배까지 한곳에서 관리됩니다.
+                    <strong>원스톱 관리:</strong> 컨텐츠 참여율 확인 ➔ 상점 희망 신청 ➔ 30분 자동 익명 경매 ➔ 세금 10% 공제 후 창고 금전 비례 분배까지 한곳에서 관리됩니다.
                   </span>
                 </li>
                 <li className="flex items-start space-x-2">
@@ -348,7 +348,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">문파 상점·신청</h3>
             <p className="text-xs text-slate-400 leading-relaxed break-keep">
-              문파 재화(용맹의 증표)로 전설 도안 상자 구매 희망 신청 시 30분 뒤 자동 경매가 열립니다.
+              문파 재화(용맹의 증표)로 전설 도안 상자 구매 희망 신청 시 10분 뒤 자동 경매가 열립니다.
             </p>
           </div>
 
@@ -418,7 +418,7 @@ export default function HomePage() {
             </h1>
             <div className="mt-3 space-y-1 text-xs sm:text-sm text-slate-300 leading-relaxed">
               <p>• 디스코드 인증 시 수동(1.0P) 및 분신(0.25P) 참여 점수가 실시간 자동 누적됩니다.</p>
-              <p>• 상점 희망 신청 후 1시간 자동 경매가 종료되면 인게임 지정 분배 시 <strong>세금 10% 공제 후 90% 금전이 문파 창고에 세이브</strong>되어 포인트 비율로 분배됩니다.</p>
+              <p>• 상점 희망 신청 10분 후 30분 자동 경매가 종료되면 인게임 지정 분배 시 <strong>세금 10% 공제 후 90% 금전이 문파 창고에 세이브</strong>되어 포인트 비율로 분배됩니다.</p>
             </div>
           </div>
 
