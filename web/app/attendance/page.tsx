@@ -5,12 +5,19 @@ import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw
 import { MemberAttendance, ContentType, ParticipationType, WeeklyContentHistoryEntry, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
-function getDefaultKSTWeekLabel(): string {
+function getClientGuildCycleInfo() {
   const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const y = kst.getUTCFullYear();
-  const m = kst.getUTCMonth() + 1;
-  const w = Math.ceil(kst.getUTCDate() / 7);
-  return `${y}년 ${m}월 ${w}주차`;
+  const day = kst.getUTCDay();
+  const daysSinceFriday = (day - 5 + 7) % 7;
+  const friUtc = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() - daysSinceFriday));
+  const satUtc = new Date(Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 1));
+  const tueUtc = new Date(Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 4));
+  const fmt = (d: Date) => `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}`;
+  const m = friUtc.getUTCMonth() + 1;
+  const w = Math.ceil(friUtc.getUTCDate() / 7);
+  const weekLabel = `${m}월 ${w}주차`;
+  const scheduleSummary = `${fmt(friUtc)}(금) 미혹 · ${fmt(satUtc)}(토) 신기 · ${fmt(tueUtc)}(화) 요신·결계지`;
+  return { weekLabel, scheduleSummary };
 }
 
 export default function AttendancePage() {
@@ -106,11 +113,13 @@ export default function AttendancePage() {
 
   // 1) 주간 컨텐츠만 미참으로 초기화 (누적 점수는 유지 + 주차별 참여·분신 기록 1개월 자동 보관)
   const handleWeeklyContentReset = async () => {
-    const defaultLabel = getDefaultKSTWeekLabel();
+    const cycle = getClientGuildCycleInfo();
+    const defaultLabel = cycle.weekLabel;
     const inputLabel = prompt(
       '🔄 [주간 컨텐츠만 미참 초기화 & 주차별 참여 기록 자동 저장]\n\n' +
+        `• 현재 컨텐츠 주기: ${cycle.weekLabel} (${cycle.scheduleSummary})\n` +
         '• 문파원들의 누적 점수는 0으로 초기화되지 않고 100% 그대로 유지(이월)됩니다.\n' +
-        '• 초기화 직전 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 보관함에 자동 저장되며, 약 1개월(다음달 동일 주차) 후 자동 삭제됩니다.\n\n' +
+        '• 초기화 직전 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 보관함에 자동 저장되며, 다음달 동일 주차 도달 시 자동 삭제됩니다.\n\n' +
         '보관함에 저장할 주차 이름을 확인해주세요:',
       defaultLabel
     );
@@ -311,12 +320,18 @@ export default function AttendancePage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold mb-2">
+            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+            <span>
+              현재 진행 주차: {getClientGuildCycleInfo().weekLabel} ({getClientGuildCycleInfo().scheduleSummary})
+            </span>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
             <CheckCircle2 className="w-7 h-7 text-emerald-400" />
             <span>상세 출석부 & 누적 포인트 관리소</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400 break-keep">
-            주간 컨텐츠는 매주 <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>로 리셋하며, <strong className="text-amber-300">누적 점수</strong>는 금전 분배가 모두 완료된 뒤 초기화할 수 있습니다.
+            주간 컨텐츠(금 미혹 · 토 신기 · 화 요신·결계지) 종료 후 <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>를 누르면 해당 주차 수동·분신 기록이 아래 보관함에 1개월간 남고 <strong className="text-amber-300">누적 점수</strong>는 그대로 유지됩니다.
           </p>
         </div>
 
@@ -466,7 +481,10 @@ export default function AttendancePage() {
                               : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
                           }`}
                         >
-                          <span>📅 {h.weekLabel}</span>
+                          <span>
+                            📅 {h.weekLabel}
+                            {h.scheduleSummary ? ` (${h.scheduleSummary})` : ''}
+                          </span>
                           <span className={`px-1.5 py-0.5 rounded text-[10px] ${isSelected ? 'bg-indigo-900 text-indigo-200' : 'bg-slate-900 text-slate-400'}`}>
                             참여 {h.activeWeeklyCount}명
                           </span>
@@ -481,7 +499,7 @@ export default function AttendancePage() {
                       <span>
                         기록 저장: {new Date(activeRecord.createdAt).toLocaleDateString('ko-KR')} • 자동 삭제 예정:{' '}
                         <strong className="text-amber-300">
-                          {new Date(activeRecord.expiresAt).toLocaleDateString('ko-KR')} (다음달 {activeRecord.weekOfMonth}주차)
+                          다음달 {activeRecord.weekOfMonth}주차 ({new Date(activeRecord.expiresAt).toLocaleDateString('ko-KR')})
                         </strong>
                       </span>
                     </span>

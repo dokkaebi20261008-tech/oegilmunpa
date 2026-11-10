@@ -198,14 +198,28 @@ export interface WeeklyHistoryMemberRecord {
   rate: number;
 }
 
+export interface GuildContentCycleInfo {
+  year: number;
+  monthNumber: number;      // 금요일(미혹) 기준 월 (1 ~ 12)
+  weekOfMonth: number;      // 금요일(미혹) 기준 해당 월의 몇 주차인지 (1 ~ 5)
+  weekLabel: string;        // 예: "11월 1주차"
+  fullLabel: string;        // 예: "11월 1주차 (11/06 금 미혹 · 11/07 토 신기 · 11/10 화 요신·결계지)"
+  scheduleSummary: string;  // 예: "11/06(금) 미혹 · 11/07(토) 신기 · 11/10(화) 요신·결계지"
+  fridayDateStr: string;    // 미혹의 정원 날짜 (MM/DD)
+  saturdayDateStr: string;  // 신기 쟁탈전 날짜 (MM/DD)
+  tuesdayDateStr: string;   // 요신 토벌령 & 결계지 방어 날짜 (MM/DD)
+  expiresAtISO: string;     // 다음달 동일 주차(금요일 00:00 KST) 자동 삭제 시각 ISO
+}
+
 export interface WeeklyContentHistoryEntry {
   id: string;
-  weekLabel: string;        // 예: "2026년 11월 1주차"
+  weekLabel: string;        // 예: "11월 1주차"
+  scheduleSummary?: string; // 예: "11/06(금) 미혹 · 11/07(토) 신기 · 11/10(화) 요신·결계지"
   year: number;
   monthNumber: number;      // 1 ~ 12
   weekOfMonth: number;      // 1 ~ 5 (해당 월의 주차)
   createdAt: string;        // 주간 초기화(기록 저장) 시각 ISO
-  expiresAt: string;        // 자동 삭제 시각 ISO (다음달 동일 주차 / 약 1개월 후)
+  expiresAt: string;        // 자동 삭제 시각 ISO (다음달 동일 주차 도달 시)
   archivedBy: string;       // 초기화를 실행한 관리자 닉네임
   totalMembers: number;
   activeWeeklyCount: number;// 해당 주차에 1개 이상 컨텐츠에 참여한 인원 수

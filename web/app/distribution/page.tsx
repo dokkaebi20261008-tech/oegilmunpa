@@ -186,11 +186,20 @@ export default function DistributionPage() {
   const handleResetWeeklyContentOnly = async () => {
     if (!isAdmin) return;
     const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-    const defaultLabel = `${kst.getUTCFullYear()}년 ${kst.getUTCMonth() + 1}월 ${Math.ceil(kst.getUTCDate() / 7)}주차`;
+    const day = kst.getUTCDay();
+    const daysSinceFriday = (day - 5 + 7) % 7;
+    const friUtc = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() - daysSinceFriday));
+    const satUtc = new Date(Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 1));
+    const tueUtc = new Date(Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 4));
+    const fmt = (d: Date) => `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}`;
+    const defaultLabel = `${friUtc.getUTCMonth() + 1}월 ${Math.ceil(friUtc.getUTCDate() / 7)}주차`;
+    const scheduleSummary = `${fmt(friUtc)}(금) 미혹 · ${fmt(satUtc)}(토) 신기 · ${fmt(tueUtc)}(화) 요신·결계지`;
+
     const inputLabel = prompt(
       '🔄 [주간 컨텐츠만 미참 초기화 & 주차별 참여 기록 자동 저장]\n\n' +
+        `• 현재 컨텐츠 주기: ${defaultLabel} (${scheduleSummary})\n` +
         '• 문파원들의 누적 총 점수는 절대 초기화되지 않고 그대로 보존(이월)됩니다!\n' +
-        '• 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 [상세 출석부]의 보관함에 자동 저장되며, 약 1개월(다음달 동일 주차) 후 자동 삭제됩니다.\n\n' +
+        '• 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 [상세 출석부]의 보관함에 자동 저장되며, 다음달 동일 주차 도달 시 자동 삭제됩니다.\n\n' +
         '보관함에 저장할 주차 이름을 확인해주세요:',
       defaultLabel
     );

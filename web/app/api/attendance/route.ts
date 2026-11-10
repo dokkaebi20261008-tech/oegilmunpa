@@ -6,6 +6,7 @@ import {
   calculateAuctionDistribution,
   checkAndFinalizeExpiredAuctions,
   archiveWeeklyContentHistory,
+  getGuildContentCycleInfo,
   renameMember,
   removeMember
 } from '@/lib/db';
@@ -56,6 +57,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     success: true,
     currentWeek: db.currentWeek,
+    currentCycle: getGuildContentCycleInfo(),
     totalMembers: list.length,
     activeMembersCount,
     totalGuildPoints,

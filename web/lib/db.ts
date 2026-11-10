@@ -12,7 +12,8 @@ import {
   TokenLedgerEntry,
   GoldLedgerEntry,
   WeeklyContentHistoryEntry,
-  WeeklyHistoryMemberRecord
+  WeeklyHistoryMemberRecord,
+  GuildContentCycleInfo
 } from './types';
 
 export interface DatabaseSchema {
@@ -600,7 +601,72 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
 }
 
 /**
- * 주차별 컨텐츠 참여 기록 1개월 보관 및 자동 삭제 (예: 1주차 기록은 다음달 1주차 도달 시 또는 28일 경과 시 자동 영구 삭제)
+ * 외길 문파 주간 컨텐츠 주기 계산 (금요일 미혹 ➔ 토요일 신기 ➔ 화요일 요신·결계지 기준)
+ * 예:
+ * - 11/06(금) 미혹, 11/07(토) 신기, 11/10(화) 요신,결계지 ➔ 11월 1주차
+ * - 11/13(금) 미혹, 11/14(토) 신기, 11/17(화) 요신,결계지 ➔ 11월 2주차
+ * - 11/20(금) 미혹, 11/21(토) 신기, 11/24(화) 요신,결계지 ➔ 11월 3주차
+ * - 11/27(금) 미혹, 11/28(토) 신기, 12/01(화) 요신,결계지 ➔ 11월 4주차
+ */
+export function getGuildContentCycleInfo(nowMs: number = Date.now()): GuildContentCycleInfo {
+  const kstOffsetMs = 9 * 60 * 60 * 1000;
+  const kstDate = new Date(nowMs + kstOffsetMs);
+  const day = kstDate.getUTCDay(); // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
+
+  // 해당 주기의 시작 금요일(미혹)로부터 경과 일수: 금(0), 토(1), 일(2), 월(3), 화(4), 수(5), 목(6)
+  const daysSinceFriday = (day - 5 + 7) % 7;
+
+  const friUtc = new Date(
+    Date.UTC(kstDate.getUTCFullYear(), kstDate.getUTCMonth(), kstDate.getUTCDate() - daysSinceFriday)
+  );
+  const satUtc = new Date(
+    Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 1)
+  );
+  const tueUtc = new Date(
+    Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 4)
+  );
+
+  const year = friUtc.getUTCFullYear();
+  const monthNumber = friUtc.getUTCMonth() + 1; // 금요일이 속한 월 (1 ~ 12)
+  const weekOfMonth = Math.ceil(friUtc.getUTCDate() / 7); // 해당 월의 몇 번째 금요일(주차)인지
+
+  const fmtDate = (d: Date) =>
+    `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}`;
+
+  const fridayDateStr = fmtDate(friUtc);
+  const saturdayDateStr = fmtDate(satUtc);
+  const tuesdayDateStr = fmtDate(tueUtc);
+
+  const weekLabel = `${monthNumber}월 ${weekOfMonth}주차`;
+  const scheduleSummary = `${fridayDateStr}(금) 미혹 · ${saturdayDateStr}(토) 신기 · ${tuesdayDateStr}(화) 요신·결계지`;
+  const fullLabel = `${weekLabel} (${scheduleSummary})`;
+
+  // 다음 달 동일 주차(다음 달 N번째 금요일 00:00:00 KST) 자동 삭제 시각 계산
+  const nextYear = monthNumber === 12 ? year + 1 : year;
+  const nextMonthIndex = monthNumber === 12 ? 0 : monthNumber; // 0-indexed
+  const firstOfNextMonth = new Date(Date.UTC(nextYear, nextMonthIndex, 1));
+  const firstDayOfWeek = firstOfNextMonth.getUTCDay();
+  const daysUntilFirstFriday = (5 - firstDayOfWeek + 7) % 7;
+  const targetFridayDay = 1 + daysUntilFirstFriday + (weekOfMonth - 1) * 7;
+  const expiresUtcMs = Date.UTC(nextYear, nextMonthIndex, targetFridayDay, 0, 0, 0) - kstOffsetMs;
+  const expiresAtISO = new Date(expiresUtcMs).toISOString();
+
+  return {
+    year,
+    monthNumber,
+    weekOfMonth,
+    weekLabel,
+    fullLabel,
+    scheduleSummary,
+    fridayDateStr,
+    saturdayDateStr,
+    tuesdayDateStr,
+    expiresAtISO
+  };
+}
+
+/**
+ * 주차별 컨텐츠 참여 기록 1개월 보관 및 자동 삭제 (예: 11월 1주차 기록은 다음달 12월 1주차 도달 시 자동 영구 삭제)
  */
 export function pruneExpiredWeeklyHistory(db: DatabaseSchema, nowMs: number = Date.now()): boolean {
   if (!Array.isArray(db.weeklyHistory)) {
@@ -609,11 +675,10 @@ export function pruneExpiredWeeklyHistory(db: DatabaseSchema, nowMs: number = Da
   }
   if (db.weeklyHistory.length === 0) return false;
 
-  const kstDate = new Date(nowMs + 9 * 60 * 60 * 1000);
-  const curYear = kstDate.getUTCFullYear();
-  const curMonth = kstDate.getUTCMonth() + 1;
-  const curDay = kstDate.getUTCDate();
-  const curWeekOfMonth = Math.ceil(curDay / 7);
+  const curCycle = getGuildContentCycleInfo(nowMs);
+  const curYear = curCycle.year;
+  const curMonth = curCycle.monthNumber;
+  const curWeekOfMonth = curCycle.weekOfMonth;
 
   const beforeLen = db.weeklyHistory.length;
   db.weeklyHistory = db.weeklyHistory.filter(entry => {
@@ -621,10 +686,10 @@ export function pruneExpiredWeeklyHistory(db: DatabaseSchema, nowMs: number = Da
     if (!isNaN(expMs) && expMs <= nowMs) {
       return false;
     }
-    const entryYear = entry.year || new Date(entry.createdAt).getUTCFullYear();
+    const entryYear = entry.year || curYear;
     const isNextMonthOrLater =
       curYear > entryYear || (curYear === entryYear && curMonth > entry.monthNumber);
-    // 이전 달의 기록 중 현재 월의 동일 주차 이상에 도달한 기록은 자동 삭제 (예: 11월 1주차 기록 -> 12월 1주차 도달 시 자동 삭제)
+    // 이전 달의 기록 중 현재 컨텐츠 주기의 동일 주차 이상에 도달한 기록은 자동 삭제 (예: 11월 1주차 기록 -> 12월 1주차 시작 시 자동 삭제)
     if (isNextMonthOrLater && curWeekOfMonth >= entry.weekOfMonth) {
       return false;
     }
@@ -650,16 +715,12 @@ export function archiveWeeklyContentHistory(
 ): WeeklyContentHistoryEntry | null {
   pruneExpiredWeeklyHistory(db, nowMs);
 
-  const kstDate = new Date(nowMs + 9 * 60 * 60 * 1000);
-  const year = kstDate.getUTCFullYear();
-  const monthNumber = kstDate.getUTCMonth() + 1;
-  const dayOfMonth = kstDate.getUTCDate();
-  const weekOfMonth = Math.ceil(dayOfMonth / 7);
+  const cycle = getGuildContentCycleInfo(nowMs);
+  const { year, monthNumber, weekOfMonth, scheduleSummary, expiresAtISO } = cycle;
 
-  const weekLabel = (customWeekLabel || '').trim() || `${year}년 ${monthNumber}월 ${weekOfMonth}주차`;
+  const weekLabel = (customWeekLabel || '').trim() || cycle.weekLabel;
   const createdAt = new Date(nowMs).toISOString();
-  // 다음달 동일 주차(28일 = 4주 후) 자동 만료
-  const expiresAt = new Date(nowMs + 28 * 24 * 60 * 60 * 1000).toISOString();
+  const expiresAt = expiresAtISO;
 
   const sortedNames = [...(db.members || Object.keys(db.attendance || {}))].sort((a, b) =>
     a.localeCompare(b, 'ko')
@@ -699,7 +760,9 @@ export function archiveWeeklyContentHistory(
   }
 
   // 이미 동일 주차(weekLabel)에 유효한 참여 기록이 저장되어 있는데 실수로 연속 초기화(0명 참여)를 누른 경우 기존 기록 보존
-  const existingSameWeekIdx = db.weeklyHistory.findIndex(h => h.weekLabel === weekLabel);
+  const existingSameWeekIdx = db.weeklyHistory.findIndex(
+    h => h.weekLabel === weekLabel && h.year === year && h.monthNumber === monthNumber
+  );
   if (existingSameWeekIdx !== -1 && activeWeeklyCount === 0 && db.weeklyHistory[existingSameWeekIdx].activeWeeklyCount > 0) {
     return db.weeklyHistory[existingSameWeekIdx];
   }
@@ -707,6 +770,7 @@ export function archiveWeeklyContentHistory(
   const newEntry: WeeklyContentHistoryEntry = {
     id: `wh_${nowMs}`,
     weekLabel,
+    scheduleSummary,
     year,
     monthNumber,
     weekOfMonth,
