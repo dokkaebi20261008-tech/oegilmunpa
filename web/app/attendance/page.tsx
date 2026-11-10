@@ -401,7 +401,8 @@ export default function AttendancePage() {
             <h3 className="text-sm font-bold text-white">디스코드 봇 실시간 연동 및 주간/누적 안내</h3>
             <div className="text-xs text-slate-400 space-y-0.5">
               <p>• <strong>스크린샷 업로드(+1.0P):</strong> 디스코드에 참여 스크린샷 업로드 시 항상 <strong className="text-emerald-300">수동 참가(+1.0P)</strong>로 자동 반영됩니다.</p>
-              <p>• <strong>다수 인원 수동 추가:</strong> <code className="text-amber-300 bg-slate-950 px-1.5 py-0.5 rounded">!수동추가 닉1 닉2 닉3 신기</code> 처럼 2명 이상 한 번에 명령어 입력 가능</p>
+              <p>• <strong>다수 인원 수동(+1.0P) 추가:</strong> <code className="text-amber-300 bg-slate-950 px-1.5 py-0.5 rounded">!수동추가 닉1 닉2 신기</code> 처럼 한 번에 입력 가능</p>
+              <p>• <strong>다수 인원 분신(+0.25P) 추가:</strong> <code className="text-sky-300 bg-slate-950 px-1.5 py-0.5 rounded">!요신분신 정지태 옥절이</code> 또는 <code className="text-sky-300 bg-slate-950 px-1.5 py-0.5 rounded">!결계지분신 정지태 옥절이</code> 입력 가능</p>
             </div>
           </div>
         </div>

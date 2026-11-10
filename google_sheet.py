@@ -150,8 +150,8 @@ class GoogleSheetManager:
     async def get_all_members(self) -> Dict[str, dict]:
         return await asyncio.to_thread(self.get_all_members_sync)
 
-    def add_participation_sync(self, recognized_names: List[str], content_name: str = "") -> Tuple[List[str], List[str]]:
-        """인식된 문파원들의 특정 컨텐츠 출석 체크"""
+    def add_participation_sync(self, recognized_names: List[str], content_name: str = "", part_type: str = "MANUAL") -> Tuple[List[str], List[str]]:
+        """인식된 문파원들의 특정 컨텐츠 출석 체크 (MANUAL: 수동 1.0P, CLONE: 분신 0.25P)"""
         if not recognized_names:
             return [], []
 
@@ -159,7 +159,7 @@ class GoogleSheetManager:
             data = self._call_web_api({
                 "names": recognized_names,
                 "content": content_name,
-                "type": "MANUAL"
+                "type": part_type
             })
             if data.get("success"):
                 return recognized_names, []
@@ -170,7 +170,8 @@ class GoogleSheetManager:
             res = self._call_gas({
                 "action": "add_participation", 
                 "names": recognized_names,
-                "content": content_name
+                "content": content_name,
+                "type": part_type
             })
             if res.get("success"):
                 return res.get("updated", []), res.get("unknown", [])
@@ -184,7 +185,8 @@ class GoogleSheetManager:
             res = self._call_gas({
                 "action": "add_participation", 
                 "names": chunk,
-                "content": content_name
+                "content": content_name,
+                "type": part_type
             })
             if res.get("success"):
                 all_updated.extend(res.get("updated", []))
@@ -193,8 +195,8 @@ class GoogleSheetManager:
                 all_unknown.extend(chunk)
         return all_updated, all_unknown
 
-    async def add_participation(self, recognized_names: List[str], content_name: str = "") -> Tuple[List[str], List[str]]:
-        return await asyncio.to_thread(self.add_participation_sync, recognized_names, content_name)
+    async def add_participation(self, recognized_names: List[str], content_name: str = "", part_type: str = "MANUAL") -> Tuple[List[str], List[str]]:
+        return await asyncio.to_thread(self.add_participation_sync, recognized_names, content_name, part_type)
 
     def add_new_member_sync(self, name: str) -> bool:
         """신규 문파원 등록"""

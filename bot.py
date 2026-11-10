@@ -278,7 +278,8 @@ def get_cert_embed():
         value="1. **신기 쟁탈전 / 미혹의 정원 / 요신 토벌령 / 결계지 방어** 참여 화면을 캡처합니다.\n"
               "2. 이 채널에 이미지를 업로드합니다. (메시지에 `신기`, `미혹`, `요신`, `결계`를 함께 적어주시면 해당 컨텐츠에 정확히 체크됩니다!)\n"
               "3. 봇이 화면 속 문파원 닉네임을 자동 감지하여 공식 출석부에 **체크**를 반영합니다!\n"
-              "4. 감지가 완료되면 봇이 `✅` 반응과 함께 집계 결과를 안내합니다.",
+              "4. 감지가 완료되면 봇이 `✅` 반응과 함께 집계 결과를 안내합니다.\n"
+              "5. **분신(+0.25P) 체크 명령어**: `!요신분신 닉1 닉2` 또는 `!결계지분신 닉1 닉2` 입력 시 즉시 분신 참여로 반영됩니다.",
         inline=False
     )
     return embed
@@ -292,10 +293,11 @@ def get_admin_embed():
     embed.add_field(name="!현황", value="모든 문파원의 누적 참여 횟수 및 순위 확인", inline=False)
     embed.add_field(name="!문파원추가 [닉네임]", value="신규 문파원을 공식 출석부에 등록 (예: `!문파원추가 홍길동`)", inline=False)
     embed.add_field(name="!문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 공식 출석부에서 삭제 (예: `!문파원삭제 홍길동`)", inline=False)
-    embed.add_field(name="!수동추가 [닉네임1 닉네임2...] [신기/미혹/요신/결계]", value="1명 또는 다수 인원 일괄 수동 체크 (예: `!수동추가 상두불 상겨미 신기`)", inline=False)
+    embed.add_field(name="!수동추가 [닉네임1 닉네임2...] [신기/미혹/요신/결계]", value="1명 또는 다수 인원 일괄 수동(+1.0P) 체크 (예: `!수동추가 상두불 상겨미 신기`)", inline=False)
+    embed.add_field(name="!요신분신 [닉네임1 닉네임2...]", value="요신 토벌령 분신(+0.25P) 일괄 체크 (예: `!요신분신 정지태 옥절이`)", inline=False)
+    embed.add_field(name="!결계지분신 [닉네임1 닉네임2...]", value="결계지 방어 분신(+0.25P) 일괄 체크 (예: `!결계지분신 정지태 옥절이` 또는 `!결계분신 정지태 옥절이`)", inline=False)
+    embed.add_field(name="!분신추가 [닉네임1 닉네임2...] [요신/결계지]", value="요신/결계지 분신(+0.25P) 일괄 체크 (예: `!분신추가 정지태 옥절이 요신`)", inline=False)
     embed.add_field(name="!초기화", value="주간 분배 정산 완료 후 전원 참여 내역 리셋", inline=False)
-    embed.add_field(name="!채널업데이트", value="새 채널 생성 없이, 기존 채널들의 안내 카드를 최신 내용으로 갱신", inline=False)
-    return embed
     embed.add_field(name="!채널업데이트", value="새 채널 생성 없이, 기존 채널들의 안내 카드를 최신 내용으로 갱신", inline=False)
     return embed
 
@@ -649,6 +651,9 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
 
     # 쉼표(,) 및 줄바꿈을 공백으로 치환 후 토큰 분리
     tokens = [t.strip() for t in args_text.replace(",", " ").replace("\n", " ").split() if t.strip()]
+    if any("분신" in t for t in tokens):
+        await _process_clone_participation(ctx, args_text, fixed_content=None)
+        return
 
     detected_content = ""
     raw_names = []
@@ -749,6 +754,168 @@ async def cmd_manual_add(ctx, *, args_text: str = None):
         logger.error(f"수동 추가 오류: {e}")
         await status_msg.edit(content=f"❌ 처리 중 오류가 발생했습니다: {e}")
 
+CLONE_CONTENT_KEYWORDS = {
+    "3": "요신 토벌령",
+    "요신": "요신 토벌령",
+    "토벌": "요신 토벌령",
+    "토벌령": "요신 토벌령",
+    "요신분신": "요신 토벌령",
+    "4": "결계지 방어",
+    "결계": "결계지 방어",
+    "결계지": "결계지 방어",
+    "방어": "결계지 방어",
+    "결계분신": "결계지 방어",
+    "결계지분신": "결계지 방어",
+}
+
+async def _process_clone_participation(ctx, args_text: str = None, fixed_content: str = None):
+    """요신 토벌령 / 결계지 방어 분신(+0.25P) 일괄 체크 공통 헬퍼"""
+    if not args_text or not args_text.strip():
+        embed = discord.Embed(
+            title="⚠️ 분신으로 참여 체크할 문파원 닉네임을 입력해주세요!",
+            description="요신 토벌령 또는 결계지 방어에 **분신(+0.25P)**으로 참여한 문파원 닉네임을 적어주세요.\n\n"
+                        "💡 **요신 분신 예시**: `!요신분신 정지태 옥절이`\n"
+                        "💡 **결계지 분신 예시**: `!결계지분신 정지태 옥절이` (또는 `!결계분신 정지태 옥절이`)\n"
+                        "💡 **통합 명령어 예시**: `!분신추가 정지태 옥절이 요신`",
+            color=discord.Color.blue()
+        )
+        await ctx.send(embed=embed)
+        return
+
+    tokens = [t.strip() for t in args_text.replace(",", " ").replace("\n", " ").split() if t.strip()]
+    detected_content = fixed_content or ""
+    raw_names = []
+
+    for tok in tokens:
+        tok_lower = tok.lower()
+        if tok_lower in ["분신", "분신참여", "분신체크", "분신추가"]:
+            continue
+
+        matched_c = None
+        if tok_lower in CLONE_CONTENT_KEYWORDS:
+            matched_c = CLONE_CONTENT_KEYWORDS[tok_lower]
+        else:
+            for kw, full_name in CLONE_CONTENT_KEYWORDS.items():
+                if kw not in ["3", "4"] and kw in tok_lower:
+                    matched_c = full_name
+                    break
+
+        if matched_c:
+            if not fixed_content:
+                detected_content = matched_c
+        elif tok_lower in ["신기", "쟁탈", "쟁탈전", "미혹", "정원"]:
+            if not fixed_content:
+                embed_invalid = discord.Embed(
+                    title="⚠️ 분신(+0.25P)은 [요신]과 [결계지]만 가능합니다!",
+                    description="신기 쟁탈전과 미혹의 정원은 직접 수동 참여(+1.0P)만 존재합니다.\n\n"
+                                "💡 **요신 분신**: `!요신분신 정지태 옥절이`\n"
+                                "💡 **결계지 분신**: `!결계지분신 정지태 옥절이`",
+                    color=discord.Color.orange()
+                )
+                await ctx.send(embed=embed_invalid)
+                return
+        else:
+            raw_names.append(tok)
+
+    if not detected_content or not raw_names:
+        embed = discord.Embed(
+            title="⚠️ 문파원 닉네임을 함께 입력해주세요!",
+            description="1명 또는 여러 명의 문파원 닉네임(띄어쓰기 또는 쉼표 구분)을 입력해주세요.\n\n"
+                        "💡 **요신 분신 예시**: `!요신분신 정지태 옥절이`\n"
+                        "💡 **결계지 분신 예시**: `!결계지분신 정지태 옥절이` (또는 `!결계분신 정지태 옥절이`)\n"
+                        "💡 **통합 분신 예시**: `!분신추가 정지태 옥절이 요신`",
+            color=discord.Color.orange()
+        )
+        await ctx.send(embed=embed)
+        return
+
+    status_msg = await ctx.send(
+        f"⏳ **총 {len(raw_names)}명**({', '.join(raw_names)})의 **[{detected_content}]** 분신 참여(+0.25P)를 공식 웹 포털에 반영 중입니다..."
+    )
+
+    try:
+        members = await sheet_mgr.get_all_members()
+        member_names = list(members.keys())
+
+        target_names = []
+        not_found_names = []
+
+        for name in raw_names:
+            if name in members:
+                if name not in target_names:
+                    target_names.append(name)
+            else:
+                match = process.extractOne(name, member_names, scorer=fuzz.ratio, score_cutoff=80)
+                if match:
+                    matched_name = match[0]
+                    if matched_name not in target_names:
+                        target_names.append(matched_name)
+                else:
+                    not_found_names.append(name)
+
+        if not target_names:
+            embed_not_found = discord.Embed(
+                title="⚠️ 등록되지 않은 문파원입니다",
+                description=f"입력하신 **{', '.join(not_found_names)}** 님을 공식 출석부 명단에서 찾을 수 없습니다.\n\n"
+                            f"💡 신규 문파원이라면 먼저 `!문파원추가 [닉네임]`으로 등록한 후 다시 시도해주세요.",
+                color=discord.Color.red()
+            )
+            await status_msg.edit(content=None, embed=embed_not_found)
+            return
+
+        part_type = "CLONE"
+        part_badge = "👤 분신 참가 (+0.25P)"
+
+        updated, unknown = await sheet_mgr.add_participation(target_names, detected_content, part_type)
+
+        if getattr(config, "ENABLE_GOOGLE_SHEETS", False):
+            await sync_to_website({"names": target_names, "content": detected_content, "type": part_type})
+
+        if updated:
+            embed_success = discord.Embed(
+                title=f"👤 분신 참여 체크 완료 ({detected_content} • 총 {len(updated)}명)",
+                description=f"요청하신 문파원들의 **{detected_content}** 분신 참가(+0.25P) 체크가 일괄 완료되었습니다!\n"
+                            f"• 참여 형태: **{part_badge}**",
+                color=discord.Color.blue()
+            )
+            updated_lines = [f"{idx}. {u}" for idx, u in enumerate(updated, start=1)]
+            embed_success.add_field(
+                name=f"✅ 분신 반영 완료 명단 ({len(updated)}명)",
+                value="\n".join(updated_lines[:25]) + (f"\n...외 {len(updated_lines)-25}명" if len(updated_lines) > 25 else ""),
+                inline=False
+            )
+            if not_found_names or unknown:
+                missed = list(dict.fromkeys(not_found_names + unknown))
+                embed_success.add_field(name="❓ 미등록/확인 필요 인원", value=", ".join(missed), inline=False)
+
+            embed_success.add_field(name="🌐 실시간 출석부", value=f"[웹 포털 출석부 바로가기]({PORTAL_ATTENDANCE_URL})", inline=False)
+            embed_success.set_footer(text="공식 웹 포털에 실시간 반영되어 총 포인트 및 분배금이 자동 갱신되었습니다.")
+            await status_msg.edit(content=None, embed=embed_success)
+        else:
+            await status_msg.edit(content=f"❌ 분신 출석 반영에 실패했습니다. 포털 상태를 확인해주세요.")
+
+    except Exception as e:
+        logger.error(f"분신 추가 오류: {e}")
+        await status_msg.edit(content=f"❌ 처리 중 오류가 발생했습니다: {e}")
+
+@bot.command(name="요신분신", aliases=["요신토벌분신", "분신요신"])
+@commands.check(is_manager_or_admin)
+async def cmd_yosin_clone(ctx, *, args_text: str = None):
+    """요신 토벌령 분신(+0.25P) 일괄 체크 (예: !요신분신 정지태 옥절이)"""
+    await _process_clone_participation(ctx, args_text, fixed_content="요신 토벌령")
+
+@bot.command(name="결계지분신", aliases=["결계분신", "결계방어분신", "분신결계", "분신결계지"])
+@commands.check(is_manager_or_admin)
+async def cmd_gyeolgye_clone(ctx, *, args_text: str = None):
+    """결계지 방어 분신(+0.25P) 일괄 체크 (예: !결계지분신 정지태 옥절이 또는 !결계분신 정지태 옥절이)"""
+    await _process_clone_participation(ctx, args_text, fixed_content="결계지 방어")
+
+@bot.command(name="분신추가", aliases=["분신", "분신체크", "분신참여"])
+@commands.check(is_manager_or_admin)
+async def cmd_clone_add(ctx, *, args_text: str = None):
+    """요신 토벌령 / 결계지 방어 분신(+0.25P) 일괄 체크 (예: !분신추가 정지태 옥절이 요신)"""
+    await _process_clone_participation(ctx, args_text, fixed_content=None)
+
 @bot.command(name="초기화", aliases=["리셋"])
 @commands.check(is_manager_or_admin)
 async def cmd_reset(ctx):
@@ -807,7 +974,10 @@ async def cmd_help(ctx):
     embed.add_field(name="🔄 !채널업데이트", value="새 채널을 만들지 않고, 이미 만들어진 채널의 안내 카드만 최신화합니다.", inline=False)
     embed.add_field(name="➕ !문파원추가 [닉네임]", value="새로운 문파원을 공식 출석부에 신규 등록합니다.", inline=False)
     embed.add_field(name="🗑️ !문파원삭제 [닉네임]", value="탈퇴/추방된 문파원을 공식 출석부에서 삭제합니다.", inline=False)
-    embed.add_field(name="✏️ !수동추가 [닉네임1 닉네임2...] [컨텐츠]", value="1명 또는 다수 일괄 수동 체크 (예: `!수동추가 상두불 신기` 또는 `!수동추가 상두불 상겨미 신기`)", inline=False)
+    embed.add_field(name="✏️ !수동추가 [닉네임1 닉네임2...] [컨텐츠]", value="1명 또는 다수 일괄 수동(+1.0P) 체크 (예: `!수동추가 상두불 신기` 또는 `!수동추가 상두불 상겨미 신기`)", inline=False)
+    embed.add_field(name="👤 !요신분신 [닉네임1 닉네임2...]", value="요신 토벌령 분신(+0.25P) 일괄 체크 (예: `!요신분신 정지태 옥절이`)", inline=False)
+    embed.add_field(name="👤 !결계지분신 [닉네임1 닉네임2...]", value="결계지 방어 분신(+0.25P) 일괄 체크 (예: `!결계지분신 정지태 옥절이` 또는 `!결계분신 정지태 옥절이`)", inline=False)
+    embed.add_field(name="👤 !분신추가 [닉네임1 닉네임2...] [요신/결계지]", value="요신/결계지 분신(+0.25P) 일괄 체크 (예: `!분신추가 정지태 옥절이 요신`)", inline=False)
     embed.add_field(name="📸 스크린샷 자동 집계", value="스크린샷과 함께 컨텐츠명(신기/미혹/요신/결계)을 적어 올리면 전원 정상 수동 참가(+1.0P)로 자동 체크됩니다.", inline=False)
     embed.add_field(name="!현황", value="현재 문파원들의 주간 참여 순위를 확인합니다.", inline=False)
     embed.add_field(name="!초기화", value="[관리자 전용] 주간 분배 정산 종료 후 주간 참여 내역을 리셋합니다.", inline=False)
