@@ -248,7 +248,7 @@ export async function POST(req: Request) {
         targetAuc = {
           id: `auc_${nowMs}`,
           title: item.name,
-          description: `[문파 상점 경매] 시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 즉시 낙찰자 및 최종 낙찰금액이 공개됩니다.`,
+          description: `[문파 상점 경매] 경매 최소 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 즉시 낙찰자 및 최종 낙찰금액이 공개됩니다.`,
           imageUrl: '/images/shop-weapon.png',
           startingBid: sBid,
           minBidIncrement: mInc,

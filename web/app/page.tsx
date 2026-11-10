@@ -358,7 +358,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-extrabold text-white text-sm pt-1">문파 경매·창고</h3>
             <p className="text-xs text-slate-400 leading-relaxed break-keep">
-              최소 시작가 20,000 금전(호가 500 단위)으로 30분간 익명 경매 진행 후 낙찰자 공개 및 세금 10% 공제 후 창고에 세이브됩니다.
+              경매 최소 입찰가 20,000 금전(호가 500 단위)으로 30분간 익명 경매 진행 후 낙찰자 공개 및 세금 10% 공제 후 창고에 세이브됩니다.
             </p>
           </div>
 

@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     const { title, description, imageUrl, startingBid, minBidIncrement, mode } = await req.json();
 
     if (!title || !startingBid || !minBidIncrement) {
-      return NextResponse.json({ success: false, message: '물품명, 최소 시작 입찰가, 최소 호가 단위를 입력해주세요.' }, { status: 400 });
+      return NextResponse.json({ success: false, message: '물품명, 경매 최소 입찰가, 최소 호가 단위를 입력해주세요.' }, { status: 400 });
     }
 
     const sBid = parseInt(String(startingBid), 10);
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
       title: title.trim(),
       description: description
         ? description.trim()
-        : `시작 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 시 최고 입찰자 닉네임 및 최종 낙찰금액 공개 (세금 10% 공제 후 창고 세이브)`,
+        : `경매 최소 입찰가 ${sBid.toLocaleString()} 금전 / 최소 호가 단위 +${mInc.toLocaleString()} 금전 • 종료 시 최고 입찰자 닉네임 및 최종 낙찰금액 공개 (세금 10% 공제 후 창고 세이브)`,
       imageUrl: resolvedImage,
       startingBid: sBid,
       minBidIncrement: mInc,

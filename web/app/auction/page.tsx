@@ -376,7 +376,7 @@ export default function AuctionPage() {
               </h1>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed break-keep">
                 매주 수요일 <strong className="text-amber-300">19:00:00 ~ 23:59:59 상점 희망 신청 오픈 (목요일 00:00:00 신청 마감)</strong><br className="hidden sm:inline" />
-                <span className="sm:hidden"> • </span>신청 후 <strong className="text-indigo-300">10분 뒤 30분 익명 경매 자동 개시 (최소 시작가 20,000G / 호가 500G)</strong> • 종료 시 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
+                <span className="sm:hidden"> • </span>신청 후 <strong className="text-indigo-300">10분 뒤 30분 익명 경매 자동 개시 (경매 최소 입찰가 20,000G / 호가 500G)</strong> • 종료 시 <strong className="text-emerald-300">세금 10% 공제 후 창고 적립</strong>
               </p>
             </div>
           </div>
@@ -470,7 +470,7 @@ export default function AuctionPage() {
                 </p>
                 <div className="pt-1 flex flex-wrap items-center justify-center gap-2 text-xs">
                   <span className="px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold">
-                    최소 시작 입찰가: <strong className="text-white">20,000 금전</strong>
+                    경매 최소 입찰가: <strong className="text-white">20,000 금전</strong>
                   </span>
                   <span className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 font-semibold">
                     최소 호가 단위: <strong className="text-emerald-400">+500 금전</strong>
@@ -538,7 +538,7 @@ export default function AuctionPage() {
                       {/* 핵심 수치 그리드 */}
                       <div className="grid grid-cols-2 gap-2">
                         <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800/80">
-                          <div className="text-[11px] text-slate-400 whitespace-nowrap">최소 구매 입찰가</div>
+                          <div className="text-[11px] text-slate-400 whitespace-nowrap">경매 최소 입찰가</div>
                           <div className="text-xs font-bold text-slate-200 mt-0.5 whitespace-nowrap">
                             {auction.startingBid.toLocaleString()} 금전
                           </div>
@@ -551,7 +551,7 @@ export default function AuctionPage() {
                         </div>
                         <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/40">
                           <div className="text-[11px] text-amber-300 font-bold whitespace-nowrap">
-                            {auction.bidsCount === 0 ? '시작 입찰가' : '현재 최고 입찰가'}
+                            {auction.bidsCount === 0 ? '경매 최소 입찰가' : '현재 최고 입찰가'}
                           </div>
                           <div className="text-sm sm:text-base font-black text-amber-300 mt-0.5 whitespace-nowrap">
                             {auction.currentBid.toLocaleString()} 금전
@@ -1056,7 +1056,7 @@ export default function AuctionPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">1. 최소 구매 입찰가 (시작가)</label>
+                <label className="text-xs font-semibold text-slate-300">1. 경매 최소 입찰가</label>
                 <input
                   type="number"
                   required
