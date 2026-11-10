@@ -1,28 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil, Calendar, Clock, Trash2 } from 'lucide-react';
-import { MemberAttendance, ContentType, ParticipationType, WeeklyContentHistoryEntry, isManagerRole } from '@/lib/types';
+import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil, Calendar, Clock, Trash2, Eye, EyeOff } from 'lucide-react';
+import { MemberAttendance, ContentType, ParticipationType, WeeklyContentHistoryEntry, GuildContentCycleInfo, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
 function getClientGuildCycleInfo() {
   const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const day = kst.getUTCDay();
-  const daysSinceFriday = (day - 5 + 7) % 7;
+  // 화요일 컨텐츠 종료 후 바로(화) 초기화하거나 늦게 수·목·금요일에 초기화하더라도 직전 화요일 완료 주차로 귀속
+  const daysSinceFriday = day === 5 ? 7 : (day - 5 + 7) % 7;
   const friUtc = new Date(Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() - daysSinceFriday));
   const satUtc = new Date(Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 1));
   const tueUtc = new Date(Date.UTC(friUtc.getUTCFullYear(), friUtc.getUTCMonth(), friUtc.getUTCDate() + 4));
   const fmt = (d: Date) => `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}`;
+  const y = friUtc.getUTCFullYear();
   const m = friUtc.getUTCMonth() + 1;
   const w = Math.ceil(friUtc.getUTCDate() / 7);
   const weekLabel = `${m}월 ${w}주차`;
   const scheduleSummary = `${fmt(friUtc)}(금) 미혹 · ${fmt(satUtc)}(토) 신기 · ${fmt(tueUtc)}(화) 요신·결계지`;
-  return { weekLabel, scheduleSummary };
+  return { year: y, monthNumber: m, weekOfMonth: w, weekLabel, scheduleSummary };
 }
 
 export default function AttendancePage() {
   const [attendance, setAttendance] = useState<MemberAttendance[]>([]);
   const [weeklyHistory, setWeeklyHistory] = useState<WeeklyContentHistoryEntry[]>([]);
+  const [currentCycleInfo, setCurrentCycleInfo] = useState<GuildContentCycleInfo | null>(null);
+  const [resetCycleInfo, setResetCycleInfo] = useState<GuildContentCycleInfo | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>('');
   const [historySearch, setHistorySearch] = useState<string>('');
   const [treasuryGold, setTreasuryGold] = useState<number>(0);
@@ -51,6 +56,8 @@ export default function AttendancePage() {
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);
+        if (d.currentCycle) setCurrentCycleInfo(d.currentCycle);
+        if (d.resetCycle) setResetCycleInfo(d.resetCycle);
         if (Array.isArray(d.weeklyHistory)) {
           setWeeklyHistory(d.weeklyHistory);
           setSelectedHistoryId(prev => {
@@ -113,11 +120,12 @@ export default function AttendancePage() {
 
   // 1) 주간 컨텐츠만 미참으로 초기화 (누적 점수는 유지 + 주차별 참여·분신 기록 1개월 자동 보관)
   const handleWeeklyContentReset = async () => {
-    const cycle = getClientGuildCycleInfo();
+    const cycle = resetCycleInfo || getClientGuildCycleInfo();
     const defaultLabel = cycle.weekLabel;
     const inputLabel = prompt(
       '🔄 [주간 컨텐츠만 미참 초기화 & 주차별 참여 기록 자동 저장]\n\n' +
-        `• 현재 컨텐츠 주기: ${cycle.weekLabel} (${cycle.scheduleSummary})\n` +
+        `• 저장될 컨텐츠 주기: ${cycle.weekLabel} (${cycle.scheduleSummary})\n` +
+        '• 화요일 컨텐츠 종료 직후 바로 초기화하시거나 수·목·금요일에 늦게 초기화하셔도 동일하게 직전 완료 주차로 기록됩니다.\n' +
         '• 문파원들의 누적 점수는 0으로 초기화되지 않고 100% 그대로 유지(이월)됩니다.\n' +
         '• 초기화 직전 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 보관함에 자동 저장되며, 다음달 동일 주차 도달 시 자동 삭제됩니다.\n\n' +
         '보관함에 저장할 주차 이름을 확인해주세요:',
@@ -141,6 +149,7 @@ export default function AttendancePage() {
         alert(data.message || '초기화 실패');
         return;
       }
+      setIsPreviewMode(false);
       if (data.archivedEntry?.id) {
         setSelectedHistoryId(data.archivedEntry.id);
       }
@@ -323,7 +332,8 @@ export default function AttendancePage() {
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold mb-2">
             <Calendar className="w-3.5 h-3.5 text-indigo-400" />
             <span>
-              현재 진행 주차: {getClientGuildCycleInfo().weekLabel} ({getClientGuildCycleInfo().scheduleSummary})
+              현재 진행 주차: {(currentCycleInfo || getClientGuildCycleInfo()).weekLabel} (
+              {(currentCycleInfo || getClientGuildCycleInfo()).scheduleSummary})
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center space-x-3">
@@ -331,7 +341,7 @@ export default function AttendancePage() {
             <span>상세 출석부 & 누적 포인트 관리소</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400 break-keep">
-            주간 컨텐츠(금 미혹 · 토 신기 · 화 요신·결계지) 종료 후 <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>를 누르면 해당 주차 수동·분신 기록이 아래 보관함에 1개월간 남고 <strong className="text-amber-300">누적 점수</strong>는 그대로 유지됩니다.
+            주간 컨텐츠(금 미혹 · 토 신기 · 화 요신·결계지) 종료 후 화요일 당일 또는 늦게 목·금요일에 <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>를 눌러도 직전 완료 주차 기록이 아래 보관함에 1개월간 남고 <strong className="text-amber-300">누적 점수</strong>는 그대로 유지됩니다.
           </p>
         </div>
 
@@ -432,24 +442,114 @@ export default function AttendancePage() {
               <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong> 실행 시 해당 주차에 누가 어떤 컨텐츠를 <strong className="text-emerald-300">수동(1.0P)</strong> 또는 <strong className="text-sky-300">분신(0.25P)</strong>으로 참여했는지 자동 기록되며, <strong className="text-amber-300">다음달 동일 주차(약 1개월 경과) 도달 시 자동 삭제</strong>됩니다.
             </p>
           </div>
-          <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap self-start sm:self-auto">
-            보관 기록: {weeklyHistory.length} / 최대 4주 (1개월)
-          </span>
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setIsPreviewMode(prev => !prev)}
+              className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
+                isPreviewMode
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-md shadow-amber-500/10'
+                  : 'bg-slate-950 hover:bg-slate-800 text-sky-300 border-sky-500/30'
+              }`}
+            >
+              {isPreviewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              <span>
+                {isPreviewMode
+                  ? '테스트 미리보기 닫기'
+                  : '🧪 오늘 주간 컨텐츠 종료 시 표시 화면 미리보기'}
+              </span>
+            </button>
+            <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap">
+              보관 기록: {weeklyHistory.length} / 최대 4주 (1개월)
+            </span>
+          </div>
         </div>
 
-        {weeklyHistory.length === 0 ? (
-          <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-1.5">
-            <div className="text-xs sm:text-sm font-bold text-slate-300">
-              아직 보관된 지난 주차 컨텐츠 참여 기록이 없습니다.
+        {weeklyHistory.length === 0 && !isPreviewMode ? (
+          <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-3">
+            <div className="space-y-1.5">
+              <div className="text-xs sm:text-sm font-bold text-slate-300">
+                아직 보관된 지난 주차 컨텐츠 참여 기록이 없습니다.
+              </div>
+              <p className="text-xs text-slate-500 break-keep">
+                1주차 컨텐츠 종료 후(화요일 당일 또는 늦게 목·금요일) 상단의 <strong>[주간 컨텐츠만 미참 초기화 (점수 유지)]</strong> 버튼을 누르면 해당 주차의 수동·분신 참여 내역이 이곳에 자동 기록됩니다.
+              </p>
             </div>
-            <p className="text-xs text-slate-500 break-keep">
-              1주차 컨텐츠 종료 후 상단의 <strong>[주간 컨텐츠만 미참 초기화 (점수 유지)]</strong> 버튼을 누르면 해당 주차의 수동·분신 참여 내역이 이곳에 자동 기록됩니다.
-            </p>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setIsPreviewMode(true)}
+                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-xs font-extrabold transition-all"
+              >
+                <Eye className="w-3.5 h-3.5 text-indigo-300" />
+                <span>🧪 오늘(11월 1주차) 주간 컨텐츠 종료 시 어떻게 표시되는지 테스트 미리보기</span>
+              </button>
+            </div>
           </div>
         ) : (
           (() => {
-            const activeRecord =
-              weeklyHistory.find(h => h.id === selectedHistoryId) || weeklyHistory[0];
+            const cycle = resetCycleInfo || currentCycleInfo || getClientGuildCycleInfo();
+            const previewMembers = sortedAttendance.map((m, idx) => {
+              const hasRealToday = m.yosin?.type !== 'ABSENT' || m.gyeolgye?.type !== 'ABSENT';
+              const isActive = m.singi?.type !== 'ABSENT' || m.mihok?.type !== 'ABSENT' || hasRealToday;
+              // 미리보기 시뮬레이션: 요신/결계지가 아직 진행 전(ABSENT)인 경우 수동(1.0P) 및 분신(0.25P) 예시를 함께 보여줌
+              const simYosin =
+                m.yosin?.type !== 'ABSENT'
+                  ? m.yosin
+                  : isActive
+                  ? idx % 4 === 3
+                    ? { type: 'CLONE' as ParticipationType, points: 0.25 }
+                    : { type: 'MANUAL' as ParticipationType, points: 1 }
+                  : { type: 'ABSENT' as ParticipationType, points: 0 };
+              const simGyeolgye =
+                m.gyeolgye?.type !== 'ABSENT'
+                  ? m.gyeolgye
+                  : isActive
+                  ? idx % 5 === 4
+                    ? { type: 'CLONE' as ParticipationType, points: 0.25 }
+                    : { type: 'MANUAL' as ParticipationType, points: 1 }
+                  : { type: 'ABSENT' as ParticipationType, points: 0 };
+              const wp =
+                Math.round(
+                  ((m.singi?.points || 0) +
+                    (m.mihok?.points || 0) +
+                    (simYosin.points || 0) +
+                    (simGyeolgye.points || 0)) *
+                    100
+                ) / 100;
+              const tp = Math.round(((m.carriedPoints || 0) + wp) * 100) / 100;
+              return {
+                nickname: m.nickname,
+                singi: m.singi || { type: 'ABSENT', points: 0 },
+                mihok: m.mihok || { type: 'ABSENT', points: 0 },
+                yosin: simYosin,
+                gyeolgye: simGyeolgye,
+                weeklyPoints: wp,
+                carriedPoints: m.carriedPoints || 0,
+                totalPoints: tp,
+                rate: Math.round((wp / 4) * 100)
+              };
+            });
+
+            const previewRecord: WeeklyContentHistoryEntry = {
+              id: 'preview_week_1',
+              weekLabel: cycle.weekLabel,
+              scheduleSummary: cycle.scheduleSummary,
+              year: cycle.year || 2026,
+              monthNumber: cycle.monthNumber || 11,
+              weekOfMonth: cycle.weekOfMonth || 1,
+              createdAt: new Date().toISOString(),
+              expiresAt: (resetCycleInfo || currentCycleInfo)?.expiresAtISO || '2026-12-03T15:00:00.000Z',
+              archivedBy: '미리보기',
+              totalMembers: previewMembers.length,
+              activeWeeklyCount: previewMembers.filter(m => m.weeklyPoints > 0).length,
+              members: previewMembers
+            };
+
+            const displayList = isPreviewMode ? [previewRecord, ...weeklyHistory] : weeklyHistory;
+            const activeRecord = isPreviewMode
+              ? previewRecord
+              : displayList.find(h => h.id === selectedHistoryId) || displayList[0];
             if (!activeRecord) return null;
 
             const singiManual = activeRecord.members.filter(m => m.singi?.type === 'MANUAL').map(m => m.nickname);
@@ -465,16 +565,38 @@ export default function AttendancePage() {
 
             return (
               <div className="space-y-4">
+                {isPreviewMode && (
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div className="text-amber-200 leading-relaxed break-keep">
+                      <strong className="text-amber-300">🧪 [테스트 미리보기 화면]</strong> 오늘 주간 컨텐츠 종료 후(또는 목·금요일에){' '}
+                      <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>를 눌렀을 때 보관함에 표시되는 실제 화면 예시입니다.{' '}
+                      <span className="text-slate-300">
+                        (현재 문파원들의 실제 신기·미혹 데이터는 초기화되지 않은 안전한 미리보기 상태입니다.)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsPreviewMode(false)}
+                      className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold whitespace-nowrap self-start sm:self-auto"
+                    >
+                      미리보기 닫기
+                    </button>
+                  </div>
+                )}
+
                 {/* 주차 선택 탭 */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    {weeklyHistory.map(h => {
+                    {displayList.map(h => {
                       const isSelected = h.id === activeRecord.id;
                       return (
                         <button
                           key={h.id}
                           type="button"
-                          onClick={() => setSelectedHistoryId(h.id)}
+                          onClick={() => {
+                            if (h.id !== 'preview_week_1') setIsPreviewMode(false);
+                            setSelectedHistoryId(h.id);
+                          }}
                           className={`px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center space-x-2 ${
                             isSelected
                               ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/20'
@@ -484,6 +606,7 @@ export default function AttendancePage() {
                           <span>
                             📅 {h.weekLabel}
                             {h.scheduleSummary ? ` (${h.scheduleSummary})` : ''}
+                            {h.id === 'preview_week_1' ? ' [미리보기 예시]' : ''}
                           </span>
                           <span className={`px-1.5 py-0.5 rounded text-[10px] ${isSelected ? 'bg-indigo-900 text-indigo-200' : 'bg-slate-900 text-slate-400'}`}>
                             참여 {h.activeWeeklyCount}명
@@ -503,7 +626,7 @@ export default function AttendancePage() {
                         </strong>
                       </span>
                     </span>
-                    {canManage && (
+                    {canManage && activeRecord.id !== 'preview_week_1' && (
                       <button
                         type="button"
                         onClick={() => handleDeleteWeeklyHistory(activeRecord.id, activeRecord.weekLabel)}

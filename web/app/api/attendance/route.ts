@@ -6,7 +6,7 @@ import {
   calculateAuctionDistribution,
   checkAndFinalizeExpiredAuctions,
   archiveWeeklyContentHistory,
-  getGuildContentCycleInfo,
+  getActiveAndResetCycleInfo,
   renameMember,
   removeMember
 } from '@/lib/db';
@@ -53,11 +53,13 @@ export async function GET(req: Request) {
 
   // 현재 문파 창고에 세이브되어 분배 대기 중인 금전 (분배 시 차감됨)
   const treasuryGold = db.treasuryGold || 0;
+  const { currentCycle, resetCycle } = getActiveAndResetCycleInfo(db);
 
   return NextResponse.json({
     success: true,
     currentWeek: db.currentWeek,
-    currentCycle: getGuildContentCycleInfo(),
+    currentCycle,
+    resetCycle,
     totalMembers: list.length,
     activeMembersCount,
     totalGuildPoints,

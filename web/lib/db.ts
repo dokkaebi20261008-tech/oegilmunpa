@@ -607,14 +607,23 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
  * - 11/13(금) 미혹, 11/14(토) 신기, 11/17(화) 요신,결계지 ➔ 11월 2주차
  * - 11/20(금) 미혹, 11/21(토) 신기, 11/24(화) 요신,결계지 ➔ 11월 3주차
  * - 11/27(금) 미혹, 11/28(토) 신기, 12/01(화) 요신,결계지 ➔ 11월 4주차
+ *
+ * mode:
+ * - 'ARCHIVE' (기본값): 화요일 컨텐츠 종료 직후(화) 바로 초기화하거나 늦게 수·목·금요일에 초기화하더라도
+ *   모두 직전 완료된 화요일 주간 컨텐츠 주차(예: 11/10 화 ~ 11/13 금 초기화 시 모두 11월 1주차)로 귀속
+ * - 'CALENDAR': 달력상 금요일(00:00 KST) 도래 기준 주차 계산 (익월 동주차 만료 판정 등에 사용)
  */
-export function getGuildContentCycleInfo(nowMs: number = Date.now()): GuildContentCycleInfo {
+export function getGuildContentCycleInfo(
+  nowMs: number = Date.now(),
+  mode: 'ARCHIVE' | 'CALENDAR' = 'ARCHIVE'
+): GuildContentCycleInfo {
   const kstOffsetMs = 9 * 60 * 60 * 1000;
   const kstDate = new Date(nowMs + kstOffsetMs);
   const day = kstDate.getUTCDay(); // 0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토
 
-  // 해당 주기의 시작 금요일(미혹)로부터 경과 일수: 금(0), 토(1), 일(2), 월(3), 화(4), 수(5), 목(6)
-  const daysSinceFriday = (day - 5 + 7) % 7;
+  // ARCHIVE 모드: 금요일(day === 5)에 늦게 주간 초기화를 누르는 경우에도 직전 화요일에 종료된 주차(7일 전 금요일 시작 주기)로 귀속
+  const daysSinceFriday =
+    mode === 'ARCHIVE' && day === 5 ? 7 : (day - 5 + 7) % 7;
 
   const friUtc = new Date(
     Date.UTC(kstDate.getUTCFullYear(), kstDate.getUTCMonth(), kstDate.getUTCDate() - daysSinceFriday)
@@ -666,6 +675,31 @@ export function getGuildContentCycleInfo(nowMs: number = Date.now()): GuildConte
 }
 
 /**
+ * 현재 출석부 상단에 표시할 활성 주차 및 초기화 시 저장될 대상 주차 계산
+ * - 화/수/목/금 중 아직 직전 주차 초기화를 안 한 상태라면 직전 주차(예: 11월 1주차) 유지
+ * - 직전 주차 초기화를 완료하여 보관함에 기록이 들어간 직후부터는 즉시 다음 주차(예: 11월 2주차)로 전환
+ */
+export function getActiveAndResetCycleInfo(
+  db: DatabaseSchema,
+  nowMs: number = Date.now()
+): { currentCycle: GuildContentCycleInfo; resetCycle: GuildContentCycleInfo } {
+  const resetCycle = getGuildContentCycleInfo(nowMs, 'ARCHIVE');
+  const isAlreadyArchived = (db.weeklyHistory || []).some(
+    h =>
+      h.year === resetCycle.year &&
+      h.monthNumber === resetCycle.monthNumber &&
+      h.weekOfMonth === resetCycle.weekOfMonth
+  );
+
+  if (isAlreadyArchived) {
+    const nextWeekCycle = getGuildContentCycleInfo(nowMs + 7 * 24 * 60 * 60 * 1000, 'ARCHIVE');
+    return { currentCycle: nextWeekCycle, resetCycle };
+  }
+
+  return { currentCycle: resetCycle, resetCycle };
+}
+
+/**
  * 주차별 컨텐츠 참여 기록 1개월 보관 및 자동 삭제 (예: 11월 1주차 기록은 다음달 12월 1주차 도달 시 자동 영구 삭제)
  */
 export function pruneExpiredWeeklyHistory(db: DatabaseSchema, nowMs: number = Date.now()): boolean {
@@ -675,7 +709,7 @@ export function pruneExpiredWeeklyHistory(db: DatabaseSchema, nowMs: number = Da
   }
   if (db.weeklyHistory.length === 0) return false;
 
-  const curCycle = getGuildContentCycleInfo(nowMs);
+  const curCycle = getGuildContentCycleInfo(nowMs, 'CALENDAR');
   const curYear = curCycle.year;
   const curMonth = curCycle.monthNumber;
   const curWeekOfMonth = curCycle.weekOfMonth;
