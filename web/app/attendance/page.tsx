@@ -445,7 +445,13 @@ export default function AttendancePage() {
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
             <button
               type="button"
-              onClick={() => setIsPreviewMode(prev => !prev)}
+              onClick={() => {
+                setIsPreviewMode(prev => {
+                  const next = !prev;
+                  if (next) setSelectedHistoryId('preview_week_1');
+                  return next;
+                });
+              }}
               className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
                 isPreviewMode
                   ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-md shadow-amber-500/10'
@@ -456,11 +462,11 @@ export default function AttendancePage() {
               <span>
                 {isPreviewMode
                   ? '테스트 미리보기 닫기'
-                  : '🧪 오늘 주간 컨텐츠 종료 시 표시 화면 미리보기'}
+                  : '🧪 1주차 ~ 4주차 보관 화면 테스트 미리보기'}
               </span>
             </button>
             <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap">
-              보관 기록: {weeklyHistory.length} / 최대 4주 (1개월)
+              보관 기록: {isPreviewMode ? 4 : weeklyHistory.length} / 최대 4주 (1개월)
             </span>
           </div>
         </div>
@@ -478,78 +484,142 @@ export default function AttendancePage() {
             <div className="pt-1">
               <button
                 type="button"
-                onClick={() => setIsPreviewMode(true)}
+                onClick={() => {
+                  setIsPreviewMode(true);
+                  setSelectedHistoryId('preview_week_1');
+                }}
                 className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-xs font-extrabold transition-all"
               >
                 <Eye className="w-3.5 h-3.5 text-indigo-300" />
-                <span>🧪 오늘(11월 1주차) 주간 컨텐츠 종료 시 어떻게 표시되는지 테스트 미리보기</span>
+                <span>🧪 11월 1주차 ~ 4주차까지 기록이 쌓였을 때 표시 화면 테스트 미리보기</span>
               </button>
             </div>
           </div>
         ) : (
           (() => {
-            const cycle = resetCycleInfo || currentCycleInfo || getClientGuildCycleInfo();
-            const previewMembers = sortedAttendance.map((m, idx) => {
-              const hasRealToday = m.yosin?.type !== 'ABSENT' || m.gyeolgye?.type !== 'ABSENT';
-              const isActive = m.singi?.type !== 'ABSENT' || m.mihok?.type !== 'ABSENT' || hasRealToday;
-              // 미리보기 시뮬레이션: 요신/결계지가 아직 진행 전(ABSENT)인 경우 수동(1.0P) 및 분신(0.25P) 예시를 함께 보여줌
-              const simYosin =
-                m.yosin?.type !== 'ABSENT'
-                  ? m.yosin
-                  : isActive
-                  ? idx % 4 === 3
-                    ? { type: 'CLONE' as ParticipationType, points: 0.25 }
-                    : { type: 'MANUAL' as ParticipationType, points: 1 }
-                  : { type: 'ABSENT' as ParticipationType, points: 0 };
-              const simGyeolgye =
-                m.gyeolgye?.type !== 'ABSENT'
-                  ? m.gyeolgye
-                  : isActive
-                  ? idx % 5 === 4
-                    ? { type: 'CLONE' as ParticipationType, points: 0.25 }
-                    : { type: 'MANUAL' as ParticipationType, points: 1 }
-                  : { type: 'ABSENT' as ParticipationType, points: 0 };
-              const wp =
-                Math.round(
-                  ((m.singi?.points || 0) +
-                    (m.mihok?.points || 0) +
-                    (simYosin.points || 0) +
-                    (simGyeolgye.points || 0)) *
-                    100
-                ) / 100;
-              const tp = Math.round(((m.carriedPoints || 0) + wp) * 100) / 100;
+            const previewWeeksMeta = [
+              {
+                id: 'preview_week_1',
+                weekOfMonth: 1,
+                weekLabel: '11월 1주차',
+                scheduleSummary: '11/06(금) 미혹 · 11/07(토) 신기 · 11/10(화) 요신·결계지',
+                createdAt: '2026-11-10T13:00:00.000Z',
+                expiresAt: '2026-12-03T15:00:00.000Z'
+              },
+              {
+                id: 'preview_week_2',
+                weekOfMonth: 2,
+                weekLabel: '11월 2주차',
+                scheduleSummary: '11/13(금) 미혹 · 11/14(토) 신기 · 11/17(화) 요신·결계지',
+                createdAt: '2026-11-17T13:00:00.000Z',
+                expiresAt: '2026-12-10T15:00:00.000Z'
+              },
+              {
+                id: 'preview_week_3',
+                weekOfMonth: 3,
+                weekLabel: '11월 3주차',
+                scheduleSummary: '11/20(금) 미혹 · 11/21(토) 신기 · 11/24(화) 요신·결계지',
+                createdAt: '2026-11-24T13:00:00.000Z',
+                expiresAt: '2026-12-17T15:00:00.000Z'
+              },
+              {
+                id: 'preview_week_4',
+                weekOfMonth: 4,
+                weekLabel: '11월 4주차',
+                scheduleSummary: '11/27(금) 미혹 · 11/28(토) 신기 · 12/01(화) 요신·결계지',
+                createdAt: '2026-12-01T13:00:00.000Z',
+                expiresAt: '2026-12-24T15:00:00.000Z'
+              }
+            ];
+
+            let cumulativeMap: Record<string, number> = {};
+            sortedAttendance.forEach(m => {
+              cumulativeMap[m.nickname] = m.carriedPoints || 0;
+            });
+
+            const previewRecords: WeeklyContentHistoryEntry[] = previewWeeksMeta.map(meta => {
+              const wIdx = meta.weekOfMonth;
+              const membersForWeek = sortedAttendance.map((m, idx) => {
+                const isActiveBase =
+                  m.singi?.type !== 'ABSENT' || m.mihok?.type !== 'ABSENT' || m.yosin?.type !== 'ABSENT' || m.gyeolgye?.type !== 'ABSENT';
+                const isActive = wIdx === 1 ? isActiveBase : (idx + wIdx) % 9 !== 0;
+
+                const simSingi =
+                  wIdx === 1
+                    ? m.singi || { type: 'ABSENT' as ParticipationType, points: 0 }
+                    : isActive && (idx + wIdx) % 7 !== 0
+                    ? { type: 'MANUAL' as ParticipationType, points: 1 }
+                    : { type: 'ABSENT' as ParticipationType, points: 0 };
+
+                const simMihok =
+                  wIdx === 1
+                    ? m.mihok || { type: 'ABSENT' as ParticipationType, points: 0 }
+                    : isActive && (idx + wIdx) % 8 !== 0
+                    ? { type: 'MANUAL' as ParticipationType, points: 1 }
+                    : { type: 'ABSENT' as ParticipationType, points: 0 };
+
+                const simYosin =
+                  wIdx === 1 && m.yosin?.type !== 'ABSENT'
+                    ? m.yosin
+                    : isActive
+                    ? (idx + wIdx) % 4 === 0
+                      ? { type: 'CLONE' as ParticipationType, points: 0.25 }
+                      : { type: 'MANUAL' as ParticipationType, points: 1 }
+                    : { type: 'ABSENT' as ParticipationType, points: 0 };
+
+                const simGyeolgye =
+                  wIdx === 1 && m.gyeolgye?.type !== 'ABSENT'
+                    ? m.gyeolgye
+                    : isActive
+                    ? (idx + wIdx) % 5 === 0
+                      ? { type: 'CLONE' as ParticipationType, points: 0.25 }
+                      : { type: 'MANUAL' as ParticipationType, points: 1 }
+                    : { type: 'ABSENT' as ParticipationType, points: 0 };
+
+                const wp =
+                  Math.round(
+                    ((simSingi.points || 0) +
+                      (simMihok.points || 0) +
+                      (simYosin.points || 0) +
+                      (simGyeolgye.points || 0)) *
+                      100
+                  ) / 100;
+                const prevCarried = cumulativeMap[m.nickname] || 0;
+                const tp = Math.round((prevCarried + wp) * 100) / 100;
+                cumulativeMap[m.nickname] = tp;
+
+                return {
+                  nickname: m.nickname,
+                  singi: simSingi,
+                  mihok: simMihok,
+                  yosin: simYosin,
+                  gyeolgye: simGyeolgye,
+                  weeklyPoints: wp,
+                  carriedPoints: prevCarried,
+                  totalPoints: tp,
+                  rate: Math.round((wp / 4) * 100)
+                };
+              });
+
               return {
-                nickname: m.nickname,
-                singi: m.singi || { type: 'ABSENT', points: 0 },
-                mihok: m.mihok || { type: 'ABSENT', points: 0 },
-                yosin: simYosin,
-                gyeolgye: simGyeolgye,
-                weeklyPoints: wp,
-                carriedPoints: m.carriedPoints || 0,
-                totalPoints: tp,
-                rate: Math.round((wp / 4) * 100)
+                id: meta.id,
+                weekLabel: meta.weekLabel,
+                scheduleSummary: meta.scheduleSummary,
+                year: 2026,
+                monthNumber: 11,
+                weekOfMonth: meta.weekOfMonth,
+                createdAt: meta.createdAt,
+                expiresAt: meta.expiresAt,
+                archivedBy: '미리보기',
+                totalMembers: membersForWeek.length,
+                activeWeeklyCount: membersForWeek.filter(m => m.weeklyPoints > 0).length,
+                members: membersForWeek
               };
             });
 
-            const previewRecord: WeeklyContentHistoryEntry = {
-              id: 'preview_week_1',
-              weekLabel: cycle.weekLabel,
-              scheduleSummary: cycle.scheduleSummary,
-              year: cycle.year || 2026,
-              monthNumber: cycle.monthNumber || 11,
-              weekOfMonth: cycle.weekOfMonth || 1,
-              createdAt: new Date().toISOString(),
-              expiresAt: (resetCycleInfo || currentCycleInfo)?.expiresAtISO || '2026-12-03T15:00:00.000Z',
-              archivedBy: '미리보기',
-              totalMembers: previewMembers.length,
-              activeWeeklyCount: previewMembers.filter(m => m.weeklyPoints > 0).length,
-              members: previewMembers
-            };
-
-            const displayList = isPreviewMode ? [previewRecord, ...weeklyHistory] : weeklyHistory;
-            const activeRecord = isPreviewMode
-              ? previewRecord
-              : displayList.find(h => h.id === selectedHistoryId) || displayList[0];
+            const displayList = isPreviewMode ? previewRecords : weeklyHistory;
+            const activeRecord =
+              displayList.find(h => h.id === selectedHistoryId) || displayList[0];
             if (!activeRecord) return null;
 
             const singiManual = activeRecord.members.filter(m => m.singi?.type === 'MANUAL').map(m => m.nickname);
@@ -568,10 +638,10 @@ export default function AttendancePage() {
                 {isPreviewMode && (
                   <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                     <div className="text-amber-200 leading-relaxed break-keep">
-                      <strong className="text-amber-300">🧪 [테스트 미리보기 화면]</strong> 오늘 주간 컨텐츠 종료 후(또는 목·금요일에){' '}
-                      <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong>를 눌렀을 때 보관함에 표시되는 실제 화면 예시입니다.{' '}
+                      <strong className="text-amber-300">🧪 [1주차 ~ 4주차 누적 보관 테스트 미리보기]</strong> 아래{' '}
+                      <strong className="text-indigo-300">11월 1주차 · 2주차 · 3주차 · 4주차</strong> 탭을 각각 클릭하시면 주차별 컨텐츠 기록과 누적 점수가 어떻게 쌓이고 다음달 동주차(12/04, 12/11, 12/18, 12/25)에 자동 삭제되는지 확인하실 수 있습니다.{' '}
                       <span className="text-slate-300">
-                        (현재 문파원들의 실제 신기·미혹 데이터는 초기화되지 않은 안전한 미리보기 상태입니다.)
+                        (실제 출석 데이터는 초기화되지 않은 안전한 미리보기 상태입니다.)
                       </span>
                     </div>
                     <button
@@ -593,10 +663,7 @@ export default function AttendancePage() {
                         <button
                           key={h.id}
                           type="button"
-                          onClick={() => {
-                            if (h.id !== 'preview_week_1') setIsPreviewMode(false);
-                            setSelectedHistoryId(h.id);
-                          }}
+                          onClick={() => setSelectedHistoryId(h.id)}
                           className={`px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center space-x-2 ${
                             isSelected
                               ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/20'
@@ -606,7 +673,6 @@ export default function AttendancePage() {
                           <span>
                             📅 {h.weekLabel}
                             {h.scheduleSummary ? ` (${h.scheduleSummary})` : ''}
-                            {h.id === 'preview_week_1' ? ' [미리보기 예시]' : ''}
                           </span>
                           <span className={`px-1.5 py-0.5 rounded text-[10px] ${isSelected ? 'bg-indigo-900 text-indigo-200' : 'bg-slate-900 text-slate-400'}`}>
                             참여 {h.activeWeeklyCount}명
@@ -626,7 +692,7 @@ export default function AttendancePage() {
                         </strong>
                       </span>
                     </span>
-                    {canManage && activeRecord.id !== 'preview_week_1' && (
+                    {canManage && !activeRecord.id.startsWith('preview_') && (
                       <button
                         type="button"
                         onClick={() => handleDeleteWeeklyHistory(activeRecord.id, activeRecord.weekLabel)}
