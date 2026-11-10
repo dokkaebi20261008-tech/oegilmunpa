@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb, saveDb, recalculateMember } from '@/lib/db';
+import { getDb, saveDb, recalculateMember, archiveWeeklyContentHistory } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { isManagerRole } from '@/lib/types';
 
@@ -56,7 +56,9 @@ export async function POST(req: Request) {
       });
     }
 
-    // WEEKLY_CONTENT_ONLY: 4대 주간 컨텐츠만 미참(ABSENT)으로 초기화하고 점수는 carriedPoints로 이월 유지
+    // WEEKLY_CONTENT_ONLY: 4대 주간 컨텐츠만 미참(ABSENT)으로 초기화하고 점수는 carriedPoints로 이월 유지 + 주차별 참여 기록 아카이브
+    const archived = archiveWeeklyContentHistory(db, user?.nickname || '관리자', body.weekLabel);
+
     for (const name in db.attendance) {
       const m = db.attendance[name];
       recalculateMember(m);
@@ -73,7 +75,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: '주간 4대 컨텐츠가 모두 미참으로 초기화되었으며, 문파원들의 누적 점수는 그대로 유지(이월)되었습니다.'
+      archivedEntry: archived,
+      weeklyHistory: db.weeklyHistory || [],
+      message: archived
+        ? `[${archived.weekLabel}] 주간 컨텐츠 참여 기록이 자동 저장되었으며(1개월 보관 후 다음달 동일 주차 자동 삭제), 이번 주 4대 컨텐츠는 미참으로 초기화되었습니다. (누적 점수는 그대로 유지)`
+        : '주간 4대 컨텐츠가 모두 미참으로 초기화되었으며, 문파원들의 누적 점수는 그대로 유지(이월)되었습니다.'
     });
   } catch (err: any) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });

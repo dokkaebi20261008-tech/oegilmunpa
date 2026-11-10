@@ -10,7 +10,9 @@ import {
   AuctionDistribution,
   LadderState,
   TokenLedgerEntry,
-  GoldLedgerEntry
+  GoldLedgerEntry,
+  WeeklyContentHistoryEntry,
+  WeeklyHistoryMemberRecord
 } from './types';
 
 export interface DatabaseSchema {
@@ -25,6 +27,7 @@ export interface DatabaseSchema {
   tokenLedger: TokenLedgerEntry[]; // 용맹의 증표 업데이트 및 차감 공개 내역
   treasuryGold: number;            // 문파 창고 세이브 금전 (낙찰가 10% 세금 공제 후 적립, 분배 시 차감)
   goldLedger: GoldLedgerEntry[];   // 문파 창고 금전 세이브 및 분배 내역
+  weeklyHistory?: WeeklyContentHistoryEntry[]; // 주간 컨텐츠 초기화 시 저장되는 주차별 참여·분신 기록 (1개월 보관 후 자동 삭제)
   ladderState?: LadderState | null;
   ladderHistory?: LadderState[];
   currentWeek: string;
@@ -195,6 +198,7 @@ function getInitialDb(): DatabaseSchema {
     tokenLedger: [],
     treasuryGold: 0,
     goldLedger: [],
+    weeklyHistory: [],
     ladderState: null,
     ladderHistory: [],
     currentWeek: "2026-W45"
@@ -281,6 +285,10 @@ function migrateSchema(db: DatabaseSchema): boolean {
   }
   if (!Array.isArray(db.goldLedger)) {
     db.goldLedger = [];
+    migrated = true;
+  }
+  if (!Array.isArray(db.weeklyHistory)) {
+    db.weeklyHistory = [];
     migrated = true;
   }
 
@@ -591,8 +599,151 @@ export function finalizeSingleAuction(db: DatabaseSchema, auction: AuctionItem):
   }
 }
 
+/**
+ * 주차별 컨텐츠 참여 기록 1개월 보관 및 자동 삭제 (예: 1주차 기록은 다음달 1주차 도달 시 또는 28일 경과 시 자동 영구 삭제)
+ */
+export function pruneExpiredWeeklyHistory(db: DatabaseSchema, nowMs: number = Date.now()): boolean {
+  if (!Array.isArray(db.weeklyHistory)) {
+    db.weeklyHistory = [];
+    return false;
+  }
+  if (db.weeklyHistory.length === 0) return false;
+
+  const kstDate = new Date(nowMs + 9 * 60 * 60 * 1000);
+  const curYear = kstDate.getUTCFullYear();
+  const curMonth = kstDate.getUTCMonth() + 1;
+  const curDay = kstDate.getUTCDate();
+  const curWeekOfMonth = Math.ceil(curDay / 7);
+
+  const beforeLen = db.weeklyHistory.length;
+  db.weeklyHistory = db.weeklyHistory.filter(entry => {
+    const expMs = new Date(entry.expiresAt).getTime();
+    if (!isNaN(expMs) && expMs <= nowMs) {
+      return false;
+    }
+    const entryYear = entry.year || new Date(entry.createdAt).getUTCFullYear();
+    const isNextMonthOrLater =
+      curYear > entryYear || (curYear === entryYear && curMonth > entry.monthNumber);
+    // 이전 달의 기록 중 현재 월의 동일 주차 이상에 도달한 기록은 자동 삭제 (예: 11월 1주차 기록 -> 12월 1주차 도달 시 자동 삭제)
+    if (isNextMonthOrLater && curWeekOfMonth >= entry.weekOfMonth) {
+      return false;
+    }
+    return true;
+  });
+
+  // 최대 4주(약 1개월) 분량만 유지
+  if (db.weeklyHistory.length > 4) {
+    db.weeklyHistory = db.weeklyHistory.slice(0, 4);
+  }
+
+  return db.weeklyHistory.length !== beforeLen;
+}
+
+/**
+ * 주간 컨텐츠 초기화 직전 현재 주차의 4대 컨텐츠 참여(수동/분신/미참) 내역을 스냅샷으로 저장
+ */
+export function archiveWeeklyContentHistory(
+  db: DatabaseSchema,
+  actorNickname: string = '관리자',
+  customWeekLabel?: string,
+  nowMs: number = Date.now()
+): WeeklyContentHistoryEntry | null {
+  pruneExpiredWeeklyHistory(db, nowMs);
+
+  const kstDate = new Date(nowMs + 9 * 60 * 60 * 1000);
+  const year = kstDate.getUTCFullYear();
+  const monthNumber = kstDate.getUTCMonth() + 1;
+  const dayOfMonth = kstDate.getUTCDate();
+  const weekOfMonth = Math.ceil(dayOfMonth / 7);
+
+  const weekLabel = (customWeekLabel || '').trim() || `${year}년 ${monthNumber}월 ${weekOfMonth}주차`;
+  const createdAt = new Date(nowMs).toISOString();
+  // 다음달 동일 주차(28일 = 4주 후) 자동 만료
+  const expiresAt = new Date(nowMs + 28 * 24 * 60 * 60 * 1000).toISOString();
+
+  const sortedNames = [...(db.members || Object.keys(db.attendance || {}))].sort((a, b) =>
+    a.localeCompare(b, 'ko')
+  );
+
+  const memberSnapshots: WeeklyHistoryMemberRecord[] = [];
+  let activeWeeklyCount = 0;
+
+  for (const name of sortedNames) {
+    const m = db.attendance[name];
+    if (!m) continue;
+    recalculateMember(m);
+    const hasParticipated =
+      m.singi?.type !== 'ABSENT' ||
+      m.mihok?.type !== 'ABSENT' ||
+      m.yosin?.type !== 'ABSENT' ||
+      m.gyeolgye?.type !== 'ABSENT';
+    if (hasParticipated) {
+      activeWeeklyCount += 1;
+    }
+
+    memberSnapshots.push({
+      nickname: m.nickname,
+      singi: { ...(m.singi || { type: 'ABSENT', points: 0 }) },
+      mihok: { ...(m.mihok || { type: 'ABSENT', points: 0 }) },
+      yosin: { ...(m.yosin || { type: 'ABSENT', points: 0 }) },
+      gyeolgye: { ...(m.gyeolgye || { type: 'ABSENT', points: 0 }) },
+      weeklyPoints: m.weeklyPoints || 0,
+      carriedPoints: m.carriedPoints || 0,
+      totalPoints: m.totalPoints || 0,
+      rate: m.rate || 0,
+    });
+  }
+
+  if (!Array.isArray(db.weeklyHistory)) {
+    db.weeklyHistory = [];
+  }
+
+  // 이미 동일 주차(weekLabel)에 유효한 참여 기록이 저장되어 있는데 실수로 연속 초기화(0명 참여)를 누른 경우 기존 기록 보존
+  const existingSameWeekIdx = db.weeklyHistory.findIndex(h => h.weekLabel === weekLabel);
+  if (existingSameWeekIdx !== -1 && activeWeeklyCount === 0 && db.weeklyHistory[existingSameWeekIdx].activeWeeklyCount > 0) {
+    return db.weeklyHistory[existingSameWeekIdx];
+  }
+
+  const newEntry: WeeklyContentHistoryEntry = {
+    id: `wh_${nowMs}`,
+    weekLabel,
+    year,
+    monthNumber,
+    weekOfMonth,
+    createdAt,
+    expiresAt,
+    archivedBy: actorNickname,
+    totalMembers: memberSnapshots.length,
+    activeWeeklyCount,
+    members: memberSnapshots,
+  };
+
+  if (existingSameWeekIdx !== -1) {
+    db.weeklyHistory[existingSameWeekIdx] = newEntry;
+  } else {
+    db.weeklyHistory.unshift(newEntry);
+  }
+
+  // 이전 달의 동일 주차 기록 즉시 자동 정리 및 최대 4주 유지
+  db.weeklyHistory = db.weeklyHistory.filter((entry, idx) => {
+    if (idx === 0 || entry.id === newEntry.id) return true;
+    const isOlderMonth =
+      year > entry.year || (year === entry.year && monthNumber > entry.monthNumber);
+    if (isOlderMonth && entry.weekOfMonth <= weekOfMonth) {
+      return false;
+    }
+    return true;
+  });
+
+  if (db.weeklyHistory.length > 4) {
+    db.weeklyHistory = db.weeklyHistory.slice(0, 4);
+  }
+
+  return newEntry;
+}
+
 export async function checkAndFinalizeExpiredAuctions(db: DatabaseSchema): Promise<boolean> {
-  let updated = false;
+  let updated = pruneExpiredWeeklyHistory(db);
   const nowMs = Date.now();
   const wedSched = getKSTWednesdaySchedule(nowMs);
 
@@ -792,6 +943,17 @@ export function renameMember(
       }
     });
   }
+  if (Array.isArray(db.weeklyHistory)) {
+    db.weeklyHistory.forEach(w => {
+      if (w.archivedBy === oldName) w.archivedBy = newName;
+      if (Array.isArray(w.members)) {
+        w.members.forEach(m => {
+          if (m.nickname === oldName) m.nickname = newName;
+        });
+        w.members.sort((a, b) => a.nickname.localeCompare(b.nickname, 'ko'));
+      }
+    });
+  }
 
   return {
     success: true,
@@ -860,6 +1022,16 @@ export function removeMember(
     db.auctions.forEach(a => {
       if (Array.isArray(a.applicants)) {
         a.applicants = a.applicants.filter(app => app !== targetNick);
+      }
+    });
+  }
+
+  // 6. weeklyHistory 주차별 기록에서도 추방 인원 제외
+  if (targetNick && Array.isArray(db.weeklyHistory)) {
+    db.weeklyHistory.forEach(w => {
+      if (Array.isArray(w.members)) {
+        w.members = w.members.filter(m => m.nickname !== targetNick);
+        w.totalMembers = w.members.length;
       }
     });
   }

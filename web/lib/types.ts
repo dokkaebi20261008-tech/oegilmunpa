@@ -185,3 +185,29 @@ export interface PurchaseRequest {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
 }
+
+export interface WeeklyHistoryMemberRecord {
+  nickname: string;
+  singi: ContentParticipation;
+  mihok: ContentParticipation;
+  yosin: ContentParticipation;
+  gyeolgye: ContentParticipation;
+  weeklyPoints: number;
+  carriedPoints: number;
+  totalPoints: number;
+  rate: number;
+}
+
+export interface WeeklyContentHistoryEntry {
+  id: string;
+  weekLabel: string;        // 예: "2026년 11월 1주차"
+  year: number;
+  monthNumber: number;      // 1 ~ 12
+  weekOfMonth: number;      // 1 ~ 5 (해당 월의 주차)
+  createdAt: string;        // 주간 초기화(기록 저장) 시각 ISO
+  expiresAt: string;        // 자동 삭제 시각 ISO (다음달 동일 주차 / 약 1개월 후)
+  archivedBy: string;       // 초기화를 실행한 관리자 닉네임
+  totalMembers: number;
+  activeWeeklyCount: number;// 해당 주차에 1개 이상 컨텐츠에 참여한 인원 수
+  members: WeeklyHistoryMemberRecord[];
+}

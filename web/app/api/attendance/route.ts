@@ -5,6 +5,7 @@ import {
   recalculateMember,
   calculateAuctionDistribution,
   checkAndFinalizeExpiredAuctions,
+  archiveWeeklyContentHistory,
   renameMember,
   removeMember
 } from '@/lib/db';
@@ -66,6 +67,7 @@ export async function GET(req: Request) {
     goldLedger: db.goldLedger || [],
     guildTokens: db.guildTokens || 0,
     tokenLedger: db.tokenLedger || [],
+    weeklyHistory: db.weeklyHistory || [],
     attendance: list
   });
 }
@@ -127,8 +129,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2. [주간 컨텐츠만 미참으로 초기화 (누적 점수는 그대로 보존!)]
+    // 2. [주간 컨텐츠만 미참으로 초기화 (누적 점수는 그대로 보존! + 초기화 직전 해당 주차 참여·분신 기록 1개월 자동 보관)]
     if (action === 'RESET_WEEKLY_CONTENT') {
+      const archived = archiveWeeklyContentHistory(db, user?.nickname || '관리자', body.weekLabel);
+
       for (const name of db.members) {
         const m = db.attendance[name];
         if (m) {
@@ -145,8 +149,25 @@ export async function POST(req: Request) {
       await saveDb(db);
       return NextResponse.json({
         success: true,
-        message: '주간 4대 컨텐츠 참여 체크가 모두 [미참]으로 초기화되었습니다! (문파원들의 누적 점수는 초기화되지 않고 100% 그대로 유지됩니다)',
+        message: archived
+          ? `[${archived.weekLabel}] 주간 컨텐츠 참여·분신 기록이 보관함에 자동 저장되었으며(다음달 동일 주차 자동 삭제), 이번 주 4대 컨텐츠는 모두 [미참]으로 초기화되었습니다! (문파원들의 누적 점수는 100% 그대로 유지됩니다)`
+          : '주간 4대 컨텐츠 참여 체크가 모두 [미참]으로 초기화되었습니다! (문파원들의 누적 점수는 초기화되지 않고 100% 그대로 유지됩니다)',
+        archivedEntry: archived,
+        weeklyHistory: db.weeklyHistory || [],
         attendance: Object.values(db.attendance)
+      });
+    }
+
+    // 2-1. [주차별 컨텐츠 참여 기록 개별 삭제 (관리자 전용)]
+    if (action === 'DELETE_WEEKLY_HISTORY') {
+      const { historyId } = body;
+      if (!Array.isArray(db.weeklyHistory)) db.weeklyHistory = [];
+      db.weeklyHistory = db.weeklyHistory.filter(h => h.id !== historyId);
+      await saveDb(db);
+      return NextResponse.json({
+        success: true,
+        message: '선택한 주차 참여 기록이 삭제되었습니다.',
+        weeklyHistory: db.weeklyHistory
       });
     }
 

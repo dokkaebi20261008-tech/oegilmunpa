@@ -1,12 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil } from 'lucide-react';
-import { MemberAttendance, ContentType, ParticipationType, isManagerRole } from '@/lib/types';
+import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil, Calendar, Clock, Trash2 } from 'lucide-react';
+import { MemberAttendance, ContentType, ParticipationType, WeeklyContentHistoryEntry, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
+
+function getDefaultKSTWeekLabel(): string {
+  const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const y = kst.getUTCFullYear();
+  const m = kst.getUTCMonth() + 1;
+  const w = Math.ceil(kst.getUTCDate() / 7);
+  return `${y}년 ${m}월 ${w}주차`;
+}
 
 export default function AttendancePage() {
   const [attendance, setAttendance] = useState<MemberAttendance[]>([]);
+  const [weeklyHistory, setWeeklyHistory] = useState<WeeklyContentHistoryEntry[]>([]);
+  const [selectedHistoryId, setSelectedHistoryId] = useState<string>('');
+  const [historySearch, setHistorySearch] = useState<string>('');
   const [treasuryGold, setTreasuryGold] = useState<number>(0);
   const [guildTokens, setGuildTokens] = useState<number>(0);
   const { currentUser, authChecking } = useAuthUser();
@@ -33,6 +44,15 @@ export default function AttendancePage() {
       .then(res => res.json())
       .then(d => {
         setAttendance(d.attendance || []);
+        if (Array.isArray(d.weeklyHistory)) {
+          setWeeklyHistory(d.weeklyHistory);
+          setSelectedHistoryId(prev => {
+            if (prev && d.weeklyHistory.some((h: WeeklyContentHistoryEntry) => h.id === prev)) {
+              return prev;
+            }
+            return d.weeklyHistory[0]?.id || '';
+          });
+        }
         if (typeof d.treasuryGold === 'number') setTreasuryGold(d.treasuryGold);
         if (typeof d.guildTokens === 'number') setGuildTokens(d.guildTokens);
         setLoading(false);
@@ -84,13 +104,17 @@ export default function AttendancePage() {
     }
   };
 
-  // 1) 주간 컨텐츠만 미참으로 초기화 (누적 점수는 유지)
+  // 1) 주간 컨텐츠만 미참으로 초기화 (누적 점수는 유지 + 주차별 참여·분신 기록 1개월 자동 보관)
   const handleWeeklyContentReset = async () => {
-    if (
-      !confirm(
-        '🔄 [주간 컨텐츠만 미참 초기화 (점수 유지)]\n\n일주일 컨텐츠 주기가 지나 4대 컨텐츠(신기·미혹·요신·결계) 참여 상태만 모두 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 점수는 0으로 초기화되지 않고 그대로 보존(이월)됩니다.'
-      )
-    ) {
+    const defaultLabel = getDefaultKSTWeekLabel();
+    const inputLabel = prompt(
+      '🔄 [주간 컨텐츠만 미참 초기화 & 주차별 참여 기록 자동 저장]\n\n' +
+        '• 문파원들의 누적 점수는 0으로 초기화되지 않고 100% 그대로 유지(이월)됩니다.\n' +
+        '• 초기화 직전 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 보관함에 자동 저장되며, 약 1개월(다음달 동일 주차) 후 자동 삭제됩니다.\n\n' +
+        '보관함에 저장할 주차 이름을 확인해주세요:',
+      defaultLabel
+    );
+    if (inputLabel === null) {
       return;
     }
 
@@ -98,15 +122,40 @@ export default function AttendancePage() {
       const res = await fetch('/api/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'RESET_WEEKLY_CONTENT' })
+        body: JSON.stringify({
+          action: 'RESET_WEEKLY_CONTENT',
+          weekLabel: inputLabel.trim() || defaultLabel
+        })
       });
       const data = await res.json();
       if (!data.success) {
         alert(data.message || '초기화 실패');
         return;
       }
+      if (data.archivedEntry?.id) {
+        setSelectedHistoryId(data.archivedEntry.id);
+      }
       alert(data.message);
       fetchAttendance();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteWeeklyHistory = async (historyId: string, weekLabel: string) => {
+    if (!confirm(`[${weekLabel}] 주차 참여 기록을 수동 삭제하시겠습니까?`)) return;
+    try {
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'DELETE_WEEKLY_HISTORY', historyId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchAttendance();
+      } else {
+        alert(data.message || '삭제 실패');
+      }
     } catch (err: any) {
       alert(err.message);
     }
@@ -354,6 +403,217 @@ export default function AttendancePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 지난 주차별 컨텐츠 참여·분신 기록 보관함 (1개월 보관 후 다음달 동일 주차 자동 삭제) */}
+      <div className="bg-slate-900/75 border border-indigo-500/30 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
+          <div className="space-y-1">
+            <h2 className="text-base sm:text-lg font-extrabold text-white flex items-center space-x-2">
+              <Calendar className="w-5 h-5 text-indigo-400 shrink-0" />
+              <span>지난 주차별 컨텐츠 참여·분신 기록 보관함 (1개월 자동 보관)</span>
+            </h2>
+            <p className="text-xs text-slate-400 break-keep">
+              <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong> 실행 시 해당 주차에 누가 어떤 컨텐츠를 <strong className="text-emerald-300">수동(1.0P)</strong> 또는 <strong className="text-sky-300">분신(0.25P)</strong>으로 참여했는지 자동 기록되며, <strong className="text-amber-300">다음달 동일 주차(약 1개월 경과) 도달 시 자동 삭제</strong>됩니다.
+            </p>
+          </div>
+          <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap self-start sm:self-auto">
+            보관 기록: {weeklyHistory.length} / 최대 4주 (1개월)
+          </span>
+        </div>
+
+        {weeklyHistory.length === 0 ? (
+          <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-1.5">
+            <div className="text-xs sm:text-sm font-bold text-slate-300">
+              아직 보관된 지난 주차 컨텐츠 참여 기록이 없습니다.
+            </div>
+            <p className="text-xs text-slate-500 break-keep">
+              1주차 컨텐츠 종료 후 상단의 <strong>[주간 컨텐츠만 미참 초기화 (점수 유지)]</strong> 버튼을 누르면 해당 주차의 수동·분신 참여 내역이 이곳에 자동 기록됩니다.
+            </p>
+          </div>
+        ) : (
+          (() => {
+            const activeRecord =
+              weeklyHistory.find(h => h.id === selectedHistoryId) || weeklyHistory[0];
+            if (!activeRecord) return null;
+
+            const singiManual = activeRecord.members.filter(m => m.singi?.type === 'MANUAL').map(m => m.nickname);
+            const mihokManual = activeRecord.members.filter(m => m.mihok?.type === 'MANUAL').map(m => m.nickname);
+            const yosinManual = activeRecord.members.filter(m => m.yosin?.type === 'MANUAL').map(m => m.nickname);
+            const yosinClone = activeRecord.members.filter(m => m.yosin?.type === 'CLONE').map(m => m.nickname);
+            const gyeolManual = activeRecord.members.filter(m => m.gyeolgye?.type === 'MANUAL').map(m => m.nickname);
+            const gyeolClone = activeRecord.members.filter(m => m.gyeolgye?.type === 'CLONE').map(m => m.nickname);
+
+            const filteredHistoryMembers = activeRecord.members.filter(m =>
+              m.nickname.toLowerCase().includes(historySearch.toLowerCase())
+            );
+
+            return (
+              <div className="space-y-4">
+                {/* 주차 선택 탭 */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {weeklyHistory.map(h => {
+                      const isSelected = h.id === activeRecord.id;
+                      return (
+                        <button
+                          key={h.id}
+                          type="button"
+                          onClick={() => setSelectedHistoryId(h.id)}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-extrabold border transition-all flex items-center space-x-2 ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg shadow-indigo-600/20'
+                              : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                          }`}
+                        >
+                          <span>📅 {h.weekLabel}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] ${isSelected ? 'bg-indigo-900 text-indigo-200' : 'bg-slate-900 text-slate-400'}`}>
+                            참여 {h.activeWeeklyCount}명
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                    <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>
+                        기록 저장: {new Date(activeRecord.createdAt).toLocaleDateString('ko-KR')} • 자동 삭제 예정:{' '}
+                        <strong className="text-amber-300">
+                          {new Date(activeRecord.expiresAt).toLocaleDateString('ko-KR')} (다음달 {activeRecord.weekOfMonth}주차)
+                        </strong>
+                      </span>
+                    </span>
+                    {canManage && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteWeeklyHistory(activeRecord.id, activeRecord.weekLabel)}
+                        className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold"
+                        title="이 주차 기록 삭제"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>기록 삭제</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4대 컨텐츠별 수동 / 분신 참여자 한눈에 보기 요약 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between font-extrabold text-white border-b border-slate-800 pb-1.5">
+                      <span>1. 신기 쟁탈전</span>
+                      <span className="text-emerald-400">수동 {singiManual.length}명</span>
+                    </div>
+                    <div className="text-[11px] text-slate-300 leading-relaxed break-keep max-h-24 overflow-y-auto">
+                      <strong className="text-emerald-300">⚔️ 수동:</strong>{' '}
+                      {singiManual.length > 0 ? singiManual.join(', ') : '없음'}
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between font-extrabold text-white border-b border-slate-800 pb-1.5">
+                      <span>2. 미혹의 정원</span>
+                      <span className="text-emerald-400">수동 {mihokManual.length}명</span>
+                    </div>
+                    <div className="text-[11px] text-slate-300 leading-relaxed break-keep max-h-24 overflow-y-auto">
+                      <strong className="text-emerald-300">⚔️ 수동:</strong>{' '}
+                      {mihokManual.length > 0 ? mihokManual.join(', ') : '없음'}
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between font-extrabold text-white border-b border-slate-800 pb-1.5">
+                      <span>3. 요신 토벌령</span>
+                      <span className="text-sky-300">
+                        수동 {yosinManual.length} / 분신 {yosinClone.length}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-300 leading-relaxed break-keep space-y-1 max-h-24 overflow-y-auto">
+                      <div>
+                        <strong className="text-emerald-300">⚔️ 수동:</strong>{' '}
+                        {yosinManual.length > 0 ? yosinManual.join(', ') : '없음'}
+                      </div>
+                      <div>
+                        <strong className="text-sky-300">👤 분신:</strong>{' '}
+                        {yosinClone.length > 0 ? yosinClone.join(', ') : '없음'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between font-extrabold text-white border-b border-slate-800 pb-1.5">
+                      <span>4. 결계지 방어</span>
+                      <span className="text-sky-300">
+                        수동 {gyeolManual.length} / 분신 {gyeolClone.length}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-300 leading-relaxed break-keep space-y-1 max-h-24 overflow-y-auto">
+                      <div>
+                        <strong className="text-emerald-300">⚔️ 수동:</strong>{' '}
+                        {gyeolManual.length > 0 ? gyeolManual.join(', ') : '없음'}
+                      </div>
+                      <div>
+                        <strong className="text-sky-300">👤 분신:</strong>{' '}
+                        {gyeolClone.length > 0 ? gyeolClone.join(', ') : '없음'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 선택된 주차 전체 문파원 상세 참여 기록표 */}
+                <div className="bg-slate-950/80 border border-slate-800 rounded-xl overflow-hidden">
+                  <div className="p-3 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="text-xs font-extrabold text-indigo-300">
+                      📋 [{activeRecord.weekLabel}] 문파원별 4대 컨텐츠 수동·분신 상세 기록표
+                    </div>
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="해당 주차 닉네임 검색..."
+                        value={historySearch}
+                        onChange={e => setHistorySearch(e.target.value)}
+                        className="pl-8 pr-3 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-44 sm:w-56"
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto max-h-80 overflow-y-auto">
+                    <table className="w-full text-left text-xs text-slate-300">
+                      <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 sticky top-0">
+                        <tr>
+                          <th className="py-2.5 px-3 w-10 text-center">No</th>
+                          <th className="py-2.5 px-3">문파원 닉네임</th>
+                          <th className="py-2.5 px-3 text-center">1. 신기 쟁탈전</th>
+                          <th className="py-2.5 px-3 text-center">2. 미혹의 정원</th>
+                          <th className="py-2.5 px-3 text-center">3. 요신 토벌령</th>
+                          <th className="py-2.5 px-3 text-center">4. 결계지 방어</th>
+                          <th className="py-2.5 px-3 text-center">해당 주차 점수</th>
+                          <th className="py-2.5 px-3 text-center">당시 총 누적</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/50">
+                        {filteredHistoryMembers.map((hm, idx) => (
+                          <tr key={hm.nickname} className="hover:bg-slate-900/60">
+                            <td className="py-2 px-3 text-center text-slate-500">{idx + 1}</td>
+                            <td className="py-2 px-3 font-bold text-white">{hm.nickname}</td>
+                            <td className="py-2 px-3 text-center">{renderBadge(hm.singi)}</td>
+                            <td className="py-2 px-3 text-center">{renderBadge(hm.mihok)}</td>
+                            <td className="py-2 px-3 text-center">{renderBadge(hm.yosin)}</td>
+                            <td className="py-2 px-3 text-center">{renderBadge(hm.gyeolgye)}</td>
+                            <td className="py-2 px-3 text-center font-bold text-sky-300">{hm.weeklyPoints}P</td>
+                            <td className="py-2 px-3 text-center font-black text-amber-300">{hm.totalPoints}P</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })()
+        )}
       </div>
 
       {/* Attendance Table Card */}

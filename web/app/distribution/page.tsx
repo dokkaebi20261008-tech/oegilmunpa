@@ -182,20 +182,28 @@ export default function DistributionPage() {
     if (data.success) fetchAttendance();
   };
 
-  // 어드민 전용 2. 주간 컨텐츠만 미참으로 초기화 (누적 점수는 초기화되지 않고 이월 유지!)
+  // 어드민 전용 2. 주간 컨텐츠만 미참으로 초기화 (누적 점수는 초기화되지 않고 이월 유지 + 주차별 참여·분신 기록 1개월 자동 보관!)
   const handleResetWeeklyContentOnly = async () => {
     if (!isAdmin) return;
-    if (
-      !confirm(
-        '🔄 일주일이 지나 이번 주 4대 컨텐츠(요신·결계·미혹·신기) 참여 상태만 전부 [미참]으로 초기화하시겠습니까?\n\n※ 문파원들의 누적 총 점수는 절대 초기화되지 않고 그대로 보존(이월)됩니다!'
-      )
-    ) {
+    const kst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const defaultLabel = `${kst.getUTCFullYear()}년 ${kst.getUTCMonth() + 1}월 ${Math.ceil(kst.getUTCDate() / 7)}주차`;
+    const inputLabel = prompt(
+      '🔄 [주간 컨텐츠만 미참 초기화 & 주차별 참여 기록 자동 저장]\n\n' +
+        '• 문파원들의 누적 총 점수는 절대 초기화되지 않고 그대로 보존(이월)됩니다!\n' +
+        '• 이번 주 누가 어떤 컨텐츠(수동/분신)에 참여했는지 기록이 [상세 출석부]의 보관함에 자동 저장되며, 약 1개월(다음달 동일 주차) 후 자동 삭제됩니다.\n\n' +
+        '보관함에 저장할 주차 이름을 확인해주세요:',
+      defaultLabel
+    );
+    if (inputLabel === null) {
       return;
     }
     const res = await fetch('/api/attendance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'RESET_WEEKLY_CONTENT' })
+      body: JSON.stringify({
+        action: 'RESET_WEEKLY_CONTENT',
+        weekLabel: inputLabel.trim() || defaultLabel
+      })
     });
     const data = await res.json();
     alert(data.message);
@@ -644,12 +652,18 @@ export default function DistributionPage() {
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              • <strong>주간 컨텐츠 미참 초기화</strong>: 일주일 뒤 컨텐츠 체크만 미참으로 리셋하며 <strong>누적 점수는 그대로 유지(이월)</strong>됩니다.<br />
+              • <strong>주간 컨텐츠 미참 초기화</strong>: 컨텐츠 체크만 미참으로 리셋하며 <strong>누적 점수는 그대로 유지(이월)</strong>되고, 해당 주차 수동·분신 참여 기록은 <strong>1개월간 보관 후 자동 삭제</strong>됩니다.<br />
               • <strong>누적 점수 0P 초기화</strong>: 문파 창고 세이브 금전이 모두 분배(0G)된 후에만 문파장(어드민)이 실행할 수 있습니다.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/attendance"
+              className="px-3 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-colors whitespace-nowrap"
+            >
+              📅 지난 주차별 참여·분신 기록 보기
+            </Link>
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
