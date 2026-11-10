@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil, Calendar, Clock, Trash2, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle2, RotateCcw, Search, UserCheck, Shield, Sparkles, RefreshCw, Coins, Award, Pencil, Calendar, Clock, Trash2 } from 'lucide-react';
 import { MemberAttendance, ContentType, ParticipationType, WeeklyContentHistoryEntry, GuildContentCycleInfo, isManagerRole } from '@/lib/types';
 import { useAuthUser } from '@/lib/clientAuth';
 
@@ -27,7 +27,6 @@ export default function AttendancePage() {
   const [weeklyHistory, setWeeklyHistory] = useState<WeeklyContentHistoryEntry[]>([]);
   const [currentCycleInfo, setCurrentCycleInfo] = useState<GuildContentCycleInfo | null>(null);
   const [resetCycleInfo, setResetCycleInfo] = useState<GuildContentCycleInfo | null>(null);
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>('');
   const [historySearch, setHistorySearch] = useState<string>('');
   const [treasuryGold, setTreasuryGold] = useState<number>(0);
@@ -149,7 +148,6 @@ export default function AttendancePage() {
         alert(data.message || '초기화 실패');
         return;
       }
-      setIsPreviewMode(false);
       if (data.archivedEntry?.id) {
         setSelectedHistoryId(data.archivedEntry.id);
       }
@@ -442,184 +440,24 @@ export default function AttendancePage() {
               <strong className="text-sky-300">[주간 컨텐츠만 미참 초기화]</strong> 실행 시 해당 주차에 누가 어떤 컨텐츠를 <strong className="text-emerald-300">수동(1.0P)</strong> 또는 <strong className="text-sky-300">분신(0.25P)</strong>으로 참여했는지 자동 기록되며, <strong className="text-amber-300">다음달 동일 주차(약 1개월 경과) 도달 시 자동 삭제</strong>됩니다.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => {
-                setIsPreviewMode(prev => {
-                  const next = !prev;
-                  if (next) setSelectedHistoryId('preview_week_1');
-                  return next;
-                });
-              }}
-              className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
-                isPreviewMode
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-400/50 shadow-md shadow-amber-500/10'
-                  : 'bg-slate-950 hover:bg-slate-800 text-sky-300 border-sky-500/30'
-              }`}
-            >
-              {isPreviewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              <span>
-                {isPreviewMode
-                  ? '테스트 미리보기 닫기'
-                  : '🧪 1주차 ~ 4주차 보관 화면 테스트 미리보기'}
-              </span>
-            </button>
-            <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap">
-              보관 기록: {isPreviewMode ? 4 : weeklyHistory.length} / 최대 4주 (1개월)
-            </span>
-          </div>
+          <span className="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-extrabold whitespace-nowrap self-start sm:self-auto">
+            보관 기록: {weeklyHistory.length} / 최대 4주 (1개월)
+          </span>
         </div>
 
-        {weeklyHistory.length === 0 && !isPreviewMode ? (
-          <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-3">
-            <div className="space-y-1.5">
-              <div className="text-xs sm:text-sm font-bold text-slate-300">
-                아직 보관된 지난 주차 컨텐츠 참여 기록이 없습니다.
-              </div>
-              <p className="text-xs text-slate-500 break-keep">
-                1주차 컨텐츠 종료 후(화요일 당일 또는 늦게 목·금요일) 상단의 <strong>[주간 컨텐츠만 미참 초기화 (점수 유지)]</strong> 버튼을 누르면 해당 주차의 수동·분신 참여 내역이 이곳에 자동 기록됩니다.
-              </p>
+        {weeklyHistory.length === 0 ? (
+          <div className="p-6 rounded-xl bg-slate-950/60 border border-slate-800/80 text-center space-y-1.5">
+            <div className="text-xs sm:text-sm font-bold text-slate-300">
+              아직 보관된 지난 주차 컨텐츠 참여 기록이 없습니다.
             </div>
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsPreviewMode(true);
-                  setSelectedHistoryId('preview_week_1');
-                }}
-                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 text-xs font-extrabold transition-all"
-              >
-                <Eye className="w-3.5 h-3.5 text-indigo-300" />
-                <span>🧪 11월 1주차 ~ 4주차까지 기록이 쌓였을 때 표시 화면 테스트 미리보기</span>
-              </button>
-            </div>
+            <p className="text-xs text-slate-500 break-keep">
+              1주차 컨텐츠 종료 후(화요일 당일 또는 늦게 목·금요일) 상단의 <strong>[주간 컨텐츠만 미참 초기화 (점수 유지)]</strong> 버튼을 누르면 해당 주차의 수동·분신 참여 내역이 이곳에 자동 기록됩니다.
+            </p>
           </div>
         ) : (
           (() => {
-            const previewWeeksMeta = [
-              {
-                id: 'preview_week_1',
-                weekOfMonth: 1,
-                weekLabel: '11월 1주차',
-                scheduleSummary: '11/06(금) 미혹 · 11/07(토) 신기 · 11/10(화) 요신·결계지',
-                createdAt: '2026-11-10T13:00:00.000Z',
-                expiresAt: '2026-12-03T15:00:00.000Z'
-              },
-              {
-                id: 'preview_week_2',
-                weekOfMonth: 2,
-                weekLabel: '11월 2주차',
-                scheduleSummary: '11/13(금) 미혹 · 11/14(토) 신기 · 11/17(화) 요신·결계지',
-                createdAt: '2026-11-17T13:00:00.000Z',
-                expiresAt: '2026-12-10T15:00:00.000Z'
-              },
-              {
-                id: 'preview_week_3',
-                weekOfMonth: 3,
-                weekLabel: '11월 3주차',
-                scheduleSummary: '11/20(금) 미혹 · 11/21(토) 신기 · 11/24(화) 요신·결계지',
-                createdAt: '2026-11-24T13:00:00.000Z',
-                expiresAt: '2026-12-17T15:00:00.000Z'
-              },
-              {
-                id: 'preview_week_4',
-                weekOfMonth: 4,
-                weekLabel: '11월 4주차',
-                scheduleSummary: '11/27(금) 미혹 · 11/28(토) 신기 · 12/01(화) 요신·결계지',
-                createdAt: '2026-12-01T13:00:00.000Z',
-                expiresAt: '2026-12-24T15:00:00.000Z'
-              }
-            ];
-
-            let cumulativeMap: Record<string, number> = {};
-            sortedAttendance.forEach(m => {
-              cumulativeMap[m.nickname] = m.carriedPoints || 0;
-            });
-
-            const previewRecords: WeeklyContentHistoryEntry[] = previewWeeksMeta.map(meta => {
-              const wIdx = meta.weekOfMonth;
-              const membersForWeek = sortedAttendance.map((m, idx) => {
-                const isActiveBase =
-                  m.singi?.type !== 'ABSENT' || m.mihok?.type !== 'ABSENT' || m.yosin?.type !== 'ABSENT' || m.gyeolgye?.type !== 'ABSENT';
-                const isActive = wIdx === 1 ? isActiveBase : (idx + wIdx) % 9 !== 0;
-
-                const simSingi =
-                  wIdx === 1
-                    ? m.singi || { type: 'ABSENT' as ParticipationType, points: 0 }
-                    : isActive && (idx + wIdx) % 7 !== 0
-                    ? { type: 'MANUAL' as ParticipationType, points: 1 }
-                    : { type: 'ABSENT' as ParticipationType, points: 0 };
-
-                const simMihok =
-                  wIdx === 1
-                    ? m.mihok || { type: 'ABSENT' as ParticipationType, points: 0 }
-                    : isActive && (idx + wIdx) % 8 !== 0
-                    ? { type: 'MANUAL' as ParticipationType, points: 1 }
-                    : { type: 'ABSENT' as ParticipationType, points: 0 };
-
-                const simYosin =
-                  wIdx === 1 && m.yosin?.type !== 'ABSENT'
-                    ? m.yosin
-                    : isActive
-                    ? (idx + wIdx) % 4 === 0
-                      ? { type: 'CLONE' as ParticipationType, points: 0.25 }
-                      : { type: 'MANUAL' as ParticipationType, points: 1 }
-                    : { type: 'ABSENT' as ParticipationType, points: 0 };
-
-                const simGyeolgye =
-                  wIdx === 1 && m.gyeolgye?.type !== 'ABSENT'
-                    ? m.gyeolgye
-                    : isActive
-                    ? (idx + wIdx) % 5 === 0
-                      ? { type: 'CLONE' as ParticipationType, points: 0.25 }
-                      : { type: 'MANUAL' as ParticipationType, points: 1 }
-                    : { type: 'ABSENT' as ParticipationType, points: 0 };
-
-                const wp =
-                  Math.round(
-                    ((simSingi.points || 0) +
-                      (simMihok.points || 0) +
-                      (simYosin.points || 0) +
-                      (simGyeolgye.points || 0)) *
-                      100
-                  ) / 100;
-                const prevCarried = cumulativeMap[m.nickname] || 0;
-                const tp = Math.round((prevCarried + wp) * 100) / 100;
-                cumulativeMap[m.nickname] = tp;
-
-                return {
-                  nickname: m.nickname,
-                  singi: simSingi,
-                  mihok: simMihok,
-                  yosin: simYosin,
-                  gyeolgye: simGyeolgye,
-                  weeklyPoints: wp,
-                  carriedPoints: prevCarried,
-                  totalPoints: tp,
-                  rate: Math.round((wp / 4) * 100)
-                };
-              });
-
-              return {
-                id: meta.id,
-                weekLabel: meta.weekLabel,
-                scheduleSummary: meta.scheduleSummary,
-                year: 2026,
-                monthNumber: 11,
-                weekOfMonth: meta.weekOfMonth,
-                createdAt: meta.createdAt,
-                expiresAt: meta.expiresAt,
-                archivedBy: '미리보기',
-                totalMembers: membersForWeek.length,
-                activeWeeklyCount: membersForWeek.filter(m => m.weeklyPoints > 0).length,
-                members: membersForWeek
-              };
-            });
-
-            const displayList = isPreviewMode ? previewRecords : weeklyHistory;
             const activeRecord =
-              displayList.find(h => h.id === selectedHistoryId) || displayList[0];
+              weeklyHistory.find(h => h.id === selectedHistoryId) || weeklyHistory[0];
             if (!activeRecord) return null;
 
             const singiManual = activeRecord.members.filter(m => m.singi?.type === 'MANUAL').map(m => m.nickname);
@@ -635,29 +473,10 @@ export default function AttendancePage() {
 
             return (
               <div className="space-y-4">
-                {isPreviewMode && (
-                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-400/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                    <div className="text-amber-200 leading-relaxed break-keep">
-                      <strong className="text-amber-300">🧪 [1주차 ~ 4주차 누적 보관 테스트 미리보기]</strong> 아래{' '}
-                      <strong className="text-indigo-300">11월 1주차 · 2주차 · 3주차 · 4주차</strong> 탭을 각각 클릭하시면 주차별 컨텐츠 기록과 누적 점수가 어떻게 쌓이고 다음달 동주차(12/04, 12/11, 12/18, 12/25)에 자동 삭제되는지 확인하실 수 있습니다.{' '}
-                      <span className="text-slate-300">
-                        (실제 출석 데이터는 초기화되지 않은 안전한 미리보기 상태입니다.)
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsPreviewMode(false)}
-                      className="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold whitespace-nowrap self-start sm:self-auto"
-                    >
-                      미리보기 닫기
-                    </button>
-                  </div>
-                )}
-
                 {/* 주차 선택 탭 */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    {displayList.map(h => {
+                    {weeklyHistory.map(h => {
                       const isSelected = h.id === activeRecord.id;
                       return (
                         <button
@@ -692,7 +511,7 @@ export default function AttendancePage() {
                         </strong>
                       </span>
                     </span>
-                    {canManage && !activeRecord.id.startsWith('preview_') && (
+                    {canManage && (
                       <button
                         type="button"
                         onClick={() => handleDeleteWeeklyHistory(activeRecord.id, activeRecord.weekLabel)}
